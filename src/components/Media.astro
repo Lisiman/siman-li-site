@@ -1,0 +1,17 @@
+---
+// An image, or a silent looping video standing in for a GIF (much lighter).
+import type { Media } from '../data/projects';
+
+interface Props {
+  m: Media;
+  alt?: string;
+}
+const { m, alt = '' } = Astro.props;
+---
+{m.kind === 'video' ? (
+  <video autoplay muted loop playsinline preload="metadata" poster={m.poster} width={m.w} height={m.h} aria-label={alt}>
+    <source src={m.video} type="video/mp4" />
+  </video>
+) : (
+  <img src={m.src} alt={alt} loading="lazy" decoding="async" width={m.w} height={m.h} />
+)}

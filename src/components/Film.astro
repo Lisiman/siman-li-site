@@ -1,0 +1,14 @@
+---
+// A film (YouTube or Vimeo): a still and a play button; the player (privacy-enhanced) loads only when it is clicked.
+// The script that swaps the still for the player is in work/[slug].astro (it finds every .d-yt).
+import type { Film } from '../data/details';
+const { film, narrow = false, small = false } = Astro.props as { film: Film; /** the gallery's narrower measure */ narrow?: boolean; /** drawn smaller, in the middle (a making-of) */ small?: boolean };
+---
+<section class:list={["d-gallery d-film", { "d-gallery--narrow": narrow, "d-film--small": small }]}>
+  {film.heading && <h2>{film.heading}</h2>}
+  {film.note && <p class="d-gallery-note">{film.note}</p>}
+  <button type="button" class="d-yt" data-yt={film.youtube} data-vimeo={film.vimeo} aria-label={`Play the film: ${film.title}`}>
+    <img src={film.poster ?? `https://i.ytimg.com/vi/${film.youtube}/maxresdefault.jpg`} alt="" width="1280" height="720" loading="lazy" decoding="async" />
+    <span class="d-yt-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5.5v13l11-6.5z" fill="currentColor"></path></svg></span>
+  </button>
+</section>

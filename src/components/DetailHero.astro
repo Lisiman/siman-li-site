@@ -1,0 +1,32 @@
+---
+// A work's hero: the site itself, playing in a browser window (the whole window opens the live site, if there is one),
+// or a plain picture. Placed by work/[slug].astro: first, under the words, or last (hero.last).
+import type { Detail } from '../data/details';
+const { d } = Astro.props as { d: Detail };
+const live = d.meta.live?.href;
+const Frame = live ? 'a' : 'div';
+---
+<figure class="d-hero">
+  {d.hero.frame === false
+    ? (d.hero.kind === 'video'
+      ? <video class="d-hero-plain" src={d.hero.src} poster={d.hero.poster} width={d.hero.w} height={d.hero.h} autoplay muted loop playsinline></video>
+      : <img class="d-hero-plain" src={d.hero.src} alt={d.hero.alt ?? ''} width={d.hero.w} height={d.hero.h} />)
+    : <>
+  {d.hero.label && <h2 class="d-media-label">{d.hero.label}</h2>}
+  <!-- a browser window around it, and the whole window opens the live site: the traffic lights, the address with a
+       lock and an arrow, and on hover the window lifts and a "Visit site" label appears -->
+  <Frame class={`d-browser${live ? '' : ' is-static'}`} {...(live ? { href: live, target: '_blank', rel: 'noopener', 'aria-label': `Visit ${d.hero.url} (opens in a new tab)` } : {})} style={`view-transition-name: w-${d.slug}-media`}>
+    <span class="d-bar" aria-hidden="true">
+      <span class="d-dots"><i></i><i></i><i></i></span>
+      {d.hero.url && <span class="d-url"><svg class="d-lock" viewBox="0 0 12 14" width="9" height="11"><path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.3"></path><rect x="1.5" y="6" width="9" height="7" rx="1.5" fill="currentColor"></rect></svg>{d.hero.url}{live && <span class="d-url-arrow">↗</span>}</span>}
+      <span class="d-dots d-dots--ghost"></span>
+    </span>
+    <span class="d-screen-wrap">
+      {d.hero.kind === 'video'
+        ? <video src={d.hero.src} poster={d.hero.poster} width={d.hero.w} height={d.hero.h} autoplay muted loop playsinline></video>
+        : <img src={d.hero.src} alt={d.hero.alt ?? ''} width={d.hero.w} height={d.hero.h} />}
+      {live && <span class="d-visit-pill" aria-hidden="true">Visit site ↗</span>}
+    </span>
+  </Frame>
+    </>}
+</figure>

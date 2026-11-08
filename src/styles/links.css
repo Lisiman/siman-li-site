@@ -1,0 +1,27 @@
+/* Text links: on hover the letters float on the water and a little wave flows under them.
+   The wave is the same mark as the waves on the river in the painting (q4,-2 8,0 q4,2 8,0 — 16 units long),
+   drawn in the link's own colour (a mask over currentColor). links.ts wraps each letter so it can bob. */
+.lk-in { position: relative; display: inline-block; white-space: pre; line-height: 1; }   /* (line-height 1: the wave is placed from the letters themselves, not from the line, so it sits the same everywhere) */
+.lk-in .ch { display: inline-block; white-space: pre; }
+/* the wave. Links that used to rest with an underline now rest with the same wave, faint and still (the calm water);
+   on hover it comes up to full strength and flows. One gap between the letters and the line, everywhere on the site.
+   It is sized by the text (one swell per em, its height and line weight with it), so it matches small type and large alike. */
+.lk-in::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -.36em; height: .32em; background: currentColor; opacity: 0; transition: opacity .35s ease;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='5'%3E%3Cpath d='M0 2.5 q4 -2 8 0 q4 2 8 0' fill='none' stroke='%23000' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x var(--lk-x, 0px) 50% / 1em .32em;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='5'%3E%3Cpath d='M0 2.5 q4 -2 8 0 q4 2 8 0' fill='none' stroke='%23000' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x var(--lk-x, 0px) 50% / 1em .32em;
+}
+.lk-w:hover .lk-in::after, .lk-w:focus-visible .lk-in::after { opacity: 1; animation: lk-flow 1.6s linear infinite; }
+.lk-u .lk-in::after { opacity: .5; }   /* at rest the wave is a softer grey than the text, still; on hover it comes up to full and flows */
+@keyframes lk-flow { from { -webkit-mask-position: var(--lk-x, 0px) 50%; mask-position: var(--lk-x, 0px) 50%; } to { -webkit-mask-position: calc(var(--lk-x, 0px) + 1em) 50%; mask-position: calc(var(--lk-x, 0px) + 1em) 50%; } }
+/* the letters float, each a little behind the one before */
+.lk-w:hover .ch, .lk-w:focus-visible .ch { animation: lk-bob 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * -0.12s); }
+@keyframes lk-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
+/* ↗ just steps up and out */
+.lk-in .ch.lk-arr { transition: transform .35s ease; }
+.lk-w:hover .ch.lk-arr, .lk-w:focus-visible .ch.lk-arr { animation: none; transform: translate(2px, -2px); }
+@media (prefers-reduced-motion: reduce) {
+  .lk-w:hover .ch, .lk-w:focus-visible .ch, .lk-w:hover .lk-in::after, .lk-w:focus-visible .lk-in::after { animation: none; }
+}
+
+.lk-in.lk-eol::after { display: none; }

@@ -1,0 +1,87 @@
+---
+// Test page: the hero painting in several looks, side by side, after the hanging scroll.
+// Only in local development, at /dev/test (src/pages/dev/[page].astro). /dev/test?seed=123 tries another landscape.
+import Base from '../layouts/Base.astro';
+---
+<Base title="Siman Li — Painting tests">
+  <main class="t">
+    <header class="t-head">
+      <h1>Painting tests</h1>
+      <p class="mu">Same seed, four looks. Nothing here touches the home page.</p>
+      <div class="t-ctl">
+        <button id="prev" type="button">← seed</button>
+        <span>seed <b id="seed">—</b></span>
+        <button id="next" type="button">seed →</button>
+        <button id="dark" type="button">dark mode</button>
+      </div>
+    </header>
+
+    <!-- shared gradients & the ink-edge filter for every painting below -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs id="t-defs"></defs>
+    </svg>
+
+    <div id="variants"></div>
+  </main>
+</Base>
+
+<style>
+  .t { padding: 32px var(--pad) 80px; }
+  .t-head h1 { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 44px; margin: 0 0 4px; }
+  .t-head p { margin: 0 0 16px; font-size: 14px; }
+  .t-ctl { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; font-size: 14px; }
+  .t-ctl button { font: inherit; color: inherit; background: none; border: 1px solid var(--mu); padding: 6px 12px; cursor: pointer; }
+  .t-ctl button:hover { background: var(--ink); color: var(--bg); }
+  :global(.v) { margin-top: 48px; }
+  :global(.v h2) { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 0 0 2px; }
+  :global(.v p) { margin: 0 0 12px; font-size: 13px; color: var(--mu); }
+  :global(.v svg) { display: block; width: 100%; height: auto; border-top: 1px solid var(--lt); border-bottom: 1px solid var(--lt); }
+</style>
+
+<script>
+  import { Painting } from '../scripts/painting';
+  import type { PaintingStyle, Stroke } from '../scripts/painting-types';
+  import { SITE } from '../data/site';
+
+  const VARIANTS: { name: string; note: string; style: PaintingStyle }[] = [
+    { name: 'A · Now', note: 'The current line painting, for comparison.', style: {} },
+    { name: 'B · Ink wash', note: 'Pale washes under the mountains, banks, rock and canopies. Lines unchanged.', style: { wash: true } },
+    { name: 'C · Wash + rounded peaks + a grove', note: 'Rounded, lumpy summits; a tight stand of tall trees with dense leaf masses and bushes on the rock.', style: { wash: true, round: true, grove: true } },
+    { name: 'D · All of it', note: 'C, plus a rolling far shore with clumps of small trees and a band of mist at the foot of the mountains.', style: { wash: true, round: true, grove: true, hills: true } },
+  ];
+
+  // gradients: 'down' = darkest at the top, fading out; 'band' = mist band; 'blob' = soft round wash
+  const tones = ['ink', 'mid', 'lt', 'bg'];
+  const stop = (o: number, c: string, a: number): string => `<stop offset="${o}" style="stop-color:var(--${c});stop-opacity:${a}"></stop>`;
+  document.getElementById('t-defs')!.innerHTML = tones.map((c) =>
+    `<linearGradient id="down-${c}" x1="0" y1="0" x2="0" y2="1">${stop(0, c, 1)}${stop(0.45, c, 0.5)}${stop(1, c, 0)}</linearGradient>`
+    + `<linearGradient id="band-${c}" x1="0" y1="0" x2="0" y2="1">${stop(0, c, 0)}${stop(0.5, c, 1)}${stop(0.72, c, 1)}${stop(1, c, 0)}</linearGradient>`
+    + `<radialGradient id="blob-${c}">${stop(0, c, 1)}${stop(0.65, c, 0.55)}${stop(1, c, 0)}</radialGradient>`).join('')
+    + '<filter id="edge" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3"></feTurbulence>'
+    + '<feDisplacementMap in="SourceGraphic" scale="9"></feDisplacementMap><feGaussianBlur stdDeviation="1.4"></feGaussianBlur></filter>';
+
+  const strokeStr = (p: Stroke): string => p.fill
+    ? `<path d="${p.d}" fill="url(#${p.fill}-${p.c})" opacity="${p.o}"${p.fill === 'band' ? '' : ' filter="url(#edge)"'}></path>`
+    : `<path d="${p.d}" style="stroke:var(--${p.c})" stroke-width="${p.w}" opacity="${p.o}"></path>`;
+
+  function render(seed: number): void {
+    document.getElementById('seed')!.textContent = String(seed);
+    document.getElementById('variants')!.innerHTML = VARIANTS.map((v) => {
+      const P = Painting.build(seed, { W: 1800, H: 720, vertical: false, ink: 'ink', mid: 'mid', light: 'lt', style: v.style });
+      const layers = P.layers.map((L) => `<g>${L.paths.map(strokeStr).join('')}</g>`).join('');
+      const trees = P.trees.map((t) => (t.w ? `<path d="${t.w}" fill="url(#blob-ink)" opacity="0.3" filter="url(#edge)"></path>` : '')
+        + `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="1"></path><path d="${t.l}" style="stroke:var(--ink)" stroke-width="0.9" opacity="0.9"></path>`).join('');
+      const reeds = P.reeds.map((t) => `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="0.7" opacity="0.8"></path>`).join('');
+      return `<section class="v"><h2>${v.name}</h2><p>${v.note}</p>`
+        + `<svg viewBox="0 20 1800 700" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="${v.name}">${layers}${trees}${reeds}</svg></section>`;
+    }).join('');
+  }
+
+  const params = new URLSearchParams(location.search);
+  let seed = Number(params.get('seed')) || SITE.seed;
+  const go = (s: number): void => { seed = s; history.replaceState(null, '', `?seed=${s}`); render(s); };
+  document.getElementById('prev')!.addEventListener('click', () => go(seed - 1));
+  document.getElementById('next')!.addEventListener('click', () => go(seed + 1));
+  document.getElementById('dark')!.addEventListener('click', () => document.documentElement.classList.toggle('dark'));
+  render(seed);
+</script>

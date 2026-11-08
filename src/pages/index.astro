@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Works from '../components/Works.astro';
+import Ferry from '../components/Ferry.astro';
+import { WEB, ART } from '../data/projects';
+import '../styles/works.css';
+---
+<Base>
+  <Hero />
+
+  <!-- Everything below slides up over the hero. The sheets alternate against it: dark hero → Web paper, Art ink, About paper; light hero → the other way round. -->
+  <div class="sheets">
+    <div class="paper">
+      <Works id="web" label="I. Selected web, identity & front-end" data={WEB} layout="web" uniform />
+    </div>
+    <div class="ink-room">
+      <Works id="art" label="II. Selected media art projects" data={ART} layout="web" italic uniform />
+    </div>
+    <div class="paper about-room">
+      <Ferry />
+    </div>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/works';
+</script>

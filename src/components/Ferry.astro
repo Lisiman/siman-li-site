@@ -1,0 +1,318 @@
+---
+// III. About — contact, a quiet shore, and the end of the page.
+import { Painting } from '../scripts/painting';
+import type { Tone } from '../scripts/painting-types';
+import { SITE } from '../data/site';
+// @ts-expect-error -- no @types/node in this project; Node's fs is there at build time
+import { existsSync } from 'node:fs';
+// how to say "Siman": a recording of Siman saying it, if there is one in public/about/ (the play button shows only then)
+// a few lines from the résumé, set quietly under the bio on the same two columns as the photo and the text: labels under the photo, entries under the text
+const FACTS: { label: string; roles?: { org: string; role: string; years: string; note?: string }[]; list?: (string | { t: string; href: string })[] }[] = [
+  { label: 'Experience', roles: [
+    { org: 'Squarespace', role: 'Creative Developer, Brand', years: '2021–2026' },
+    { org: 'New York University, ITP', role: 'Adjunct Art Professor', years: '2023–Present' },
+    { org: 'University of the Arts', role: 'Adjunct Professor', years: '2020–2022' },
+    { org: 'IDEO', role: 'Interaction Designer & Creative Coder', years: '2018–2019' },
+    { org: 'IBM Studio Shanghai', role: 'Interaction Design Intern', years: '2016' },
+    { org: 'Musical.ly', role: 'UX Design Intern', years: '2016' },
+  ] },
+  { label: 'Education', roles: [
+    { org: 'New York University', role: 'M.P.S. Interactive Telecommunications', years: '2018', note: 'Red Burns Scholarship · Tisch Graduate Scholarship' },
+    { org: 'Donghua University', role: 'B.Eng. Industrial Design', years: '2016' },
+    { org: 'Columbia University', role: 'Visiting Student Program', years: '2015' },
+  ] },
+  { label: 'Selected collaborations', list: ['Squarespace', 'Björk', 'Zendaya', 'Rick Rubin', 'Jeff Koons', 'Magnum Photos', 'Emma Stone', 'Adam Driver', 'Mory Sacko', 'American Express', '7-Eleven', 'Union City Square'] },
+  { label: 'Exhibitions', list: ['Su Dongpo Park, Hainan', 'Kwai Gallery, Oakland', 'CURRENTS New Media Festival', 'Processing Foundation Day', 'CSPACE, Beijing', 'Made in NY Media Center', 'Whitebox Gallery', 'NIME', 'IAC Big Screens', 'Maker Faire New York', 'Jiangsu Television'] },
+  { label: 'Awards and recognition', list: [   // each links to an award page that credits Siman (the strongest of each)
+    { t: 'Webby Awards', href: 'https://winners.webbyawards.com/2025/advertising-media-pr/pr-campaigns/best-b2b-campaign/327927/squarespace-collection-jeff-koons' },
+    { t: 'The One Show', href: 'https://www.oneclub.org/awards/theoneshow/-award/48614/the-singularity' },
+    { t: 'ADC', href: 'https://www.oneclub.org/awards/adcawards/-award/47096/squarespace-icons-bjrk' },
+    { t: 'Awwwards Honorable Mention', href: 'https://www.awwwards.com/sites/squarespace-browser-history-1' },
+    { t: 'CSS Design Awards', href: 'https://www.cssdesignawards.com/sites/squarespace-browser-history-2022/40487/' },
+    { t: 'Maker Faire Editor’s Choice', href: 'https://tisch.nyu.edu/itp/news/fall-2017/itp-at-world-maker-faire-2017' },
+  ] },
+  { label: 'Press', list: ['VICE, The Creators Project', 'RADII China', 'SinoVision', 'Jiangsu Television', 'Sohu Culture', 'ArtsMarvel', 'Radio Magazine', 'DFRobot'] },
+];
+const nameAudio = ['m4a', 'mp3', 'wav'].map((x) => `/about/siman-name.${x}`).find((f) => existsSync(`public${f}`));
+const shore = Painting.buildNight(SITE.seed + 7).shore;   // drawn once, at build time
+// the shore is drawn with the --s* tones; inside the ink room they map to the local palette
+const tok: Partial<Record<Tone, Tone>> = { sink: 'ink', smid: 'mid', slt: 'lt' };
+// the reed blades sway gently, each on its own rhythm (class .bend in hero.css): split the reed stroke into blades
+// (each starts with a curve 'C'; its drooping tip / side blade 'q' go with it), ground lines 'h' stay still
+const isReeds = (d: string): boolean => d.includes(' C') && d.includes(' h');
+const blades = (d: string): { blades: string[]; ground: string } => {
+  const out: string[] = []; let ground = '';
+  for (const seg of d.split(/(?=M)/).filter((x) => x.trim())) {
+    if (/ h/.test(seg)) ground += seg; else if (/ C/.test(seg) || !out.length) out.push(seg); else out[out.length - 1] += seg;
+  }
+  return { blades: out, ground };
+};
+const sway = (i: number): string => {   // deterministic per blade: a gentle skew of ±1–3°, 2.6–4.6 s
+  const r = (k: number): number => { const x = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const a = 1 + r(1) * 2, bias = (r(2) - 0.5) * 1.2;
+  return `--a0:${(bias - a).toFixed(2)}deg;--a1:${(bias + a).toFixed(2)}deg;--d:${(2.6 + r(3) * 2).toFixed(2)}s;--dl:${(-r(4) * 4).toFixed(2)}s`;
+};
+---
+<section class="ferry" id="about">
+  <div class="ferry-main">
+    <p class="caps small mu">III. About</p>
+    <p class="ferry-big">Don’t be shy, <em>let’s say hi.</em><svg class="hi-wave" viewBox="0 0 16 25" aria-hidden="true"><g transform="translate(8,23.5)"><path d="M-2,0 L0,-6.5 L2,0 M0,-6.5 V-13.5 M0,-11.5 l3.5,4"></path><path d="M0,-18.3 a2.4,2.4 0 1,0 0.1,0"></path><g transform="translate(0,-11.5)"><path class="wave-on" d="M0,0 l-4,5"></path></g></g></svg></p>
+    <!-- the text on the left (the smaller golden part), a photo on the right in a hanging scroll -->
+    <div class="about-row">
+      <div class="bio">
+        <p>Hi! I’m Siman <span class="say">(sz-mahn{nameAudio && <button type="button" class="say-btn" data-say={nameAudio} aria-label="Hear how to say Siman"><svg viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M2.2,1.2 L8.6,5 L2.2,8.8 Z"></path></svg></button>})</span>. I’ve been Siman for <span data-days>—</span> days.</p>
+        <p>“Si” (<span lang="zh">思</span>) means thinking, and “Man” (<span lang="zh">曼</span>) means graceful and extended. I guess that means I’m someone who thinks long and far.</p>
+        <p>And I do think a lot. Sometimes, those thoughts turn into things I make. Through making and creating, I’ve found a pure joy in being alive.</p>
+        <p>I love exploring technology and bringing ideas to life through the art of code—creating beautiful, seamless experiences.</p>
+        <p>Want to create something together? Let me know!</p>
+        <p class="ferry-links"><a href="mailto:sl5858@nyu.edu">sl5858@nyu.edu</a> · <a href="/Siman%20Li%20Resume.pdf" target="_blank" rel="noopener">résumé</a> · <a href="https://www.linkedin.com/in/siman-li-965b73130/" target="_blank" rel="noopener">linkedin</a></p>
+      </div>
+      <figure class="about-photo">
+        <i class="roller" aria-hidden="true"></i>
+        <div class="about-photo-clip"><div><img src="/about/siman.jpg" alt="Siman in Old San Juan, by the sea" width="900" height="1200" decoding="async" />{/* Maodo was in the bookshop photo (siman-bookshop.jpg); with that photo, bring back: <a class="dog" href="https://www.instagram.com/maodooooo/" target="_blank" rel="noopener" aria-label="Maodo, our dog, on Instagram"><span class="dog-tag">Maodo ↗</span></a> */}</div></div>
+        <i class="roller" aria-hidden="true"></i>
+      </figure>
+    </div>
+    <!-- résumé highlights: quiet, grey, in the plain type -->
+    <dl class="facts">
+      {FACTS.map((f) => (
+        <div class="facts-row">
+          <dt>{f.label}</dt>
+          {f.roles ? (
+            <dd class="facts-roles">{f.roles.map((r) => <p><span class="facts-org">{r.org}</span><span>{r.role}{r.note && <span class="facts-note">{r.note}</span>}</span><span class="facts-yr">{r.years}</span></p>)}</dd>
+          ) : (
+            <dd class="facts-list"><ul>{f.list!.map((x) => <li>{typeof x === 'string' ? x : <a href={x.href} target="_blank" rel="noopener">{x.t}</a>}</li>)}</ul></dd>
+          )}
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+<div class="shore">
+  <svg aria-hidden="true" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- the river: four long faint lines drifting slowly back and forth (.wave in hero.css), behind the reeds -->
+    <g class="river" aria-hidden="true">
+      <path class="wave" style="--dl:-1.2s;stroke:var(--mid)" d="M240,190 q60,-1.6 120,0 t120,0" stroke-width="0.6" opacity="0.4" />
+      <path class="wave" style="--dl:-2.6s;stroke:var(--mid)" d="M820,206 q80,-1.6 160,0 t160,0" stroke-width="0.6" opacity="0.45" />
+      <path class="wave" style="--dl:-0.4s;stroke:var(--mid)" d="M120,230 q90,-1.6 180,0 t180,0" stroke-width="0.6" opacity="0.5" />
+      <path class="wave" style="--dl:-3.3s;stroke:var(--mid)" d="M700,246 q70,-1.6 140,0 t140,0" stroke-width="0.6" opacity="0.45" />
+    </g>
+    {shore.map((p) => {
+      const st = `stroke:var(--${(p.c !== 'bg' && tok[p.c]) || p.c})`;
+      if (!isReeds(p.d)) return <path d={p.d} style={st} stroke-width={p.w} opacity={p.o} />;
+      const { blades: bs, ground } = blades(p.d);
+      return <g style={st} stroke-width={p.w} opacity={p.o}>
+        <path d={ground} />
+        {bs.map((d, i) => <g class="bend" style={sway(i)}><path d={d} /></g>)}
+      </g>;
+    })}
+    <!-- an empty ferry, rocking gently on the water: waiting for someone to cross -->
+    <g class="moored-boat" transform="translate(330,196) scale(0.9)" opacity="0.85">
+      <!-- the boat and its ripples: they drift after the pointer over the water, and back to where they rest (script below).
+           The boat is a letter waiting to be sent: hover it for "write to me", click it to write. -->
+      <g class="boat-drift">
+      <a class="boat-mail" href="mailto:sl5858@nyu.edu?subject=Hello%20Siman" tabindex="-1">   <!-- (for the pointer only: the same address is a link just above, for the keyboard and screen readers) -->
+      <rect class="boat-hit" x="-50" y="-38" width="100" height="52" />
+      <text class="boat-note" x="0" y="-44" text-anchor="middle">write to me</text>
+      <g class="moored">
+        <path d="M-34,-3 Q0,7 34,-4 M-30,-2 L30,-3 M-18,-2 v-9 h16 v9 M-20,-11 q10,-4 20,0" style="stroke:var(--ink)" stroke-width="0.9" />
+        <path d="M8,-3 L36,-26" style="stroke:var(--ink)" stroke-width="0.9" />
+        <!-- the same paper lantern as the ferry at the top: on a bamboo pole at the stern, swinging on its hook, lit at night (hero.css) -->
+        <g class="lantern" aria-hidden="true">
+          <path d="M-30,-2 L-32.5,-27 M-32.3,-25 L-41,-26.2 M-32.6,-22 L-36,-25.6" style="stroke:var(--ink)" stroke-width="0.9" />
+          <g class="lantern-swing">
+            <path d="M-40.6,-26 v2.4" style="stroke:var(--ink)" stroke-width="0.6" />
+            <path d="M-42.3,-23.4 h3.4 M-42.3,-16 h3.4" style="stroke:var(--ink)" stroke-width="1.3" />
+            <defs><radialGradient id="moor-lantern-g"><stop offset="0" style="stop-color:var(--ink);stop-opacity:.55" /><stop offset=".45" style="stop-color:var(--ink);stop-opacity:.18" /><stop offset="1" style="stop-color:var(--ink);stop-opacity:0" /></radialGradient></defs>
+            <circle class="lantern-glow" cx="-40.6" cy="-19.7" r="13" style="fill:url(#moor-lantern-g);stroke:none" />
+            <ellipse cx="-40.6" cy="-19.7" rx="2.5" ry="3.4" style="fill:var(--bg);stroke:var(--ink)" stroke-width="0.85" />
+            <path class="lantern-flame" d="M-40.6,-22.1 q1.3,1.7 .9,3 q-.3,1 -.9,1 q-.6,0 -.9,-1 q-.4,-1.3 .9,-3 Z" style="fill:var(--ink);stroke:none" />
+            <path d="M-40.6,-23 v6.6 M-41.9,-22.6 q-.6,2.9 0,5.8 M-39.3,-22.6 q.6,2.9 0,5.8" style="stroke:var(--ink)" stroke-width="0.45" opacity="0.8" />
+            <path d="M-40.6,-15.6 v2.6" style="stroke:var(--ink)" stroke-width="0.65" />
+          </g>
+        </g>
+      </g>
+      </a>
+      <path class="moor-ripple" d="M-40,6 q8,2 16,0 M20,7 q9,2 18,0 M-12,10 q10,2 20,0" style="stroke:var(--mid)" stroke-width="0.6" />
+      </g>
+    </g>
+  </svg>
+</div>
+<footer class="foot mu"><span>© {new Date().getFullYear()} Siman Li</span><a href="mailto:sl5858@nyu.edu?subject=Hello%20Siman">SL5858@nyu.edu</a></footer>
+
+<script>
+  // home: Shijiazhuang's sky, time and weather over the shore (src/scripts/home-sky.ts)
+  import { startHomeSky } from '../scripts/home-sky';
+  startHomeSky();
+</script>
+<script>
+  // the name, said aloud: the little play button beside the pronunciation
+  const sayBtn = document.querySelector<HTMLButtonElement>('.say-btn');
+  if (sayBtn) {
+    const audio = new Audio(sayBtn.dataset.say); audio.preload = 'none';
+    sayBtn.addEventListener('click', () => { audio.currentTime = 0; void audio.play(); });
+    audio.addEventListener('play', () => sayBtn.classList.add('is-playing'));
+    audio.addEventListener('ended', () => sayBtn.classList.remove('is-playing'));
+    audio.addEventListener('pause', () => sayBtn.classList.remove('is-playing'));
+  }
+</script>
+<script>
+  // the photo is a hanging scroll: the first time About comes into view it appears rolled up (both rollers together at
+  // the top) and then unrolls downward, the picture showing as the lower roller travels. It waits for the picture to
+  // load, so the frame is never empty. The layout never moves: only the picture's clip and the lower roller animate.
+  const photo = document.querySelector<HTMLElement>('.about-photo'), pimg = photo?.querySelector('img');
+  const clip = photo?.querySelector<HTMLElement>('.about-photo-clip');
+  if (photo && pimg && clip) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window);
+    photo.classList.add('is-waiting');
+    if (!still) photo.classList.add('is-rolled');
+    let loaded = false, seen = still;
+    const go = (): void => {
+      if (!loaded || !seen) return;
+      photo.classList.remove('is-waiting');                         // the rolled-up scroll fades in…
+      if (!still) setTimeout(() => photo.classList.remove('is-rolled'), 450);   // …then unrolls
+    };
+    const measure = (): void => photo.style.setProperty('--ph', `${clip.offsetHeight}px`);   // how far the lower roller travels
+    const ready = (): void => { loaded = true; measure(); go(); };
+    addEventListener('resize', measure);
+    if (pimg.complete && pimg.naturalWidth) ready(); else { pimg.addEventListener('load', ready, { once: true }); pimg.addEventListener('error', ready, { once: true }); }
+    if (!still) {
+      const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { seen = true; io.disconnect(); go(); } }), { threshold: 0.35 });
+      io.observe(photo);
+    }
+  }
+</script>
+<script>
+  // Parallax: the picture drifts a little inside its scroll — with the page as it scrolls by, and toward the pointer —
+  // as if it sat a little deeper than the frame. Eased, slight, and only while it is on screen.
+  const pFig = document.querySelector<HTMLElement>('.about-photo');
+  const pInner = pFig?.querySelector<HTMLElement>('.about-photo-clip > div');
+  if (pFig && pInner && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let on = false, raf = 0, mx = 0, my = 0, cx = 0, cy = 0;
+    const tick = (): void => {
+      const r = pFig.getBoundingClientRect(), vh = innerHeight;
+      const s = Math.max(-1, Math.min(1, ((r.top + r.height / 2) - vh / 2) / (vh / 2 + r.height / 2)));   // −1 above … 1 below
+      const tx = mx * 2.2, ty = s * 3.2 + my * 1.6;   // % of the picture
+      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08;
+      pInner.style.transform = `translate3d(${cx.toFixed(3)}%, ${cy.toFixed(3)}%, 0) scale(1.09)`;
+      raf = on || Math.abs(tx - cx) > 0.01 || Math.abs(ty - cy) > 0.01 ? requestAnimationFrame(tick) : 0;
+    };
+    const wake = (): void => { if (!raf) raf = requestAnimationFrame(tick); };
+    new IntersectionObserver((es) => es.forEach((e) => { on = e.isIntersecting; if (on) wake(); })).observe(pFig);
+    addEventListener('pointermove', (e) => { mx = (e.clientX / innerWidth - 0.5) * -2; my = (e.clientY / innerHeight - 0.5) * -2; if (on) wake(); }, { passive: true });
+  }
+</script>
+<script>
+  // the moored boat waits right under the PRESS label (the last line of the résumé), wherever the layout puts it
+  const shoreSvg0 = document.querySelector<SVGSVGElement>('.shore svg'), boat = shoreSvg0?.querySelector<SVGGElement>('.moored-boat');
+  const pressDt = [...document.querySelectorAll<HTMLElement>('.facts dt')].pop();
+  if (shoreSvg0 && boat && pressDt) {
+    const place = (): void => {
+      const m = shoreSvg0.getScreenCTM(); if (!m) return;
+      const r = pressDt.getBoundingClientRect(), rg = document.createRange(); rg.selectNodeContents(pressDt);
+      const t = rg.getBoundingClientRect();   // the word itself, not its column
+      const p = new DOMPoint(t.left + t.width / 2, r.top).matrixTransform(m.inverse());
+      boat.setAttribute('transform', `translate(${p.x.toFixed(0)},196) scale(0.9)`);
+    };
+    place(); addEventListener('resize', place); document.fonts?.ready.then(place);
+
+    // over the water the boat drifts, very slowly, after the pointer — left and right, and up and down within the water —
+    // rising and falling a little on the swell; when the pointer leaves it drifts back to where it rests. (Not with
+    // reduced motion.)
+    const drift = boat.querySelector<SVGGElement>('.boat-drift');
+    const shoreEl = shoreSvg0.closest<HTMLElement>('.shore');
+    if (drift && shoreEl && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const S = 0.9, Y0 = 196;   // the boat group's scale, and its waterline in the drawing
+      let dx = 0, dy = 0, tx = 0, ty = 0, raf = 0, last = 0, away = false;
+      const home = (): number => { const t = boat.transform.baseVal.consolidate(); return t ? t.matrix.e : 0; };
+      const step = (now: number): void => {
+        const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60; last = now;
+        const k = 1 - Math.exp(-dt / 10);   // very, very slow: half-way in about seven seconds, on any screen
+        dx += (tx - dx) * k; dy += (ty - dy) * k;
+        const bob = Math.sin(now / 900) * 1.6 * Math.min(1, Math.hypot(dx, dy) / 20);   // the swell, once it is out on the water
+        drift.setAttribute('transform', `translate(${(dx / S).toFixed(2)},${((dy + bob) / S).toFixed(2)})`);
+        const still = !away && Math.hypot(tx - dx, ty - dy) < 0.2;
+        if (still) { dx = dy = 0; drift.removeAttribute('transform'); raf = 0; last = 0; return; }
+        raf = requestAnimationFrame(step);
+      };
+      const go = (): void => { if (!raf) raf = requestAnimationFrame(step); };
+      shoreEl.addEventListener('pointermove', (e) => {
+        const m = shoreSvg0.getScreenCTM(); if (!m) return;
+        const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+        tx = Math.max(70, Math.min(1370, p.x)) - home();   // within the drawing
+        ty = Math.max(186, Math.min(246, p.y)) - Y0;        // on the water, never up the bank or into the sky
+        away = true; go();
+      });
+      shoreEl.addEventListener('pointerleave', () => { tx = ty = 0; away = false; go(); });
+    }
+  }
+</script>
+<script>
+  // Touch the last section (the About text or the quiet shore): wild geese rise, 1–7 of them, flying right to left and
+  // climbing — the same flock as on the painting at the top (classes .fly-l / .flap in hero.css).
+  const room = document.querySelector<HTMLElement>('.about-room');
+  const zones = [document.getElementById('about'), document.querySelector('.shore')].filter((el): el is HTMLElement => !!el);
+  const NS = 'http://www.w3.org/2000/svg';
+  const flock = (cx: number, cy: number): void => {
+    if (!room) return;
+    const box = room.getBoundingClientRect(), n = 1 + Math.floor(Math.random() * 7);
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'geese'); svg.setAttribute('viewBox', '0 0 1000 400'); svg.setAttribute('width', '1000'); svg.setAttribute('height', '400');
+    svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('fill', 'none'); svg.setAttribute('stroke-linecap', 'round');
+    svg.style.left = `${(cx - box.left - 900).toFixed(0)}px`; svg.style.top = `${(cy - box.top - 300).toFixed(0)}px`;
+    let birds = '';
+    for (let i = 0; i < n; i++) {
+      // a loose V, the leader in front (left), the rest trailing behind it to the right, above and below
+      const k = Math.ceil(i / 2), side = i % 2 ? -1 : 1;
+      const bx = 900 + k * 16 + (Math.random() - 0.5) * 6, by = 300 + side * k * 9 + (Math.random() - 0.5) * 5;
+      birds += `<g transform="translate(${bx.toFixed(0)},${by.toFixed(0)}) scale(${(0.8 + Math.random() * 0.5).toFixed(2)})"><path class="flap" d="M-7,0 q3.5,-4.2 7,0 q3.5,-4.2 7,0" style="stroke:var(--ink);animation-delay:${(-Math.random() * 0.4).toFixed(2)}s" stroke-width="1.1"></path></g>`;
+    }
+    svg.innerHTML = `<g class="fly-l">${birds}</g>`;
+    room.appendChild(svg); setTimeout(() => svg.remove(), 7400);
+  };
+  // the water (in the shore drawing, from the boat's waterline down) answers a touch with rings, like the river at the top
+  const shoreSvg = document.querySelector<SVGSVGElement>('.shore svg');
+  const rippleAt = (e: MouseEvent): boolean => {
+    if (!shoreSvg) return false;
+    const m = shoreSvg.getScreenCTM(); if (!m) return false;
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    if (p.y < 172) return false;   // the river starts just above the boat
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', `translate(${p.x.toFixed(0)},${p.y.toFixed(0)})`);
+    g.innerHTML = ([[80, 9, 0.9], [56, 6.5, 0.8], [32, 4, 0.7]] as const).map(([rx, ry, w]) => `<ellipse class="ripple" rx="${rx}" ry="${ry}" style="stroke:var(--ink)" stroke-width="${w}"></ellipse>`).join('');
+    shoreSvg.appendChild(g); setTimeout(() => g.remove(), 3400);
+    return true;
+  };
+  // now and then, unasked, a small skein of geese passes high over the section, right to left, as in the sky at the
+  // top: every 20–50 s while the section is on screen (never with reduced motion)
+  if (room && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let seen = false, timer = 0;
+    const pass = (): void => {
+      if (seen && !document.hidden) {
+        const n = 2 + Math.floor(Math.random() * 4), w = room.clientWidth, dur = 20 + Math.random() * 10;
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'geese geese-pass'); svg.setAttribute('viewBox', '0 0 120 60'); svg.setAttribute('width', '120'); svg.setAttribute('height', '60');
+        svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('fill', 'none'); svg.setAttribute('stroke-linecap', 'round');
+        svg.style.left = `${w}px`; svg.style.top = `${(40 + Math.random() * Math.min(260, room.clientHeight * 0.25)).toFixed(0)}px`;
+        svg.style.setProperty('--run', `${-(w + 160)}px`); svg.style.setProperty('--rise', `${(-20 - Math.random() * 50).toFixed(0)}px`); svg.style.animationDuration = `${dur.toFixed(1)}s`;
+        let birds = '';
+        for (let i = 0; i < n; i++) {
+          const k = Math.ceil(i / 2), side = i % 2 ? -1 : 1;
+          birds += `<g transform="translate(${(20 + k * 16 + (Math.random() - 0.5) * 5).toFixed(0)},${(30 + side * k * 9 + (Math.random() - 0.5) * 4).toFixed(0)}) scale(${(0.75 + Math.random() * 0.4).toFixed(2)})"><path class="flap" d="M-7,0 q3.5,-4.2 7,0 q3.5,-4.2 7,0" style="stroke:var(--ink);animation-duration:${(0.45 + Math.random() * 0.25).toFixed(2)}s;animation-delay:${(-Math.random() * 0.4).toFixed(2)}s" stroke-width="1" opacity=".8"></path></g>`;
+        }
+        svg.innerHTML = birds;
+        room.appendChild(svg); setTimeout(() => svg.remove(), dur * 1000 + 200);
+      }
+      timer = window.setTimeout(pass, 20000 + Math.random() * 30000);
+    };
+    new IntersectionObserver((es) => es.forEach((e) => {
+      const was = seen; seen = e.isIntersecting;
+      if (seen && !was) { clearTimeout(timer); timer = window.setTimeout(pass, 2500 + Math.random() * 5000); }   // soon after it comes into view
+    })).observe(room);
+  }
+  zones.forEach((z) => z.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a, button')) return;   // links still just work
+    if (rippleAt(e)) return;                                    // the water under the boat: rings spread
+    flock(e.clientX, e.clientY);
+  }));
+</script>

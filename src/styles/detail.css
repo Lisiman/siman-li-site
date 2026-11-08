@@ -1,0 +1,236 @@
+/* A work's detail page (pages/work/[slug].astro): modern and spare — always on the dark paper, few lines, the work
+   given the room. The home page's type and side margin. */
+.d-rail { position: sticky; top: 0; z-index: 20; background: var(--bg); transition: transform .4s cubic-bezier(.22,.61,.36,1); display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad); min-height: calc(var(--pad) * 2 + 12px); font-size: 14px; border-bottom: 1px solid var(--ink); }   /* ruled, like the home page's nav */
+.d-rail.is-tucked { transform: translateY(-101%); }   /* hidden while reading down; back on scrolling up (the page's script) */
+.d-rail a { text-decoration: none; }
+.d-rail nav { display: flex; gap: var(--pad); }
+.d-rail nav a:hover, .d-name:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.d-name { font-size: 18px; letter-spacing: .04em; }
+@media (prefers-reduced-motion: reduce) { .d-rail { transition: none; } }
+
+.d { padding: clamp(64px, 9vw, 160px) var(--pad) clamp(40px, 5vw, 80px); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
+/* a blinking cursor after the title, like the one on the home page ("a Creative Technologist_") */
+.d-cursor { margin-left: .04em; font-style: normal; }   /* a still cursor after the title (it doesn't blink) */
+@keyframes d-breathe { 0%, 100% { opacity: .9; } 50% { opacity: .12; } }
+@media (prefers-reduced-motion: reduce) { .d-cursor { animation: none; } }
+.d-title { margin: 0; color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 8.5vw, 140px); line-height: .92; letter-spacing: -.025em; }
+
+/* what it is, and the facts beside it */
+/* ONE GRID for the whole page: 12 columns with the same gutter, so every edge lines up from top to bottom.
+   Under the title: PROJECT INFO and, below it, MY ROLE in the left half (columns 1–6, under the title's first
+   letter); the facts in columns 8–12, out to the right margin (wide enough that each team line fits on one line). The three clips below take the same thirds; desktop and phone split 8 + 4. */
+.d { --gut: clamp(16px, 2vw, 32px); }
+.d-intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: 40px; margin-top: clamp(72px, 9vw, 160px); align-items: start; }
+.d-intro .d-lede { display: contents; }
+.d-intro .d-lede { display: block; grid-row: 1; grid-column: 1 / span 6; }   /* PROJECT INFO, then MY ROLE below it: the left half, under the title */
+.d-intro .d-lede p { color: var(--mu); }   /* the body in grey, the headings in ink */
+.d-intro .d-lede section + section { margin-top: 28px; }
+.d-intro .d-meta { grid-row: 1; grid-column: 8 / span 5; grid-template-columns: 1fr; gap: 10px; }
+.d-intro .d-meta div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
+.d-intro .d-meta dt { margin: 0; }
+/* Detail.introFigure: a small picture on the left of the introduction, the words beside it */
+.d-intro-figure { grid-row: 1; grid-column: 1 / span 2; margin: 0; }
+.d-intro-figure img { display: block; width: 100%; height: auto; }
+.d-intro-figure figcaption { margin-top: 10px; color: var(--mu); font-size: .85em; }
+.d-intro--figure .d-lede { grid-column: 3 / span 5; }
+.d-lede { margin: 0; max-width: 48em; }
+.d-lede p { margin: 0 0 1em; }
+.d-lede p:last-child { margin-bottom: 0; }
+.d-lede section + section { margin-top: 28px; }
+.d-lede h2 { margin: 0 0 4px; font: inherit; color: var(--ink); }   /* Project info, My role: headings in ink, like the facts beside them */
+.d-meta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+.d-meta div { min-width: 0; }
+.d-meta dt { color: var(--ink); }
+.d-meta dd { margin: 0; display: flex; flex-direction: column; overflow-wrap: anywhere; color: var(--mu); }
+.d-meta a { color: inherit; text-decoration: none; align-self: flex-start; transition: color .3s ease; }   /* no underline: grey like the rest, white on hover */
+.d-meta a:hover, .d-meta a:focus-visible { color: var(--ink); }
+/* the team, last: one name per line, the role after it, a little fainter */
+.d-meta .d-team { margin-top: 14px; }
+.d-team > dd > span { white-space: nowrap; }   /* a person (role, then name) stays on one line where it can */
+.d-team-role { opacity: .7; white-space: nowrap; }   /* a role never splits across lines */
+
+
+/* the work itself: full width, no frame */
+.d-hero-plain { display: block; width: 100%; height: auto; border-radius: 4px; }
+.d-hero { margin: clamp(64px, 8vw, 128px) 0 0; }
+/* hero.last: the pictures come straight after the words (with the space the hero would have had), and the site playing
+   follows them on the gutter */
+.d-intro + .d-gallery { margin-top: clamp(64px, 8vw, 128px); }
+.d-gallery + .d-hero { margin-top: var(--gut); }
+.d-hero video, .d-hero img, .d-highlights video, .d-highlights img, .d-screen video, .d-screen img { display: block; width: 100%; height: auto; border-radius: 4px; }
+.d-hero .d-hero-plain { max-height: 100svh; object-fit: cover; object-position: 50% 30%; }   /* an artwork's picture: the full width, but never taller than the screen (a little cropped, more from the bottom, on a short screen) */
+/* Detail.art: every artwork's page is set on pure black (the black around the work disappears and it floats) */
+:root.dark:has(.d--art) { --bg: #000; }
+/* Detail.onBlack: pictures shot on black. The top picture is drawn smaller, in the middle */
+.d.d--onblack { overflow-x: clip; }   /* (a bleed picture never makes the page scroll sideways) */
+.d--onblack .d-hero, .d--onblack .d-gallery { padding-inline: max(0px, calc((100% - 1120px) / 2)); }   /* the pictures and films on a narrower measure, centred; the words, the facts and the way on keep the site's measure */
+.d--onblack .d-hero .d-hero-plain { width: min(100%, 66%); margin: 0 auto; }
+@media (max-width: 860px) { .d--onblack .d-hero .d-hero-plain { width: 100%; } }
+/* a modern, quiet browser window: rounded, a slim bar with three soft dots and the address in a pill */
+.d-browser { display: block; color: inherit; text-decoration: none; cursor: var(--cur-link, pointer); border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--ink) 11%, var(--bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); transition: box-shadow .5s ease; }   /* it doesn't move on hover: only its shadow and labels change */
+.d-browser:hover, .d-browser:focus-visible { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent), 0 44px 90px -30px rgba(0, 0, 0, .8); }
+.d-browser:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
+.d-browser.is-static { cursor: auto; } .d-browser.is-static:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); }   /* no live site: not a link */
+.d-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 44px; padding: 0 16px; }
+.d-dots { display: flex; gap: 8px; }
+.d-dots i { width: 12px; height: 12px; border-radius: 50%; }
+.d-dots i:nth-child(1) { background: #ED6A5E; } .d-dots i:nth-child(2) { background: #F4BF4F; } .d-dots i:nth-child(3) { background: #61C554; }   /* the window's traffic lights: it reads as a real browser at a glance */
+.d-url { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: min(360px, 44vw); padding: 6px 16px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); color: color-mix(in srgb, var(--ink) 80%, var(--bg)); font-size: 13px; letter-spacing: .02em; transition: color .3s ease, background-color .3s ease; }
+.d-lock { opacity: .7; }
+.d-url-arrow { opacity: .6; transition: opacity .3s ease, transform .3s ease; }
+.d-browser:hover .d-url, .d-browser:focus-visible .d-url { color: var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.d-browser:hover .d-url-arrow, .d-browser:focus-visible .d-url-arrow { opacity: 1; }
+.d-screen-wrap { position: relative; display: block; }
+.d-browser video, .d-browser img { border-radius: 0; }
+/* on hover, a label says plainly that it opens */
+.d-visit-pill { position: absolute; right: 20px; bottom: 20px; padding: 10px 18px; border-radius: 999px; background: rgba(17, 17, 17, .82); color: #fff; font-size: 13px; letter-spacing: .04em; opacity: 0; transition: opacity .4s ease; backdrop-filter: blur(6px); }
+.d-browser:hover .d-visit-pill, .d-browser:focus-visible .d-visit-pill { opacity: 1; }
+
+/* the story: a small label on the left, the words on the right */
+.d-story { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 4px clamp(40px, 6vw, 120px); margin: clamp(40px, 4vw, 64px) 0 0; }   /* the same two columns as the intro above: label and words on the left */
+.d-story > div { grid-column: 1; }
+.d-story h2 { grid-column: 1; }
+.d-story h2, .d-highlights h2, .d-screens h2 { margin: 0; font: inherit; color: var(--ink); text-transform: none; letter-spacing: 0; }
+.d-story p { margin: 0 0 1em; max-width: 48em; }
+
+/* a list set like the résumé: name in ink, detail in grey, the year at the right */
+.d-list ul { grid-column: 1; list-style: none; margin: 0; padding: 0; max-width: 48em; }
+.d-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) 4em; column-gap: 20px; }
+.d-list-name { color: var(--ink); text-decoration: none; }
+a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.d-list-year { text-align: right; }
+/* the film: a 16:9 still with a round play button; the player takes its place when clicked */
+.d-yt, .d-yt-frame { display: block; width: 100%; aspect-ratio: 16 / 9; margin-top: 24px; border: 0; border-radius: 4px; overflow: hidden; }
+.d-film--small .d-yt, .d-film--small .d-yt-frame { width: min(100%, 66%); margin-inline: auto; }   /* a making-of film: smaller, in the middle */
+.d-yt { position: relative; padding: 0; background: #000; cursor: var(--cur-link, pointer); }
+.d-yt img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(.22,.61,.36,1); }   /* the official thumbnail, at full brightness */
+.d-yt:hover img, .d-yt:focus-visible img { transform: scale(1.02); }
+.d-yt-play { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; display: grid; place-items: center; color: #111; background: rgba(255, 255, 255, .9); transition: transform .4s ease; }
+.d-yt:hover .d-yt-play, .d-yt:focus-visible .d-yt-play { transform: scale(1.08); }
+/* the slideshow: one screen at a time, full width, snapping; a quiet counter and two arrows under it on the right */
+.d-slides { margin-bottom: var(--gut); }
+.d-slides-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 4px; outline: none; }
+.d-slides-track::-webkit-scrollbar { display: none; }
+.d-slides-track:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
+.d-slide { flex: 0 0 100%; margin: 0; scroll-snap-align: start; }
+.d-slide img { display: block; width: 100%; height: auto; aspect-ratio: 1.6; object-fit: cover; }
+.d-slides-ui { display: flex; justify-content: flex-end; align-items: center; gap: 18px; margin-top: 12px; }
+.d-slides-btn { border: 0; background: none; padding: 4px 6px; color: var(--mu); font: inherit; font-size: 18px; cursor: var(--cur-link, pointer); transition: color .3s ease; }
+.d-slides-btn:hover, .d-slides-btn:focus-visible { color: var(--ink); }
+.d-slides-count { font-variant-numeric: tabular-nums; }
+/* the gallery: on the same 12-column grid — a row of one runs full width, a row of two splits it in half */
+.d-gallery { margin: var(--gut) 0 0; }   /* no headings: the film and the pictures follow the recording on the grid's gutter, one continuous run */
+.d-gallery > .d-row:first-child, .d-film > .d-yt:first-child { margin-top: 0; }
+.d-media-label { margin: 0 0 14px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+.d-gallery h2 { margin: clamp(48px, 5vw, 80px) 0 14px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+.d-gallery-note { margin: 4px 0 0; max-width: 40em; color: var(--mu); }
+.d-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: var(--gut); align-items: start; }
+.d-gallery h2.d-chapter { margin: clamp(72px, 10vw, 160px) 0 0; }   /* a chapter of pictures (gallery.chapters, e.g. Making, Performance): room to breathe above it */
+.d-gallery h2.d-chapter + .d-row { margin-top: 24px; }
+.d-gallery .d-chapter-note { margin: 10px 0 0; }   /* the line under a chapter heading */
+.d-gallery .d-chapter-note + .d-row { margin-top: 32px; }
+.d-gallery--narrow { padding-inline: calc((100% - 11 * var(--gut)) / 12 + var(--gut)); }   /* gallery.narrow: the pictures on a slightly narrower measure, one column in from each side */
+@media (max-width: 860px) { .d-gallery--narrow { padding-inline: 0; } }
+.d-gallery h2 + .d-row, .d-gallery-note + .d-row { margin-top: 24px; }
+.d-row figure { margin: 0; grid-column: 1 / -1; }
+.d-row--2 figure:first-child { grid-column: 1 / span 6; }
+.d-row--2 figure:last-child { grid-column: 7 / span 6; }
+.d-row--3 figure:nth-child(1) { grid-column: 1 / span 4; } .d-row--3 figure:nth-child(2) { grid-column: 5 / span 4; } .d-row--3 figure:nth-child(3) { grid-column: 9 / span 4; }   /* three across, on the grid's thirds */
+.d-row--4 figure:nth-child(1) { grid-column: 1 / span 3; } .d-row--4 figure:nth-child(2) { grid-column: 4 / span 3; } .d-row--4 figure:nth-child(3) { grid-column: 7 / span 3; } .d-row--4 figure:nth-child(4) { grid-column: 10 / span 3; }   /* four small ones across */
+.d-row--4 img { aspect-ratio: 16 / 9; object-fit: cover; }
+/* a little one (small: true): two columns wide, in a black square, whole; `at` sets its column, so they scatter between the pictures */
+.d-row figure.is-small { grid-column: span 2; background: #000; border-radius: 4px; }
+.d-row figure.is-small img { aspect-ratio: 1; object-fit: contain; }
+.d-row img, .d-row video { display: block; width: 100%; height: auto; border-radius: 4px; }
+.d-row figure[data-ratio] img, .d-row figure[data-ratio] video { aspect-ratio: var(--ratio); object-fit: cover; }   /* a picture shown at a set shape (GalleryItem.ratio) */
+.d-row figure[data-scale] { width: calc(var(--scale) * 100%); justify-self: center; }
+.d-row figure[data-filter] img, .d-row figure[data-filter] video { filter: var(--filter); }
+.d-row figure[data-bleed] { width: calc(100vw - 2 * var(--pad)); margin-left: calc(50% - 50vw + var(--pad)); }   /* wider than a narrowed page: out to the site's side margins (GalleryItem.bleed) */   /* a picture or clip given a look of its own (GalleryItem.filter) */   /* a picture drawn smaller inside its columns (GalleryItem.scale) */
+@media (max-width: 860px) { .d-row figure[data-scale] { width: 100%; } }
+/* in a pair, both pictures take the same height: one sets it, the other (is-fill: by default the second) is cropped from the centre to match */
+.d-row--2 { align-items: stretch; }
+.d-row--2 figure.is-fill img, .d-row--2 figure.is-fill video { height: 100%; object-fit: cover; }   /* the cropped one takes the other's height */
+@media (min-width: 861px) {   /* with captions under both, the pictures (not the picture + caption) match in height; on a phone they stack */
+  .d-row--2 figure.is-fill:has(figcaption) { display: flex; flex-direction: column; }
+  .d-row--2 figure.is-fill:has(figcaption) img, .d-row--2 figure.is-fill:has(figcaption) video { flex: 1 1 0; min-height: 0; }
+}
+.d-row figure[data-card] { background: var(--bg-card); border-radius: 4px; padding: clamp(40px, 8vw, 140px) clamp(48px, 12vw, 220px); }   /* a transparent picture (a logo) on its own colour */
+.d-row figure[data-card] img { border-radius: 0; }
+.d-row figcaption { margin-top: 10px; color: var(--mu); }
+@media (hover: hover) {   /* with a mouse: the caption sits on the picture, bottom left, and shows on hover */
+  .d-row figure:has(figcaption) { position: relative; }
+  .d-row figcaption { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 28px 14px 12px; color: #fff; background: linear-gradient(to top, rgba(0, 0, 0, .55), transparent); border-radius: 0 0 4px 4px; opacity: 0; transition: opacity .35s ease; pointer-events: none; }
+  .d-row figure:hover figcaption { opacity: 1; }
+}
+@media (max-width: 860px) { .d-row figure.is-small { grid-column: span 4 !important; } }
+@media (max-width: 860px) { .d-row figure[data-span] { grid-column: 1 / -1 !important; } }   /* a narrower picture (span) takes the full width on a phone, like the others */
+@media (max-width: 860px) { .d-row--3 figure { grid-column: 1 / -1 !important; } .d-row--3 figure + figure { margin-top: var(--gut); } .d-row--4 figure:nth-child(odd) { grid-column: 1 / span 6; } .d-row--4 figure:nth-child(even) { grid-column: 7 / span 6; } .d-row--4 figure:nth-child(n+3) { margin-top: var(--gut); } .d-row--2 figure:first-child, .d-row--2 figure:last-child { grid-column: 1 / -1; } .d-row--2 figure + figure { margin-top: var(--gut); } }
+.d-highlights, .d-screens { margin: clamp(80px, 10vw, 160px) 0 0; }
+.d-hl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px var(--gut); margin-top: 24px; }   /* thirds of the 12-column grid */
+.d-hl-grid figure, .d-screen { margin: 0; }
+.d-hl-grid figcaption { margin-top: 10px; }
+.d-screens-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: 40px; align-items: end; margin-top: 24px; }
+.d-screen--desktop { grid-column: 1 / span 8; }
+.d-screen--mobile { grid-column: 9 / span 4; }
+.d-screen--mobile { max-width: 280px; justify-self: center; width: 100%; }   /* centred in its four columns */
+.d-screen--mobile video, .d-screen--mobile img { border-radius: 20px; }
+
+/* an empty slot (dev only), and draft text: so it is plain what still needs content */
+.d-slot { display: grid; place-items: center; text-align: center; aspect-ratio: 16 / 10; border: 1px dashed var(--lt); border-radius: 4px; color: var(--mu); font-size: 12px; line-height: 1.8; padding: 16px; }
+.d-screen--mobile .d-slot { aspect-ratio: 9 / 19; border-radius: 20px; }
+.d-slot code { font-size: 11px; word-break: break-all; }
+.is-draft { color: var(--mu); }
+.is-draft::before { content: 'DRAFT · '; opacity: .7; }
+
+/* the press, quietly, after the work: one line */
+/* the press: just the publications, one per line, in grey like the rest — white on hover */
+.d-press { margin: clamp(28px, 2.8vw, 44px) 0 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); }
+/* lined up with the facts at the top (ROLE, TEAM…): the same columns (8–12), the label beside the list like TEAM */
+.d-press-row { grid-column: 8 / span 5; display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
+@media (max-width: 1100px) { .d-press-row { grid-column: 1 / -1; } }
+.d-press h2 { margin: 0; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: .08em; }
+.d-press ul { list-style: none; margin: 0; padding: 0; }
+.d-press-row + .d-press-row { margin-top: 18px; }   /* Exhibitions, then As seen on */
+.d-press a { color: inherit; text-decoration: none; transition: color .3s ease; }
+.d-press a:hover, .d-press a:focus-visible { color: var(--ink); }
+.d-pager { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: clamp(120px, 14vw, 240px); }
+.d-pager .d-prev { grid-column: 1 / span 6; justify-self: start; }   /* prev on the left, from the page's left margin */
+.d-pager .d-next--on { grid-column: 7 / span 6; justify-self: end; text-align: right; }   /* next on the right, to the page's right margin */
+/* Next: <title> — set and moving like the home page's Work list: on hover the whole line ("Next:" too) turns italic,
+   brightens and slides 10px */
+.d-next { color: var(--mu); text-decoration: none; font-family: var(--serif); font-size: clamp(32px, 3.8vw, 58px); line-height: 1; letter-spacing: -.01em; }
+.d-next-text { display: inline-block; transition: color .4s ease; }
+
+.d-next:hover .d-next-text, .d-next:focus-visible .d-next-text { font-style: italic; color: var(--ink); }   /* all grey at rest; white and italic on hover — it doesn't move */
+.d-next:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }
+/* a phone: just "Prev" and "Next", left and right (a long title in half the width would break over several lines);
+   the titles are still read out (aria-label). A touch only changes the colour there — the italic is narrower and could
+   shift the words under your finger; the same on any touch screen. */
+@media (max-width: 760px) { .d-next-colon, .d-next-name { display: none; } }
+@media (max-width: 760px), (hover: none) {
+  .d-next:hover .d-next-text, .d-next:focus-visible .d-next-text { font-style: normal; }
+}
+
+.d-foot { display: flex; justify-content: space-between; align-items: center; padding: 0 var(--pad); min-height: calc(var(--pad) * 2 + 12px); font-size: 14px; border-top: 1px solid var(--mu); }   /* ruled, like the home page's footer */
+.d-foot a { color: inherit; text-decoration: none; }
+
+/* tablets: the facts on top, the two texts side by side */
+@media (max-width: 1100px) {
+  .d-intro .d-meta { grid-column: 1 / -1; grid-row: 1; grid-template-columns: 1fr; gap: 10px; }   /* one fact per line, as on wide screens: YEAR under VISIT, then the team */
+  .d-intro .d-lede { grid-row: 2; grid-column: 1 / -1; }
+  .d-intro-figure { grid-row: 2; grid-column: 1 / span 3; }
+  .d-intro--figure .d-lede { grid-column: 4 / -1; }
+}
+@media (max-width: 860px) {
+  .d-intro, .d-story { grid-template-columns: 1fr; }
+  .d-intro .d-meta, .d-intro .d-lede { grid-column: 1; grid-row: auto; }
+  .d-intro-figure { grid-column: 1; grid-row: auto; width: 40%; justify-self: center; }   /* on a phone, the picture in the middle (its caption under it, flush left) */
+  .d-intro--figure .d-lede { grid-column: 1; }
+  .d-intro .d-meta { grid-template-columns: 1fr; }
+  .d-hl-grid { grid-template-columns: 1fr; }
+  .d-screens-row { grid-template-columns: 1fr; }
+  .d-screen--desktop, .d-screen--mobile { grid-column: 1; }
+}
+
+/* every small heading on the page in capitals: Project info, My role, Role, Year, Editions, Details… */
+.d-lede h2, .d-meta dt, .d-story h2, .d-highlights h2, .d-screens h2 { text-transform: uppercase; letter-spacing: .08em; }

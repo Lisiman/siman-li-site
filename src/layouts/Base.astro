@@ -1,0 +1,103 @@
+---
+// Fonts ship with the site (no Google dependency): EB Garamond + Cutive Mono, the Type 12 pair
+import '@fontsource/eb-garamond/400.css';
+import '@fontsource/eb-garamond/400-italic.css';
+import '@fontsource/cutive-mono/400.css';
+import '../styles/global.css';
+import '../styles/links.css';
+interface Props {
+  title?: string;
+  description?: string;
+  /** always dark (the work pages), whatever the sky over New York */
+  dark?: boolean;
+  /** the picture shown when the page is shared (LinkedIn, iMessage, Slack…): a path on this site, 1200 × 630 */
+  image?: string;
+}
+const { dark: alwaysDark = false, title = 'Siman Li — creative technologist', description = 'Siman Li (李思曼) — creative technologist in New York. Award-winning websites and art installations.', image = '/og-home.jpg' } = Astro.props;
+const site = Astro.site ?? new URL('https://www.siman.li');
+const pageUrl = new URL(Astro.url.pathname, site).href;
+const imageUrl = new URL(image, site).href;
+---
+<!doctype html>
+<html lang="en" class={alwaysDark ? 'dark' : undefined}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <!-- how the page looks when it is shared: Open Graph (LinkedIn, iMessage, Slack, Facebook…) and X -->
+  <link rel="canonical" href={pageUrl} />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Siman Li" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={pageUrl} />
+  <meta property="og:image" content={imageUrl} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={imageUrl} />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <!-- only the three characters 李思曼 come from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&text=%E6%9D%8E%E6%80%9D%E6%9B%BC&display=swap" rel="stylesheet" />
+  <!-- dark mode before first paint: night in New York (sun below the horizon). Same sun formula as Painting.astro();
+       hero.ts keeps it up to date. Clicking the sun/moon flips it for this page view only — a reload follows the sky again. -->
+  <script is:inline>(function () {
+    var r = Math.PI / 180, e = r * 23.4397, lat = 40.7128 * r, d = Date.now() / 864e5 - 0.5 + 2440588 - 2451545;
+    var M = r * (357.5291 + 0.98560028 * d), L = M + r * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + r * 102.9372 + Math.PI;
+    var dec = Math.asin(Math.sin(L) * Math.sin(e)), ra = Math.atan2(Math.sin(L) * Math.cos(e), Math.cos(L)), H = r * (280.16 + 360.9856235 * d) - r * 74.006 - ra;
+    var dark = Math.asin(Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(H)) / r < -0.833;
+    try { sessionStorage.removeItem('sl-dark'); } catch (x) {}   // (an old saved switch from an earlier version: forget it)
+    if (dark) document.documentElement.classList.add('dark');
+  })();</script>
+  <!-- page transitions go up and down: opening a work, its page slides up over the home page; going back, it slides
+       down and away to show the home page beneath (types read by the CSS in global.css) -->
+  <script is:inline>
+    // the nav stays put while the pages slide: whichever nav is showing at the top (the painting's, the one that comes
+    // down on scrolling up, or a work page's) is named site-nav, so it is held in place and simply cross-fades
+    function nameNav() {
+      var navs = document.querySelectorAll('.hero .nav, .nav--float, .d-rail');
+      for (var i = 0; i < navs.length; i++) navs[i].style.viewTransitionName = '';
+      var shown = document.querySelector('.nav--float.is-shown') || document.querySelector('.d-rail:not(.is-tucked)');
+      var hero = document.querySelector('.hero .nav'), sheets = document.querySelector('.sheets');
+      if (!shown && hero && (!sheets || sheets.getBoundingClientRect().top >= hero.offsetHeight)) shown = hero;   // the painting's own nav, if nothing covers it
+      if (shown) shown.style.viewTransitionName = 'site-nav';
+    }
+    addEventListener('pageswap', function (e) { if (e.viewTransition) nameNav(); });
+    addEventListener('pagereveal', function (e) {
+      if (e.viewTransition) nameNav();
+      if (!e.viewTransition || !window.navigation || !navigation.activation) return;
+      try {
+        var to = new URL(navigation.activation.entry.url).pathname;
+        var from = navigation.activation.from ? new URL(navigation.activation.from.url).pathname : '';
+        var dir = sessionStorage.getItem('vt-dir'); sessionStorage.removeItem('vt-dir');
+        if (from.indexOf('/work/') === 0 && to.indexOf('/work/') === 0) {
+          // from one work to another: the next one pushes the last one up; prev pushes it down
+          var prev = dir === 'prev' || navigation.activation.navigationType === 'traverse' && dir !== 'next';
+          e.viewTransition.types.add(prev ? 'to-prev' : 'to-next');
+
+        } else e.viewTransition.types.add(to.indexOf('/work/') === 0 ? 'to-work' : 'to-home');
+      } catch (x) {}
+    });
+    // remember which way a prev / next link goes, for the page that opens (the motion itself is all in global.css)
+    document.addEventListener('click', function (e) {
+      var a = e.target && e.target.closest && e.target.closest('.d-prev, .d-next--on');
+      if (a) try { sessionStorage.setItem('vt-dir', a.classList.contains('d-prev') ? 'prev' : 'next'); } catch (x) {}
+    });
+  </script>
+  <!-- load the page a link leads to as soon as the pointer rests on it, so a page change starts at once (no pause
+       in the middle of the transition) -->
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":["/work/*","/"]},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+  <div class="page">
+    <slot />
+  </div>
+  <script>import '../scripts/links.ts';</script>
+  <script>import '../scripts/reveal.ts';</script>
+</body>
+</html>

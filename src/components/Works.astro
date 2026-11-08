@@ -1,0 +1,103 @@
+---
+// A body of work: a short about, then the works as a text index (default) or as staggered images.
+// layout 'web': about right-aligned, the CV list tops the right column.
+// layout 'art': about right-aligned, the CV list sits low on the left.
+import Media from './Media.astro';
+import { LEFT_W, RIGHT_W, still, type Body } from '../data/projects';
+
+interface Props {
+  /** anchor id, e.g. 'web' */
+  id: string;
+  /** small caps label, e.g. 'I. Web — client & studio' */
+  label: string;
+  data: Body;
+  /** 'web': about right-aligned, CV tops the right column. 'art': about right, CV low on the left. */
+  layout?: 'web' | 'art';
+  /** italic titles (Art) */
+  italic?: boolean;
+  /** every image the same size and shape (Web) instead of staggered widths */
+  uniform?: boolean;
+}
+const { id, label, data, layout = 'web', italic = false, uniform = false } = Astro.props;
+const sz = (s?: number): string | undefined => (s && s !== 1 ? `width:${(82 * s).toFixed(1)}%` : undefined);   // one image scaled (uniform cards are 82% wide); no style attribute otherwise
+const wl = (i: number, s?: number): string | undefined => (uniform ? sz(s) : `width:${LEFT_W[i % LEFT_W.length]}%`);
+const wr = (i: number, s?: number): string | undefined => (uniform ? sz(s) : `width:${RIGHT_W[i % RIGHT_W.length]}%`);
+const all = [...data.left, ...data.right].sort((a, b) => a.n.localeCompare(b.n));
+const ext = (href: string): boolean => href.startsWith('http');
+// page transitions: a work with its own detail page (/work/<slug>) shares its picture and title with that page, so they
+// glide into place when you open it (view-transition-name, matched in pages/work/[slug].astro)
+const vt = (href: string, part: 'media' | 'title'): string | undefined => {
+  const m = href.match(/^\/work\/([a-z0-9-]+)/);
+  return m ? `view-transition-name: w-${m[1]}-${part}` : undefined;
+};
+---
+<section class={`works works--${layout}${uniform ? ' works--uniform' : ''}`} id={id}>
+  <div class="works-head">
+    <p class="caps small mu">{label}</p>
+    <div class="works-head-r">
+      <button type="button" class="tidy" data-tidy hidden>tidy up</button>
+      <div class="vt" role="group" aria-label="Show work as">
+        <button type="button" data-view-btn="txt" aria-pressed="true"><svg class="vt-ic" viewBox="0 0 18 18" width="15" height="15" aria-hidden="true"><path class="vt-fill" d="M12,2 A7,7 0 1,0 16,13 A5.5,5.5 0 1,1 12,2 Z"></path></svg>Index</button><span aria-hidden="true">/</span><button type="button" data-view-btn="img" aria-pressed="false">Images<svg class="vt-ic" viewBox="0 0 22 22" width="18" height="18" aria-hidden="true"><circle class="vt-fill" cx="11" cy="11" r="5.5"></circle><circle class="vt-rays" cx="11" cy="11" r="9.5"></circle></svg></button>
+      </div>
+    </div>
+  </div>
+
+  {layout === 'web' ? (
+    <p class="about about--r" set:html={data.intro} />
+  ) : (
+    <div class="about-row">
+      <p class="about" set:html={data.intro} />
+      {data.cv && <p class="cv mu">{data.cv}</p>}
+    </div>
+  )}
+
+  <!-- Images: two staggered columns -->
+  <div class="view view--img">
+    <div class="stag">
+      <div class="scol">
+        {data.left.map((w, i) => (
+          <a class={`card ${i % 2 ? 'card--end' : ''}`} href={w.href} {...(ext(w.href) ? { target: '_blank', rel: 'noopener' } : {})}>
+            <div class="ph" style={wl(i, w.size)}><span class="vt-box" style={vt(w.href, 'media')}><Media m={w.media} alt={w.title} /></span></div>
+            <div class="cap" style={wl(i, w.size)}><span class={`pt ${italic ? 'it' : ''}`} style={vt(w.href, 'title')}>{w.title}</span><span class="cat">/ {w.cat}</span></div>
+          </a>
+        ))}
+      </div>
+      <div class="scol scol2">
+        {layout === 'web' && (data.cv || data.awards) && <div class="cv-block">
+        {data.cv && <p class="cv mu">{data.cv}</p>}
+        {data.awards && (
+          <ul class="awards" aria-label="Awards">
+            {data.awards.map((a) => (
+              <li>
+                {a.href ? <a href={a.href} target="_blank" rel="noopener">{a.award} ↗</a> : <span>{a.award}</span>}
+                <span class="mu">{[a.work, a.year].filter(Boolean).join(', ')}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        </div>}
+        {data.right.map((w, i) => (
+          <a class={`card ${i % 2 ? 'card--end' : ''}`} href={w.href} {...(ext(w.href) ? { target: '_blank', rel: 'noopener' } : {})}>
+            <div class="ph" style={wr(i, w.size)}><span class="vt-box" style={vt(w.href, 'media')}><Media m={w.media} alt={w.title} /></span></div>
+            <div class="cap" style={wr(i, w.size)}><span class={`pt ${italic ? 'it' : ''}`} style={vt(w.href, 'title')}>{w.title}</span><span class="cat">/ {w.cat}</span></div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Index: one line per work; the image slides in on hover -->
+  <div class="view view--txt">
+    <div class="ixl">
+      {all.map((w) => (
+        <a class="ix" href={w.href} {...(ext(w.href) ? { target: '_blank', rel: 'noopener' } : {})}>
+          <span class={`pt ${italic ? 'it' : ''}`} style={vt(w.href, 'title')}>{w.title}</span>
+          <span class="cat">{w.cat}</span>
+          <span class="ixp" aria-hidden="true" style={w.size && w.size !== 1 ? `--s:${w.size}` : undefined}><span class="ixp-in" style={vt(w.href, 'media')}>{w.media.kind === 'video'
+            ? <video muted loop playsinline preload="none" poster={w.media.poster} width={w.media.w} height={w.media.h}><source src={w.media.video} type="video/mp4" /></video>
+            : <img src={still(w.media)} alt="" loading="lazy" width={w.media.w} height={w.media.h} />}</span><i class="rod rod-l"></i><i class="rod rod-r"></i></span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,79 @@
+---
+// Mock page: every weather, season and age the hero can show, side by side, each a live (animated) copy of the home page.
+// Only in local development, at /dev/mock (src/pages/dev/[page].astro). Uses the preview params of hero.ts: ?wx=…&wind=…&temp=…&season=…
+import Base from '../layouts/Base.astro';
+
+const GROUPS = [
+  { id: 'weather', title: 'Weather', note: 'sky, wind and water follow New York; here each is forced with ?wx / ?wind / ?temp', cases: [
+    { q: 'wx=clear&wind=6&temp=60', name: 'Clear', note: 'light breeze' },
+    { q: 'wx=cloudy&wind=10&temp=55', name: 'Cloudy', note: 'clouds drift with the wind' },
+    { q: 'wx=rain&wind=10&temp=50', name: 'Rain', note: 'streaks fall, rings on the water' },
+    { q: 'wx=rain&wind=30&temp=50', name: 'Rain · windy', note: 'slanted rain, 30 mph' },
+    { q: 'wx=snow&wind=6&temp=28&season=winter', name: 'Snow', note: 'flakes drift and sway' },
+    { q: 'wx=snow&wind=25&temp=20&season=winter', name: 'Snow · windy', note: 'blowing snow, 25 mph' },
+    { q: 'wx=snow&heavy=1&wind=8&temp=22&season=winter', name: 'Heavy snow', note: 'snow settles on the rocks' },
+    { q: 'wx=fog&wind=4&temp=50', name: 'Fog', note: 'fog banks breathe' },
+    { q: 'wx=clear&wind=3&temp=20&season=winter', name: 'Frost', note: 'below freezing, the water ices' },
+    { q: 'wx=clear&wind=35&temp=60', name: 'Gale', note: 'trees and reeds bend, 35 mph' },
+    { q: 'wx=clear&wind=6&temp=95&season=summer', name: 'Heat', note: 'the sun’s halo widens, three rings' },
+  ] },
+  { id: 'season', title: 'Season', note: 'the trees through the year (?season)', cases: [
+    { q: 'wx=clear&wind=8&temp=60&season=spring', name: 'Spring', note: 'young, sparse leaves and blossoms' },
+    { q: 'wx=clear&wind=8&temp=80&season=summer', name: 'Summer', note: 'full, dense canopies' },
+    { q: 'wx=clear&wind=12&temp=55&season=autumn', name: 'Autumn', note: 'thinning, pale leaves falling' },
+    { q: 'wx=clear&wind=8&temp=30&season=winter', name: 'Winter', note: 'bare branches' },
+  ] },
+  { id: 'age', title: 'Age', note: 'the ferry crosses age / 100 of the river; at 100 it lands by the Buddha (?age)', cases: [
+    { q: 'wx=clear&wind=6&temp=60&age=40', name: 'Age 40', note: '40 / 100 across' },
+    { q: 'wx=clear&wind=6&temp=60&age=50', name: 'Age 50', note: 'halfway across' },
+    { q: 'wx=clear&wind=6&temp=60&age=70', name: 'Age 70', note: '70 / 100' },
+    { q: 'wx=clear&wind=6&temp=60&age=100', name: 'Age 100', note: 'landed on the other shore, by the Buddha' },
+  ] },
+  { id: 'home', title: 'Home', note: 'the About section closes on Shijiazhuang’s sky: real sun, moon and stars there (?homewx, ?homeh shifts the clock by hours) — open a frame and scroll to About', cases: [
+    { q: 'homewx=clear', name: 'Now, clear', note: 'Shijiazhuang right now, without clouds' },
+    { q: 'homewx=clear&homeh=6', name: '+6 h, clear', note: 'six hours on' },
+    { q: 'homewx=clear&homeh=12', name: '+12 h, clear', note: 'half a day on' },
+    { q: 'homewx=cloudy', name: 'Now, overcast', note: 'stars and moon still shown, whatever the weather' },
+  ] },
+];
+---
+<Base title="Siman Li — Mock">
+  <main class="w">
+    <header class="w-head">
+      <h1>Mock</h1>
+      <p class="mu">Every weather, season and age the painting can show. Each frame is the live home page, so it moves.</p>
+    </header>
+    <nav class="w-nav" aria-label="Groups">{GROUPS.map((g) => <a href={`#${g.id}`}>{g.title} <span class="mu">({g.cases.length})</span></a>)}</nav>
+    {GROUPS.map((g) => (
+      <section class="w-group" id={g.id}>
+        <h2>{g.title} <span class="mu">— {g.note}</span></h2>
+        <div class="w-grid">
+          {g.cases.map((c) => (
+            <figure class="w-card">
+              <div class="w-frame"><iframe src={`/?${c.q}`} title={c.name} loading="lazy" tabindex="-1" scrolling="no"></iframe></div>
+              <figcaption><a href={`/?${c.q}`} target="_blank" rel="noopener"><b>{c.name}</b></a> <span class="mu">— {c.note}</span> <a class="mu" href={`/?${c.q}`} target="_blank" rel="noopener">open ↗</a><code>?{c.q}</code></figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    ))}
+  </main>
+</Base>
+
+<style>
+  .w { padding: 32px; }
+  .w-head h1 { margin: 0 0 4px; font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 48px; }
+  .w-head p { margin: 0 0 32px; font-size: 14px; }
+  .w-nav { display: flex; gap: 24px; margin: 0 0 40px; font-size: 14px; }
+  .w-nav a { text-underline-offset: 4px; }
+  .w-group { margin: 0 0 64px; padding-top: 20px; border-top: 1px solid var(--ink); }
+  .w-group h2 { margin: 0 0 20px; font-family: var(--serif); font-weight: 400; font-size: 30px; }
+  .w-group h2 .mu { font-family: var(--mono); font-size: 13px; }
+  .w-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 32px 24px; }
+  .w-card { margin: 0; }
+  /* the page renders at 1400×900 and is scaled down to the card's width */
+  .w-frame { display: block; position: relative; aspect-ratio: 1400 / 900; overflow: hidden; border: 1px solid var(--ink); container-type: inline-size; }
+  .w-frame iframe { position: absolute; left: 0; top: 0; width: 1400px; height: 900px; border: 0; transform-origin: 0 0; transform: scale(calc(100cqw / 1400px)); pointer-events: none; }
+  figcaption { margin-top: 8px; font-size: 13px; line-height: 1.6; }
+  figcaption code { display: block; font-size: 11px; color: var(--mu); }
+</style>

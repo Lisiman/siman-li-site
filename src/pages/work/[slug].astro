@@ -1,0 +1,216 @@
+---
+// A work's detail page: what it is, the site itself playing in a browser frame, the story, a few close-ups, and
+// desktop and phone side by side. Content: src/data/details.ts. Empty slots show as dashed boxes in dev only.
+import Base from '../../layouts/Base.astro';
+import { PAGES, type Detail, type DetailMedia } from '../../data/details';
+import '../../styles/detail.css';
+import DetailHero from '../../components/DetailHero.astro';
+import GalleryRows from '../../components/GalleryRows.astro';
+import Slides from '../../components/Slides.astro';
+import Film from '../../components/Film.astro';
+
+export function getStaticPaths() { return PAGES.map((d) => ({ params: { slug: d.slug }, props: { d } })); }
+const { d } = Astro.props as { d: Detail };
+const dev = import.meta.env.DEV;
+const draft = (t: string): boolean => t.startsWith('DRAFT');
+const clean = (t: string): string => t.replace(/^DRAFT\s*—\s*/, '');
+const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
+---
+<Base title={`Siman Li — ${d.title}`} image={`/og/${d.slug}.jpg`} description={clean(Array.isArray(d.lede) ? (typeof d.lede[0] === 'string' ? d.lede[0] : d.lede[0].text) : d.lede)} dark>
+  <header class="d-rail" id="d-rail">
+    <a class="d-name" href="/">SIMAN LI</a>
+    <nav aria-label="Main"><a href="/#web">Work</a><a href="/#art">Art</a><a href="/#about">About</a></nav>
+  </header>
+
+  <main class:list={["d", { "d--art": d.art, "d--onblack": d.onBlack }]}>
+    <!-- the title, then two columns: what it is (left) and the facts (right) -->
+    <h1 class="d-title" style={`view-transition-name: w-${d.slug}-title`}>{d.titleItalic && d.title.includes(d.titleItalic)
+      ? <>{d.title.split(d.titleItalic)[0]}<em>{d.titleItalic}</em>{d.title.split(d.titleItalic).slice(1).join(d.titleItalic)}</>
+      : d.title}<span class="d-cursor" aria-hidden="true">_</span></h1>
+    <div class:list={["d-intro", { "d-intro--figure": d.introFigure }]}>
+      {d.introFigure && (
+        <figure class="d-intro-figure">
+          <img src={d.introFigure.src} alt={d.introFigure.alt ?? ''} width={d.introFigure.w} height={d.introFigure.h} />
+          {d.introFigure.caption && <figcaption>{d.introFigure.caption}</figcaption>}
+        </figure>
+      )}
+      <div class="d-lede">{(Array.isArray(d.lede) ? d.lede : [d.lede]).map((p) => typeof p === 'string'
+        ? <p class={draft(p) ? 'is-draft' : ''}>{clean(p)}</p>
+        : <section><h2>{p.heading}</h2>{p.text.split('\n\n').map((t) => <p class={draft(t) ? 'is-draft' : ''}>{clean(t)}</p>)}</section>)}</div>
+      <dl class="d-meta">
+        <div><dt>Role</dt><dd>{d.meta.role}</dd></div>
+        {d.meta.client && <div><dt>Client</dt><dd>{d.meta.client}</dd></div>}
+        {d.meta.stack && <div><dt>Built with</dt><dd>{d.meta.stack}</dd></div>}
+        {d.meta.recognition && <div><dt>Recognition</dt><dd>{d.meta.recognition.map((r) => (r.href ? <a href={r.href} target="_blank" rel="noopener">{r.label}</a> : <span>{r.label}</span>))}</dd></div>}
+        {d.meta.live && <div><dt>Visit</dt><dd><a class="d-visit" href={d.meta.live.href} target="_blank" rel="noopener">{d.meta.live.label.split('.').map((part, i, all) => <>{part}{i < all.length - 1 && <>.<wbr /></>}</>)} ↗</a></dd></div>}
+        {d.meta.watch && d.meta.watch.length > 0 && <div><dt>Watch</dt><dd>{d.meta.watch.map((w) => <a class="d-visit" href={w.href} target="_blank" rel="noopener">{w.label} ↗</a>)}</dd></div>}
+        <div><dt>Year</dt><dd>{d.meta.year}</dd></div>
+        {d.meta.credits && d.meta.credits.length > 0 && <div class="d-team"><dt>Team</dt><dd>{d.meta.credits.map((c) => <span><span class="d-team-role">{c.role}, </span>{c.href ? <a href={c.href} target="_blank" rel="noopener">{c.name}</a> : c.name}</span>)}</dd></div>}
+      </dl>
+    </div>
+
+    <!-- all the words first: what it is, the facts, the story… -->
+    {d.story.map((s) => (
+      <section class="d-story">
+        <h2 class="caps small mu">{s.heading}</h2>
+        <div>{s.body.map((p) => <p class={draft(p) ? 'is-draft' : ''}>{clean(p)}</p>)}</div>
+      </section>
+    ))}
+
+    {d.list && (
+      <section class="d-story d-list">
+        <h2>{d.list.heading}</h2>
+        <ul>{d.list.rows.map((r) => (
+          <li>{r.href ? <a class="d-list-name" href={r.href} target="_blank" rel="noopener">{r.name} ↗</a> : <span class="d-list-name">{r.name}</span>}<span>{r.detail}</span><span class="d-list-year">{r.year}</span></li>
+        ))}</ul>
+      </section>
+    )}
+
+    <!-- …then the work: the site playing, the details, desktop and phone -->
+    <!-- the site itself, playing, edge to edge: no frame, nothing in its way -->
+    {!d.hero.last && !d.hero.hidden && <DetailHero d={d} />}
+
+
+    {d.gallery && (d.gallery.lead ?? 0) > 0 && (
+      <section class:list={["d-gallery", { "d-gallery--narrow": d.gallery?.narrow }]}>
+        <GalleryRows rows={d.gallery.rows.slice(0, d.gallery.lead)} chapters={d.gallery.chapters} />
+      </section>
+    )}
+
+
+    {d.gallery && (
+      <section class:list={["d-gallery", { "d-gallery--narrow": d.gallery?.narrow }]}>
+        {d.gallery.heading && <h2>{d.gallery.heading}</h2>}
+        {d.gallery.note && <p class="d-gallery-note">{d.gallery.note}</p>}
+        {d.gallery.slides && d.gallery.slides.length > 0 && (
+          <Slides items={d.gallery.slides} />
+        )}
+
+        <GalleryRows rows={d.gallery.rows.slice(d.gallery.lead ?? 0)} chapters={d.gallery.chapters} from={d.gallery.lead ?? 0} />
+      </section>
+    )}
+
+    <!-- or the site itself, after the pictures (hero.last) -->
+    {d.hero.last && !d.hero.hidden && <DetailHero d={d} />}
+
+    <!-- the films, last of the media: a making-of (smaller), then the work -->
+    {d.making && <Film film={d.making} narrow={d.gallery?.narrow} small />}
+    {d.film && <Film film={d.film} narrow={d.gallery?.narrow} />}
+
+    <!-- pictures after the film (gallery.after) -->
+    {d.gallery?.after && d.gallery.after.length > 0 && (
+      <section class:list={["d-gallery", { "d-gallery--narrow": d.gallery?.narrow }]}>
+        {d.gallery.afterTitle && <h2 class="d-chapter">{d.gallery.afterTitle}</h2>}
+        {d.gallery.afterNote && <p class="d-gallery-note d-chapter-note">{d.gallery.afterNote}</p>}
+        <GalleryRows rows={d.gallery.after} />
+      </section>
+    )}
+
+    {d.highlights.length > 0 && (d.highlights.some((h) => h.media) || dev) && (
+      <section class="d-highlights">
+        <h2 class="caps small mu">Details</h2>
+        <div class="d-hl-grid">
+          {d.highlights.map((h, i) => (h.media || dev) && (
+            <figure>
+              {h.media
+                ? (h.media.kind === 'video'
+                    ? <video src={h.media.src} poster={h.media.poster} width={h.media.w} height={h.media.h} autoplay muted loop playsinline></video>
+                    : <img src={h.media.src} alt={h.media.alt ?? ''} width={h.media.w} height={h.media.h} loading="lazy" />)
+                : <div class="d-slot">clip {pad2(i)}<br /><code>public/work/{d.slug}/detail-{pad2(i)}.mp4</code></div>}
+              <figcaption class={draft(h.caption) ? 'is-draft' : ''}>{clean(h.caption)}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {d.screens && (d.screens.desktop || d.screens.mobile || dev) && (
+      <section class="d-screens">
+        <h2 class="caps small mu">Desktop &amp; mobile</h2>
+        <div class="d-screens-row">
+          {(['desktop', 'mobile'] as const).map((k) => {
+            const m: DetailMedia | undefined = d.screens?.[k];
+            return (
+              <figure class={`d-screen d-screen--${k}`}>
+                {m
+                  ? (m.kind === 'video' ? <video src={m.src} poster={m.poster} autoplay muted loop playsinline></video> : <img src={m.src} alt={m.alt ?? ''} loading="lazy" />)
+                  : <div class="d-slot">{k}<br /><code>public/work/{d.slug}/{k}.mp4</code></div>}
+              </figure>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    {(d.meta.press || d.meta.exhibitions) && (
+      <section class="d-press">
+        {d.meta.exhibitions && (
+        <div class="d-press-row">
+        <h2>Exhibitions</h2>
+        <ul>{d.meta.exhibitions.map((r) => <li>{r.href ? <a href={r.href} target="_blank" rel="noopener">{r.label}</a> : <span>{r.label}</span>}</li>)}</ul>
+        </div>
+        )}
+        {d.meta.press && (
+        <div class="d-press-row">
+        <h2>As seen on</h2>
+        <ul>{d.meta.press.filter((r, i, all) => all.findIndex((x) => x.label === r.label) === i).map((r) => (   // each publication once, by name only (a link when there is one)
+          <li>{r.href ? <a href={r.href} target="_blank" rel="noopener">{r.label}</a> : <span title={r.title}>{r.label}</span>}</li>
+        ))}</ul>
+        </div>
+        )}
+      </section>
+    )}
+
+    <!-- the way on: "Next: <title>", on the right, with the home page's Work hover — the whole line leans into italic
+         and slides a little -->
+    {(d.prev || d.next) && (
+      <nav class="d-pager" aria-label="More work">
+        {d.prev && <a class="d-next d-prev" href={d.prev.href} aria-label={`Previous: ${d.prev.title}`}><span class="d-next-text"><span class="d-next-label">Prev<span class="d-next-colon">:</span></span><span class="d-next-name"> {d.prev.title}</span></span></a>}
+        {d.next && <a class="d-next d-next--on" href={d.next.href} aria-label={`Next: ${d.next.title}`}><span class="d-next-text"><span class="d-next-label">Next<span class="d-next-colon">:</span></span><span class="d-next-name"> {d.next.title}</span></span></a>}
+      </nav>
+    )}
+  </main>
+  <footer class="d-foot mu"><span>© {new Date().getFullYear()} Siman Li</span><a href="mailto:sl5858@nyu.edu?subject=Hello%20Siman">SL5858@nyu.edu</a></footer>   <!-- at the end of every work: a word to write to me -->
+</Base>
+
+<script>
+  // the slideshow: a row of screens that snaps one at a time; the arrows (or ← → keys, or a swipe) move it, the counter follows
+  document.querySelectorAll<HTMLElement>('[data-slides]').forEach((box) => {
+    const track = box.querySelector<HTMLElement>('.d-slides-track')!, cur = box.querySelector<HTMLElement>('[data-cur]')!;
+    const n = track.children.length;
+    const at = (): number => Math.round(track.scrollLeft / track.clientWidth);
+    const go = (i: number): void => track.scrollTo({ left: ((i + n) % n) * track.clientWidth, behavior: 'smooth' });
+    box.querySelectorAll<HTMLButtonElement>('.d-slides-btn').forEach((b) => b.addEventListener('click', () => go(at() + Number(b.dataset.dir))));
+    track.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); go(at() + (e.key === 'ArrowRight' ? 1 : -1)); } });
+    let t = 0;
+    track.addEventListener('scroll', () => { cancelAnimationFrame(t); t = requestAnimationFrame(() => { cur.textContent = String(at() + 1).padStart(2, '0'); }); }, { passive: true });
+  });
+</script>
+<script>
+  // the film: swap the still for the YouTube or Vimeo player when it is clicked
+  document.querySelectorAll<HTMLButtonElement>('.d-yt').forEach((b) => b.addEventListener('click', () => {
+    const f = document.createElement('iframe');
+    f.src = b.dataset.vimeo
+      ? `https://player.vimeo.com/video/${b.dataset.vimeo}?autoplay=1&dnt=1`
+      : `https://www.youtube-nocookie.com/embed/${b.dataset.yt}?autoplay=1&rel=0&modestbranding=1`;
+    f.title = b.getAttribute('aria-label')?.replace('Play the film: ', '') ?? 'Film';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true;
+    f.className = 'd-yt-frame'; b.replaceWith(f);
+  }));
+</script>
+<script>
+  // the nav: tucked away as you read down, back the moment you scroll up (like the home page)
+  const rail = document.getElementById('d-rail');
+  if (rail) {
+    let lastY = scrollY, ticking = false;
+    const update = (): void => {
+      ticking = false;
+      const y = scrollY, dy = y - lastY;
+      if (y <= rail.offsetHeight) rail.classList.remove('is-tucked');   // at the top: always there
+      else if (dy > 4) rail.classList.add('is-tucked');                 // reading on down
+      else if (dy < -4) rail.classList.remove('is-tucked');             // scrolling back up
+      if (Math.abs(dy) > 4) lastY = y;
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  }
+</script>

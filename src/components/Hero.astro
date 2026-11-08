@@ -1,0 +1,105 @@
+---
+// Section 1 · Hero
+// A fixed line landscape after Qiu Ying. Sky, season, weather and wind follow New York live.
+import '../styles/hero.css';
+---
+<section class="hero" id="top" aria-label="Introduction">
+  <header class="nav">
+    <a class="logo" href="#top" aria-label="Siman Li 李思曼">
+      <span class="logo-en" aria-hidden="true">SIMAN LI</span>
+      <span class="logo-zh" aria-hidden="true" lang="zh">李思曼</span>
+      <svg class="logo-dots" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round"></path></svg>
+    </a>
+    <nav aria-label="Main">
+      <a href="#web">Work</a><a href="#art">Art</a><a href="#about">About</a>
+    </nav>
+  </header>
+
+  <div class="intro">
+    <h1><span class="sr-only">Hi, I’m Siman — Creative Technologist, Design Engineer, Professor and Media Artist.</span><span aria-hidden="true">Hi, I’m Siman,<br>a <span id="role">Creative Technologist</span><span class="cursor">_</span></span></h1>
+    <p class="roles mu"><span>Previously Squarespace, IDEO</span><span>Adjunct Professor, NYU ITP</span><a class="open" href="mailto:sl5858@nyu.edu?subject=Hello%20Siman">[x] Open to opportunities</a></p>
+  </div>
+  <script>
+    // the lines beside the title sit flush right; when the screen is narrow and they drop under the title, flush left
+    const intro = document.querySelector<HTMLElement>('.intro'), roles = intro?.querySelector<HTMLElement>('.roles'), h1 = intro?.querySelector<HTMLElement>('h1');
+    if (intro && roles && h1) {
+      const place = (): void => { roles.classList.toggle('is-below', roles.offsetTop > h1.offsetTop + h1.offsetHeight / 2); };
+      new ResizeObserver(place).observe(intro);
+      place();
+    }
+  </script>
+
+  <div class="scene-wrap">
+    <svg id="scene" class="scene" viewBox="0 20 1800 700" preserveAspectRatio="xMidYMax meet"
+         fill="none" stroke-linecap="round" stroke-linejoin="round" role="img"
+         aria-label="A line-drawn Chinese landscape. The sun, moon, season and weather follow New York in real time.">
+      <g id="stars"></g>
+      <g id="birds" aria-hidden="true"></g>   <!-- a few birds always crossing the sky -->
+      <a id="orb" class="orb" href="#top" role="button"></a>
+      <g id="other-shore" class="other-shore"><title>The other shore</title></g>
+      <g id="layers"></g>
+      <g id="bud-glow" aria-hidden="true" style="pointer-events:none"></g>
+      <g id="water-live"></g>
+      <g id="trees"></g>
+      <g id="season"></g>
+      <g id="reeds"></g>
+      <path id="trail-past" class="trail-past"></path>
+      <path id="trail-next" class="trail-next"></path>
+      <path id="trail-beyond" class="trail-beyond"></path>
+      <g id="boat"></g>
+      <g id="ashore" aria-hidden="true"></g>   <!-- at 100: the ferryman on the far shore, waving -->
+      <g id="boat-age-g" class="boat-age-g" aria-hidden="true"><text id="boat-age" class="boat-age" x="0" y="0"></text></g>   <!-- "32 / 100": a reflection in the water under the boat, shown on hover -->
+      <g id="fog"></g>
+      <g id="wx"></g>
+      <g id="fx"></g>
+    </svg>
+  </div>
+
+  <div class="bar">
+    <span>I’ve been Siman for <span id="days">—</span> days.</span>
+    <span>New York · <time id="ny-time">—</time> · <span id="wx-line">—</span></span>
+  </div>
+</section>
+
+<script>
+  import '../scripts/hero';
+</script>
+<script>
+  // Once the page has scrolled past the top, scrolling back up brings the nav down from the top edge (a copy of the
+  // one in the painting), so you can jump anywhere; scrolling on down tucks it away again.
+  const nav = document.querySelector<HTMLElement>('.hero .nav');
+  if (nav) {
+    let float: HTMLElement | null = null, lastY = scrollY, ticking = false;
+    const make = (): HTMLElement => {
+      const f = nav.cloneNode(true) as HTMLElement;
+      f.classList.add('nav--float'); f.setAttribute('aria-label', 'Site navigation'); f.inert = true;
+      // the copy always shows the plain name: never a frozen moment of the logo's hover animation (its dots or 李思曼)
+      const fl = f.querySelector('.logo');
+      fl?.classList.remove('is-moving', 'is-zh'); fl?.querySelector('.logo-dots')?.remove();
+      document.body.appendChild(f);
+      return f;
+    };
+    const show = (on: boolean, instant = false): void => {
+      if (!float) { if (!on) return; float = make(); void float.offsetWidth; }
+      if (instant) { float.style.transition = 'none'; requestAnimationFrame(() => requestAnimationFrame(() => { if (float) float.style.transition = ''; })); }
+      float.classList.toggle('is-shown', on); float.inert = !on;
+    };
+    const hero = nav.closest<HTMLElement>('.hero'), next = document.querySelector<HTMLElement>('.sheets');   // what slides up over the hero
+    const update = (): void => {
+      ticking = false;
+      const y = scrollY, dy = y - lastY;
+      // anywhere in the first section the painting's own nav is on screen (the hero stays put while the next section
+      // slides over it): no floating copy there. Swap it out instantly — the two are identical, so nothing flashes.
+      const top = next ? next.getBoundingClientRect().top : (hero ? hero.offsetHeight : 600) - y;   // where the next section's top edge is
+      if (top >= nav.offsetHeight) show(false, true);             // the real nav fully uncovered
+      // scrolling up: only come down when the painting is still well away. Close to it, the real nav is about to show
+      // anyway, and a copy sliding in just to vanish again would flash.
+      else if (dy < -4) { if (top < -innerHeight * 0.5) show(true); }
+      else if (dy > 4) show(false);                               // scrolling down
+      if (Math.abs(dy) > 4) lastY = y;
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    // a link in it takes you somewhere: tuck it away for the jump
+    document.addEventListener('click', (e) => { if (float && (e.target as Element).closest('.nav--float a')) setTimeout(() => show(false), 50); });
+  }
+</script>

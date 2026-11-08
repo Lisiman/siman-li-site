@@ -1,0 +1,12 @@
+---
+// Pages for working on the site, only while it runs locally (npm run dev): /dev/mock (every weather, season and age
+// the painting can show) and /dev/test (the painting in several looks). They are never built, so they are not online.
+import Mock from '../../dev/mock.astro';
+import Test from '../../dev/test.astro';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { page: 'mock' } }, { params: { page: 'test' } }] : [];
+}
+const { page } = Astro.params;
+---
+{page === 'mock' ? <Mock /> : <Test />}

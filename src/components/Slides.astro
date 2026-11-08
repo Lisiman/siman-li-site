@@ -1,0 +1,16 @@
+---
+// A slideshow: pictures one at a time, swiped or stepped with the arrows, with a count (01 / 04).
+// The script that drives it is in work/[slug].astro (it finds every [data-slides]).
+import type { DetailMedia } from '../data/details';
+const { items, label = 'Screens of the site, one at a time', noun = 'screen' } = Astro.props as { items: DetailMedia[]; /** what the track is, for screen readers */ label?: string; /** what one slide is: 'screen', 'picture' */ noun?: string };
+---
+<div class="d-slides" data-slides>
+  <div class="d-slides-track" tabindex="0" aria-label={label}>
+    {items.map((m, i) => <figure class="d-slide"><img src={m.src} alt={m.alt ?? ''} width={m.w} height={m.h} loading={i < 2 ? 'eager' : 'lazy'} decoding="async" /></figure>)}
+  </div>
+  <div class="d-slides-ui">
+    <button type="button" class="d-slides-btn" data-dir="-1" aria-label={`Previous ${noun}`}>←</button>
+    <span class="d-slides-count" aria-live="polite"><span data-cur>01</span> / {String(items.length).padStart(2, '0')}</span>
+    <button type="button" class="d-slides-btn" data-dir="1" aria-label={`Next ${noun}`}>→</button>
+  </div>
+</div>
