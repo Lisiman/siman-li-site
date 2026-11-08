@@ -1,0 +1,9 @@
+// Cloudflare Worker for www.siman.li: it only serves the built static site (no server code).
+// Cloudflare builds it on every push to main: `npm run build` makes ./dist, then `npx wrangler deploy` uploads it.
+{
+  "name": "siman-li-site",
+  "compatibility_date": "2025-11-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
