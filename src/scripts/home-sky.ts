@@ -12,7 +12,7 @@ const NS = 'http://www.w3.org/2000/svg';
 const deg = 180 / Math.PI;
 // the sky spans the top of the section down to the contact links, in real pixels (W×Hs, set by fit()): the horizon at
 // its foot, the zenith near the top; east on the left, west on the right
-let W = 1440, Hs = 900, moonTop = 200, title = { l: 0, r: 0, t: 0, b: 0 };   // moonTop: the moon never rises above this (just under the III. About label)
+let W = 1440, Hs = 900, moonTop = 200, bodyFloor = 400, labelMid = 120, title = { l: 0, r: 0, t: 0, b: 0 };   // moonTop: the moon never rises above this (just under the III. About label); bodyFloor: the sun and moon never sink below this (above the words); labelMid: the label's line
 const ALT_TOP = 70;
 const place = (alt: number, az: number): [number, number] => {
   const top = 40, horizon = Hs - 20;
@@ -63,11 +63,19 @@ function draw(g: SVGGElement, label: HTMLElement | null): void {
   // by night the moon is always there: where it really is, or, while it is below the horizon, resting up to the right, just
   // under the III. About label, a little faint (as the painting at the top does)
   if (pos.alt > 0 || body === 'moon') {
-    const up = pos.alt > 0, [x0, y0] = up ? place(pos.alt, pos.az) : [title.r + 110, moonTop];
+    const up = pos.alt > 0, [x0] = up ? place(pos.alt, pos.az) : [title.r + 110];
     let cx = Math.max(W * 0.14, Math.min(W * 0.86, x0));
-    const y = Math.max(moonTop, y0);   // never tucked into a corner, never above the label
-    // never over the title: step aside to whichever side of it is nearer
-    if (y + 30 > title.t && y - 30 < title.b && cx + 30 > title.l && cx - 30 < title.r) cx = cx > (title.l + title.r) / 2 ? Math.min(W - 40, title.r + 70) : Math.max(40, title.l - 70);
+    // the sun and the moon keep to the sky above the words: their height (the real altitude) is drawn between just under
+    // the label and just above the photo and the text, so they never sit on a line of the paragraphs
+    const band = Math.max(0, bodyFloor - moonTop);
+    let y = up ? bodyFloor - Math.min(1, pos.alt * deg / ALT_TOP) * band : moonTop;
+    // never over the title: step aside to whichever side of it is nearer; where it fills the width (a phone), up to the
+    // right of the label instead
+    if (y + 30 > title.t && y - 30 < title.b && cx + 30 > title.l && cx - 30 < title.r) {
+      const right = title.r + 70 <= W - 30, left = title.l - 70 >= 30;
+      if (right || left) cx = (cx > (title.l + title.r) / 2 && right) || !left ? title.r + 70 : title.l - 70;
+      else { cx = W - 40; y = labelMid; }
+    }
     if (body === 'sun') {
       html += `<g transform="translate(${f1(cx)},${f1(y)})" opacity="0.9"><circle r="11" stroke-width="1"></circle><circle class="home-sun-halo" r="19" stroke-width="0.5" opacity="0.5"></circle></g>`;
     } else {
@@ -112,7 +120,9 @@ export function startHomeSky(): void {
     const top = room.getBoundingClientRect().top;
     W = room.clientWidth; Hs = Math.max(320, Math.round((links ? links.getBoundingClientRect().bottom - top : 900) + 24));
     const tag = room.querySelector<HTMLElement>('.ferry-main > .caps');
-    if (tag) moonTop = Math.round(tag.getBoundingClientRect().bottom - top + 50);
+    if (tag) { const tr = tag.getBoundingClientRect(); moonTop = Math.round(tr.bottom - top + 50); labelMid = Math.round((tr.top + tr.bottom) / 2 - top); }
+    const words = room.querySelector<HTMLElement>('.ferry .about-row');   // the photo and the paragraphs
+    bodyFloor = words ? Math.max(moonTop, Math.round(words.getBoundingClientRect().top - top - 34)) : Hs - 20;
     // the title's ink (its box is wider than the words): measured with a range over its contents, the waving figure included
     const tEl = room.querySelector<HTMLElement>('.ferry-big'), left = room.getBoundingClientRect().left;
     if (tEl) { const rg = document.createRange(); rg.selectNodeContents(tEl); const tb = rg.getBoundingClientRect(); title = { l: tb.left - left, r: tb.right - left, t: tb.top - top, b: tb.bottom - top }; }
