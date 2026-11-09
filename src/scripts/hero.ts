@@ -659,6 +659,19 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
   const HOLD = 4200, TYPE = 95, ERASE = 45, GAP = 450;   // ms: unhurried
   const el = $<HTMLElement>('role');
   const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+  // the title keeps the height of its tallest role at this width (Creative Technologist takes three lines on a phone,
+  // the others two), so the lines under it stay put while the roles change
+  const h1 = el.closest<HTMLElement>('h1');
+  if (h1) {
+    const reserve = (): void => {
+      const now = el.textContent; h1.style.minHeight = '';
+      const tallest = Math.max(...ROLES.map((r) => { el.textContent = r; return h1.getBoundingClientRect().height; }));
+      el.textContent = now; h1.style.minHeight = `${tallest}px`;
+    };
+    let w = 0;
+    new ResizeObserver(([e]) => { const nw = Math.round(e.contentRect.width); if (nw !== w) { w = nw; reserve(); } }).observe(h1.parentElement!);
+    document.fonts?.ready.then(reserve);
+  }
   const loop = async (): Promise<void> => {
     for (let i = 1; ; i = (i + 1) % ROLES.length) {
       await wait(HOLD);
