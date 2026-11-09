@@ -15,7 +15,7 @@ interface Props {
 }
 const { dark: alwaysDark = false, title = 'Siman Li — creative technologist', description = 'Siman Li (李思曼) — creative technologist in New York. Award-winning websites and art installations.', image = '/og-home.jpg' } = Astro.props;
 const site = Astro.site ?? new URL('https://www.siman.li');
-const pageUrl = new URL(Astro.url.pathname, site).href;
+const pageUrl = new URL(Astro.url.pathname.replace(/(.)\/$/, '$1'), site).href;   // no trailing slash: pages answer at /work/windloom (wrangler.jsonc)
 const imageUrl = new URL(image, site).href;
 ---
 <!doctype html>
