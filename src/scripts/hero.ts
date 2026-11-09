@@ -527,7 +527,10 @@ function applyWeather(cur: Current | null): void {
   if (windSig !== lastWind) { lastWind = windSig; const lvl = applyWind(mph, dir); drawWater({ lvl, rain: kind === 'rain', frozen }); }
   }
   const temp = `${Math.round(tF)}°F / ${Math.round((tF - 32) * 5 / 9)}°C`, wind = `${Math.round(mph)} mph ${compass(dir)}`;
-  $<HTMLElement>('wx-line').textContent = [temp, Math.round(mph) >= 1 ? wind : '', KIND_LABEL[kind]].filter(Boolean).join(' · ');   // 55°F / 13°C · 8 mph NW · Cloudy; calm (< 1 mph): no wind
+  // 55°F / 13°C · 8 mph NW · Cloudy (calm, < 1 mph: no wind). On a phone the °C and the wind are left out (hero.css), so
+  // the bar under the painting keeps to two lines: New York · 7:38 PM · 55°F · Cloudy
+  $<HTMLElement>('wx-line').innerHTML = `${Math.round(tF)}°F<span class="wx-more"> / ${Math.round((tF - 32) * 5 / 9)}°C</span>`
+    + (Math.round(mph) >= 1 ? `<span class="wx-more"> · ${wind}</span>` : '') + ` · ${KIND_LABEL[kind]}`;
   setText('c-wx', `${SEASON_LABEL[SEASON]} · ${temp} · ${KIND_LABEL[kind]}`);
   setText('c-wind', `Wind ${wind}`);
 }
