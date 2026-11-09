@@ -858,16 +858,38 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
   // a Professor at / NYU, a Creative / Technologist — so every one takes the same lines and none leaves a gap; the title
   // also keeps the height of its tallest role, in case one still differs
   let split = false;
-  const shown = (r: string): string => (split ? r.replace(/ (\S+)$/, '\n$1') : r);
+  // each role as it will be laid out at this width, with its line breaks written in: the typing puts the cursor on the
+  // next line before the word that will go there, instead of typing the word and then watching it jump down
+  const lay = new Map<string, string>();
+  const shown = (r: string): string => lay.get(r) ?? (split ? r.replace(/ (\S+)$/, '\n$1') : r);
   el.style.whiteSpace = 'pre-line';
   const h1 = el.closest<HTMLElement>('h1');
+  /** where the role's words fall at this width: a break before every word that starts a new line */
+  const measure = (r: string): string => {
+    const t = split ? r.replace(/ (\S+)$/, '\n$1') : r;
+    el.textContent = t;
+    const node = el.firstChild; if (!(node instanceof Text)) return t;
+    const rg = document.createRange();
+    const topOf = (i: number): number => { rg.setStart(node, i); rg.setEnd(node, i + 1); return rg.getBoundingClientRect().top; };
+    const before = el.previousSibling;   // the "a " the role follows
+    let last = before ? (rg.selectNodeContents(before), rg.getBoundingClientRect().top) : topOf(0);
+    const cs = [...t]; let lead = '';
+    for (let i = 0; i < cs.length; i++) {
+      if (/\s/.test(cs[i]) || (i > 0 && !/\s/.test(cs[i - 1]))) continue;   // only the first letter of each word
+      const top = topOf(i);
+      if (top > last + 2) { if (i === 0) lead = '\n'; else if (cs[i - 1] === ' ') cs[i - 1] = '\n'; }
+      last = top;
+    }
+    return lead + cs.join('');
+  };
   if (h1) {
     const reserve = (): void => {
-      const now = (el.textContent ?? '').replace('\n', ' '); h1.style.minHeight = '';
+      const now = (el.textContent ?? '').replace(/\n/g, ' ').trim(); h1.style.minHeight = ''; lay.clear();
       const tall = (): number[] => ROLES.map((r) => { el.textContent = shown(r); return Math.round(h1.getBoundingClientRect().height); });
       split = false; const plain = tall();
       split = Math.max(...plain) !== Math.min(...plain);
-      const hs = split ? tall() : plain;
+      ROLES.forEach((r) => lay.set(r, measure(r)));
+      const hs = tall();
       el.textContent = ROLES.includes(now) ? shown(now) : now; h1.style.minHeight = `${Math.max(...hs)}px`;
     };
     let w = 0;
@@ -880,7 +902,8 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
       if (reduceMotion) { el.textContent = shown(ROLES[i]); continue; }   // no typing, just the next word
       for (let n = el.textContent!.length; n >= 0; n--) { el.textContent = el.textContent!.slice(0, n); await wait(ERASE); }
       await wait(GAP);
-      for (let n = 1; n <= ROLES[i].length; n++) { el.textContent = shown(ROLES[i]).slice(0, n); await wait(TYPE); }
+      const t = shown(ROLES[i]);
+      for (let n = 1; n <= t.length; n++) { el.textContent = t.slice(0, n); await wait(TYPE); }
     }
   };
   void loop();

@@ -221,3 +221,6 @@
 .teaching-en { font-family: var(--serif); font-size: 15px; line-height: 1.22; }   /* upright: easier to read small than italic */
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */
+
+/* on a phone the title a little smaller (three lines, but lighter over the painting) */
+@media (max-width: 760px) { .intro h1 { font-size: 48px; } .intro { row-gap: 14px; } }   /* and the lines under it a little closer */
