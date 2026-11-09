@@ -367,3 +367,5 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 @keyframes lotus-bloom { 0% { transform: scale(calc(1 + var(--lit) * .6)); } 45% { transform: scale(1.75); opacity: 1; filter: brightness(1.2); } 100% { transform: scale(calc(1 + var(--lit) * .6)); } }
 @media (prefers-reduced-motion: reduce) { .d-lotus.is-charging .d-lotus-lit-glow, .d-lotus.is-lit .d-lotus-lit-glow { animation: none; } }
 
+/* after her story, more room before Prev / Next: 2.5X, so the page's last word has space to settle */
+.d-memorial + .d-pager { margin-top: calc(2.5 * var(--step)); }
