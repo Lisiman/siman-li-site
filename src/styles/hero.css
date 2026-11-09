@@ -39,8 +39,8 @@
 
 .intro {
   padding: 48px var(--rail-x) 0;
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 41px 40px;
-}   /* when the lines drop under the title: as far below its last line (~60px to the eye) as the title's top is from the nav */
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px 40px;
+}   /* the row gap: when the lines drop under the title (a phone), ~50px to the eye below its last line */
 .intro h1 {
   margin: 0; max-width: 900px;
   font-family: var(--serif); font-weight: 400; font-style: italic;
