@@ -247,4 +247,5 @@ html:not([data-view="img"]) .tidy { display: none; }
   .ix:hover .pt, .ix:focus-visible .pt, .card:hover .pt, .card:focus-visible .pt { transform: none; font-style: normal; }
   .ix:hover .pt.it, .ix:focus-visible .pt.it, .card:hover .pt.it, .card:focus-visible .pt.it { font-style: italic; }
 }
-@media (max-width: 420px) { .ix .pt { font-size: 28px; } }   /* the narrowest phones: room for the category beside a long title */
+/* the index on a phone: just the titles — the categories would crowd them (they show on a big screen) */
+@media (max-width: 760px) { .ix .cat { display: none; } }
