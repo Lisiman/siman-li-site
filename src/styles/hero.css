@@ -38,13 +38,13 @@
 .logo.is-moving .logo-en, .logo.is-moving .logo-zh { opacity: 0; } .logo.is-moving .logo-dots { opacity: 1; }
 
 .intro {
-  padding: 72px var(--rail-x) 0;   /* a big screen: one step (72px at 1440); more and the title would sit on the hills */
+  padding: 36px var(--rail-x) 0;
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px 40px;
 }   /* the row gap: when the lines drop under the title (a phone), ~50px to the eye below its last line */
 .intro h1 {
   margin: 0; max-width: 900px;
   font-family: var(--serif); font-weight: 400; font-style: italic;
-  font-size: clamp(56px, 6.6vw, 96px); line-height: 1.02; letter-spacing: -.02em;
+  font-size: clamp(56px, min(6.6vw, 11.5svh), 96px); line-height: 1.02; letter-spacing: -.02em;   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
 }
 .cursor { font-style: normal; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
@@ -222,7 +222,3 @@
 .teaching-src { font-family: var(--serif); font-size: 12px; line-height: 1.2; color: var(--mu); margin-top: 4px !important; text-align: right; }   /* the source signs off at the right */
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */
-
-/* on a phone, the same room above the title as above each section's label (2 × the step: 80px, works.css); on a big
-   screen it stays 48px, or the title would sit on the hills */
-@media (max-width: 760px) { .intro { padding-top: 80px; } }
