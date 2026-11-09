@@ -10,6 +10,8 @@ interface Props {
   id: string;
   /** small caps label, e.g. 'I. Web — client & studio' */
   label: string;
+  /** a shorter label for a phone, so it keeps to one line (optional) */
+  labelShort?: string;
   data: Body;
   /** 'web': about right-aligned, CV tops the right column. 'art': about right, CV low on the left. */
   layout?: 'web' | 'art';
@@ -18,7 +20,7 @@ interface Props {
   /** every image the same size and shape (Web) instead of staggered widths */
   uniform?: boolean;
 }
-const { id, label, data, layout = 'web', italic = false, uniform = false } = Astro.props;
+const { id, label, labelShort, data, layout = 'web', italic = false, uniform = false } = Astro.props;
 const sz = (s?: number): string | undefined => (s && s !== 1 ? `width:${(82 * s).toFixed(1)}%` : undefined);   // one image scaled (uniform cards are 82% wide); no style attribute otherwise
 const wl = (i: number, s?: number): string | undefined => (uniform ? sz(s) : `width:${LEFT_W[i % LEFT_W.length]}%`);
 const wr = (i: number, s?: number): string | undefined => (uniform ? sz(s) : `width:${RIGHT_W[i % RIGHT_W.length]}%`);
@@ -33,7 +35,7 @@ const vt = (href: string, part: 'media' | 'title'): string | undefined => {
 ---
 <section class={`works works--${layout}${uniform ? ' works--uniform' : ''}`} id={id}>
   <div class="works-head">
-    <p class="caps small mu">{label}</p>
+    <p class="caps small mu">{labelShort ? <><span class="label-full">{label}</span><span class="label-short" aria-hidden="true">{labelShort}</span></> : label}</p>
     <div class="works-head-r">
       <button type="button" class="tidy" data-tidy hidden>tidy up</button>
       <div class="vt" role="group" aria-label="Show work as">

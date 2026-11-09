@@ -253,3 +253,9 @@ html:not([data-view="img"]) .tidy { display: none; }
 @media (max-width: 760px) { .works { padding-bottom: 122px; } }
 /* on a phone the shore is 112px tall (the same as the room under the last work in Web and Art): the empty sky at its top is cut away, the drawing itself (boat, reeds) keeps its size */
 @media (max-width: 760px) { .shore { height: 112px; overflow: hidden; } .shore svg { position: absolute; left: 0; bottom: 0; height: 170px; } }
+/* the section labels: a short form on a phone so each keeps to one line (I. Web & front-end, II. Media art) */
+.label-short { display: none; }
+@media (max-width: 760px) {
+  .label-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* kept for screen readers */
+  .label-short { display: inline; }
+}
