@@ -1007,7 +1007,7 @@ if (logo) {
 
   const prepLogo = (): Promise<Dots | null> => {
     if (prep) return prep;
-    const EN = 'SIMAN LI', ZH = '李思曼', fs = parseFloat(getComputedStyle(logo).fontSize) || 14, ls = `${(fs * 0.04).toFixed(2)}px`, fEn = `${fs}px "Cutive Mono", monospace`;   // the logo's own size and letter-spacing (.04em)
+    const EN = 'SIMAN LI', ZH = '李思曼', lsPx = parseFloat(getComputedStyle(logo).letterSpacing) || 0, fs = parseFloat(getComputedStyle(logo).fontSize) || 16, ls = `${lsPx.toFixed(2)}px`, fEn = `${fs}px "Cutive Mono", monospace`;   // the logo's own size and letter-spacing
     const load = document.fonts?.load ? Promise.all([document.fonts.load(fEn, EN), document.fonts.load(`500 ${fs}px "Noto Serif SC"`, ZH)]).catch(() => undefined) : Promise.resolve();
     prep = load.then(() => {
       const S = 3, PADX = 50, PADY = 34, cv = document.createElement('canvas');
@@ -1015,7 +1015,7 @@ if (logo) {
       if (!cx || !dots || !zhEl) return null;
       const spacing = (ls: string): void => { if ('letterSpacing' in cx) (cx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = ls; };
       cx.font = fEn; spacing(ls);
-      const wEn = cx.measureText(EN).width + 7 * fs * 0.04;
+      const wEn = cx.measureText(EN).width + 7 * lsPx;
       cx.font = `500 ${fs}px "Noto Serif SC", serif`;
       // 李思曼: about as tall as the capitals of SIMAN LI (70% of its size), and spread to the same width with gaps between
       // the characters, so the two names occupy the same space

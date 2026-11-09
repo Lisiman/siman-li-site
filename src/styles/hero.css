@@ -18,7 +18,7 @@
 .nav {
   padding: 0 var(--rail-edge); min-height: var(--rail); box-sizing: border-box;
   display: grid; grid-template-columns: auto 1fr; align-items: center;   /* the name on the left, the links on the right — on one line, however narrow */
-  gap: 0 24px; font-size: 14px; border-bottom: 1px solid var(--ink);
+  gap: 0 24px; font-size: var(--fs-text); border-bottom: 1px solid var(--ink);
 }
 .nav nav { display: flex; flex-wrap: wrap; gap: 4px var(--rail-edge); justify-content: flex-end; }   /* Web · Art · About: as far apart as the rail's padding */
 .nav a { text-decoration: none; padding: 9px 0; }
@@ -30,7 +30,7 @@
 @media (prefers-reduced-motion: reduce) { .nav--float { transition: none; } }
 
 /* logo: SIMAN LI ⇄ 李思曼 particle morph */
-.logo { position: relative; display: inline-block; justify-self: start; font-size: 16px; letter-spacing: .04em; }   /* one step above the links on the right (14px), in the same capitals: the name leads */
+.logo { position: relative; display: inline-block; justify-self: start; font-size: var(--fs-lead); letter-spacing: var(--ls-nav); }   /* one step above the links on the right (14px), in the same capitals: the name leads */
 .logo-en { transition: opacity .3s ease; }
 .logo-zh { position: absolute; left: 0; top: 10px;   /* exactly where the dots draw it (hero.ts sets the top to centre the smaller characters) */ white-space: nowrap; font-family: var(--zh); font-weight: 500; line-height: 1; opacity: 0; transition: opacity .3s ease; }
 .logo-dots { position: absolute; left: -50px; top: -24px; height: 90px; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .22s ease; }   /* hands over to the letters as they fade in (hero.ts), so there is no flash of heavy dot-lettering */
@@ -44,13 +44,13 @@
 .intro h1 {
   margin: 0; max-width: 900px;
   font-family: var(--serif); font-weight: 400; font-style: italic;
-  font-size: clamp(56px, min(6.6vw, 11.5svh), 96px); line-height: 1.02; letter-spacing: -.02em;   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
+  font-size: clamp(56px, min(6.6vw, 11.5svh), 96px); line-height: 1.02; letter-spacing: var(--ls-display);   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
 }
 .cursor { font-style: normal; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .roles .open { color: inherit; text-decoration: none; }
 .roles .open:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
-.roles { margin: 8px 0 0; font-size: 14px; line-height: 1.75; min-width: 240px; text-align: right; }
+.roles { margin: 8px 0 0; font-size: var(--fs-text); line-height: 1.75; min-width: 240px; text-align: right; }
 .roles > * { display: block; }   /* one line each */
 .roles.is-below { text-align: left; }   /* once the screen is too narrow and it drops under the title, it lines up with the title on the left */
 @media (max-width: 720px) { .roles { text-align: left; } }   /* (the same on a phone before the script runs) */
@@ -61,7 +61,7 @@
 .orb { cursor: var(--cur-link); outline: none; }
 .orb:focus-visible .orb-ring { stroke-width: 3; }
 /* the moon's name (Full moon, Waxing crescent…) appears under it on hover */
-.orb-label { font-family: var(--mono); font-size: 13px; letter-spacing: .04em; fill: var(--ink); stroke: none; text-anchor: middle; opacity: 0; transition: opacity .45s ease; pointer-events: none; }
+.orb-label { font-family: var(--mono); font-size: var(--fs-label); letter-spacing: var(--ls-small); fill: var(--ink); stroke: none; text-anchor: middle; opacity: 0; transition: opacity .45s ease; pointer-events: none; }
 .orb:hover .orb-label, .orb:focus-visible .orb-label { opacity: .85; }
 .trail-past { stroke: var(--mid); stroke-width: 1.6; stroke-dasharray: .1 9; opacity: .8; }
 .trail-next { stroke: var(--lt); stroke-width: 1.4; stroke-dasharray: .1 14; opacity: .7; }
@@ -129,7 +129,7 @@
 @keyframes drop { 0% { transform: scale(.1); opacity: 0; } 12% { opacity: .9; } 100% { transform: scale(1); opacity: 0; } }   /* rings fade in too: no pop at the loop */
 .ice .wl { stroke-dasharray: 26 9 4 9; opacity: .6; }
 
-.colophon { position: absolute; right: var(--pad); bottom: 16px; display: flex; flex-direction: row-reverse; gap: 12px; align-items: flex-start; pointer-events: none; font-size: 12px; line-height: 1.8; color: var(--mu); text-align: right; }
+.colophon { position: absolute; right: var(--pad); bottom: 16px; display: flex; flex-direction: row-reverse; gap: 12px; align-items: flex-start; pointer-events: none; font-size: var(--fs-note); line-height: 1.8; color: var(--mu); text-align: right; }
 .colophon-text { border-right: 1px solid var(--mu); padding-right: 12px; }
 
 /* wind: trees rotate from the root, reeds bend */
@@ -164,7 +164,7 @@
 @keyframes fly-l { 0% { transform: translate(0,0); opacity: 0; } 8%, 82% { opacity: 1; } 100% { transform: translate(-780px,-180px); opacity: 0; } }
 .flap { transform-box: fill-box; transform-origin: 50% 100%; animation: flap .38s ease-in-out infinite alternate; }
 @keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.55); } }
-.boat-age { font-family: var(--mono); font-size: 13px; letter-spacing: -.06em; text-anchor: middle; dominant-baseline: hanging; fill: var(--ink); stroke: none; opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+.boat-age { font-family: var(--mono); font-size: var(--fs-label); letter-spacing: var(--ls-small); text-anchor: middle; dominant-baseline: hanging; fill: var(--ink); stroke: none; opacity: 0; pointer-events: none; transition: opacity .6s ease; }
 /* the boat's age, floating on the water under it: it fades in on hover and bobs like something adrift */
 .show-age .boat-age, #boat:hover ~ .boat-age-g .boat-age, #boat:focus-within ~ .boat-age-g .boat-age { opacity: .6; animation: float-on 5.5s ease-in-out infinite; }
 .boat-age { transform-box: fill-box; transform-origin: center; }
@@ -190,7 +190,7 @@
 @keyframes shake { 0%, 100% { transform: none; } 18% { transform: translateX(-1px) rotate(-5deg); } 40% { transform: translateX(1px) rotate(5deg); } 62% { transform: translateX(-.7px) rotate(-3deg); } 82% { transform: translateX(.4px) rotate(2deg); } }
 
 /* ---------- bottom bar ---------- */
-.bar { padding: 10px var(--rail-edge); min-height: var(--rail); box-sizing: border-box; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; align-content: center; gap: 2px 24px; font-size: 14px; border-top: 1px solid var(--ink); }   /* on a narrow screen the two lines wrap: kept close together, in the middle (align-content), not pushed apart */
+.bar { padding: 10px var(--rail-edge); min-height: var(--rail); box-sizing: border-box; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; align-content: center; gap: 2px 24px; font-size: var(--fs-text); border-top: 1px solid var(--ink); }   /* on a narrow screen the two lines wrap: kept close together, in the middle (align-content), not pushed apart */
 
 @media (max-width: 760px) { .colophon { display: none; } }
 @media (prefers-reduced-motion: reduce) {
@@ -217,8 +217,8 @@
 .teaching.is-on { --u: 1; opacity: 1; pointer-events: auto; transition: opacity .2s ease, --u .8s cubic-bezier(.6,0,.2,1) .05s; }
 .teaching-in { display: block; box-sizing: border-box; padding: 9px 16px 8px; background: var(--bg); border-top: 1px solid var(--frame); border-bottom: 1px solid var(--frame); clip-path: inset(-2px calc((1 - var(--u)) * 50%)); }
 .teaching p { margin: 0; }
-.teaching-zh { font-family: var(--zh); font-size: 13.5px; line-height: 1.6; letter-spacing: .04em; margin-top: 4px !important; }   /* 13.5px: Chinese characters fill their square, so this reads the same size as the 15px English */
-.teaching-en { font-family: var(--serif); font-size: 15px; line-height: 1.22; }   /* upright: easier to read small than italic */
+.teaching-zh { font-family: var(--zh); font-size: var(--fs-text); line-height: 1.6; color: var(--mu); margin-top: 4px !important; }   /* (the Chinese, when shown: the same size as the English) */
+.teaching-en { font-family: var(--mono); font-size: var(--fs-text); line-height: 1.75; color: var(--mu); }   /* the words in the same type as the lines under the title (Previously Squarespace, IDEO): the plain mono, 14px, muted */
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */
 
@@ -226,4 +226,4 @@
 @media (max-width: 760px) { .intro h1 { font-size: 48px; } .intro { row-gap: 14px; } }   /* and the lines under it a little closer */
 
 /* the nav links in capitals, like SIMAN LI beside them (trying it) */
-.nav nav a { text-transform: uppercase; letter-spacing: .04em; }
+.nav nav a { text-transform: uppercase; letter-spacing: var(--ls-nav); }

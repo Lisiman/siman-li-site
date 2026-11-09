@@ -5,6 +5,16 @@
   --mono: 'Cutive Mono', ui-monospace, Menlo, monospace;
   --zh: 'Noto Serif SC', 'Songti SC', serif;
   --pad: clamp(20px, 1.8vw, 28px);   /* the one side margin of the whole site: the nav, the hero text, every section and the footer line up on it */
+  /* small type: four sizes, each with one job */
+  --fs-note: 12px;    /* notes: a work's kind, captions, the weather line, write to me */
+  --fs-label: 13px;   /* labels: the capitals (I. WEB, EDUCATION), the switch, small tags */
+  --fs-text: 14px;    /* small text: the nav, the lines under the title, the résumé, the footer */
+  --fs-lead: 16px;    /* a step up: SIMAN LI, the About links, small serif text (it reads a size smaller than the mono) */
+  /* letter-spacing: four, by kind of text */
+  --ls-caps: .14em;   /* small capitals used as labels */
+  --ls-nav: .06em;    /* the larger capitals of the nav and SIMAN LI */
+  --ls-small: .04em;  /* small lower-case mono (12–13px); from 14px up, none */
+  --ls-display: -.02em;   /* serif headings from 32px up */
   --pad-y: var(--pad);   /* the room above and below the text in the nav and footer rails: the same as the side margin… */
   color-scheme: light;
 }
@@ -18,8 +28,8 @@ body { background: var(--bg); color: var(--ink); font-family: var(--mono); -webk
 a { color: inherit; }
 .mu { color: var(--mu); }
 .ink { color: var(--ink); }
-.caps { letter-spacing: .14em; text-transform: uppercase; }
-.small { font-size: 13px; }
+.caps { letter-spacing: var(--ls-caps); text-transform: uppercase; }
+.small { font-size: var(--fs-label); }
 /* light ⇄ dark: the whole page crossfades at once (a view transition, started in hero.ts) */
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 1s; animation-timing-function: cubic-bezier(.45, 0, .25, 1); }
 
