@@ -224,7 +224,7 @@ html:not([data-view="img"]) .tidy { display: none; }
   .ixp { display: none; }   /* (the title and its kind stay side by side, the kind on the right, as on a big screen) */
   .about { text-align: left; } .about--r { margin-left: 0; }
   /* one rhythm on a phone: the label and the switch close, then the same breath before and after the words */
-  .works-head { row-gap: 16px; margin-bottom: 48px; }
+  .works-head { flex-direction: column; align-items: flex-start; row-gap: 16px; margin-bottom: 40px; }   /* the label, then the switch under it, in every section alike; 40: half the 80px above the label */
   .about--r, .about-row { margin-bottom: 48px; }
 }
 @media (prefers-reduced-motion: reduce) {
