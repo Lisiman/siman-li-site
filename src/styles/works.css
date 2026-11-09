@@ -273,9 +273,9 @@ html:not([data-view="img"]) .tidy { display: none; }
 
 /* About keeps the same steps as Web and Art (X = clamp(40px, 5vw, 120px): 40px on a phone, 72px at 1440): one step from
    the label to the title (as from the label to the words in Web and Art) and from the title to the photo and the words
-   (as from the words to the first work, Windloom); two steps (as above the label) from them to the résumé lines */
+   (as from the words to the first work, Windloom), and from the links under the words to the résumé lines */
 .ferry { --step: clamp(40px, 5vw, 120px); }
 .ferry-main { gap: 0; }
 .ferry .ferry-main > .caps:first-child { margin-bottom: var(--step); }
 .ferry .about-row { margin-top: var(--step); margin-bottom: 0; }
-.ferry .facts { margin-top: calc(2 * var(--step)); }
+.ferry .facts { margin-top: var(--step); }
