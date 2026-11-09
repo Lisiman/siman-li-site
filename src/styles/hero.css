@@ -4,7 +4,7 @@
   --rail-edge: var(--pad); /* nav & bottom bar: on the site's one side margin, so the rails line up with everything below */
   --rail-x: var(--pad);    /* the hero text: on the site's side margin, with the nav above and every section below */
   position: sticky; top: 0; z-index: 0;
-  height: clamp(600px, 100vh, 960px); height: clamp(600px, 100svh, 960px);
+  height: 100vh; height: 100svh;
   display: grid; grid-template-rows: auto auto 1fr auto; grid-template-columns: 100%;
   background: var(--bg); color: var(--ink);
 }
