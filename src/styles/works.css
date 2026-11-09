@@ -195,7 +195,7 @@ html:not([data-view="img"]) .tidy { display: none; }
 .ferry-links { font-size: var(--fs-lead); font-family: var(--mono); line-height: 1.6; }   /* under the bio, in the plain type of the rest of the page */
 .bio .ferry-links { margin-top: .6em; }
 .ferry-links a { text-underline-offset: 4px; }
-.shore { position: relative; margin-top: calc(2 * var(--step));   /* two steps after the last lines of the résumé, as above the section's label */ height: clamp(170px, 18vw, 260px); }
+.shore { position: relative; margin-top: calc(1.5 * var(--step));   /* 75% of two steps after the last lines of the résumé: the drawing below is tall, so a little less air above it */ height: clamp(170px, 18vw, 260px); }
 /* home: Shijiazhuang's sky over the shore (home-sky.ts) and a quiet line with its time and weather */
 .home-sky-band { position: absolute; left: 0; top: 0; width: 100%; height: 900px; z-index: -1; pointer-events: none; }   /* height set to reach the contact links (home-sky.ts) */   /* behind the text (the room isolates it) */
 .home-sky { stroke: var(--ink); fill: none; stroke-linecap: round; stroke-linejoin: round; }
