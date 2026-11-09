@@ -259,5 +259,5 @@ html:not([data-view="img"]) .tidy { display: none; }
   .label-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* kept for screen readers */
   .label-short { display: inline; }
 }
-/* About's title on a phone: just "let’s say hi." on one line (the whole sentence still read out by screen readers) */
-@media (max-width: 760px) { .hi-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
+/* About's title on a phone: just "Let’s say hi." on one line (the whole sentence still read out by screen readers) */
+@media (max-width: 760px) { .hi-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .hi-cap { text-transform: uppercase; } }   /* …standing alone, it starts with a capital: Let’s */
