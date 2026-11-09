@@ -65,7 +65,29 @@ if (canDrag) {
 // every visit opens on Index; a click switches the whole page for this view (an old saved choice is forgotten)
 try { sessionStorage.removeItem('sl-view'); } catch { /* private mode */ }
 set('txt');
-buttons.forEach((b) => b.addEventListener('click', () => { if (isView(b.dataset.viewBtn)) set(b.dataset.viewBtn); }));
+// switching changes the height of every section (the choice is for the whole page), so the page would jump: keep the
+// switch that was pressed exactly where it was on the screen, so you stay in the section you were looking at. The
+// sections above go on changing for a moment (their pictures load, the view fades in), so it is held there (until
+// the reader scrolls, or five seconds), re-measured as the page settles; the browser's own scroll anchoring is off meanwhile, so the two
+// don't both correct.
+let hold = 0;
+buttons.forEach((b) => b.addEventListener('click', () => {
+  const v = b.dataset.viewBtn; if (!isView(v)) return;
+  const target = b.getBoundingClientRect().top, root = document.documentElement;
+  root.style.overflowAnchor = 'none';
+  set(v);
+  const pin = (): void => {
+    const d = b.getBoundingClientRect().top - target;
+    if (Math.abs(d) > .5) window.scrollTo({ top: window.scrollY + d, behavior: 'instant' as ScrollBehavior });
+  };
+  pin();
+  cancelAnimationFrame(hold);
+  const until = performance.now() + 5000;   // (pictures above may still be loading: hold it until the reader scrolls, or five seconds)
+  const loop = (): void => { pin(); if (performance.now() < until) hold = requestAnimationFrame(loop); else root.style.overflowAnchor = ''; };
+  hold = requestAnimationFrame(loop);
+  const stop = (): void => { cancelAnimationFrame(hold); root.style.overflowAnchor = ''; };
+  addEventListener('wheel', stop, { once: true, passive: true }); addEventListener('touchmove', stop, { once: true, passive: true }); addEventListener('keydown', stop, { once: true });   // (the reader scrolls: let go)
+}));
 
 // looping videos: pause while off screen, stay still for reduced motion
 const videos = document.querySelectorAll<HTMLVideoElement>('.works .ph video');   // the Images cards only; the Index previews play on hover (below)
