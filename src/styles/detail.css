@@ -10,7 +10,8 @@
 
 .d { padding: clamp(64px, 9vw, 160px) var(--pad) clamp(40px, 5vw, 80px); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
 /* a blinking cursor after the title, like the one on the home page ("a Creative Technologist_") */
-.d-cursor { margin-left: .04em; font-style: normal; }   /* a still cursor after the title (it doesn't blink) */
+.d-cursor { margin-left: .04em; font-style: normal; animation: d-blink 1s steps(1) .5s 2; }   /* the cursor after the title blinks twice as the page opens (as if the title had just been typed, like the home page's), then stays */
+@keyframes d-blink { 50% { opacity: 0; } }
 @keyframes d-breathe { 0%, 100% { opacity: .9; } 50% { opacity: .12; } }
 @media (prefers-reduced-motion: reduce) { .d-cursor { animation: none; } }
 .d-title { margin: 0; color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 8.5vw, 140px); line-height: .92; letter-spacing: -.025em; }
