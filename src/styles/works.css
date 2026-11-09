@@ -11,7 +11,7 @@
 .ink-room, :root:not(.dark) .paper { --bg: #161511; --ink: #EFEADF; --mu: #A39E92; --mid: #B4AEA1; --lt: #7A756B; --rule: #2E2C29; }
 
 /* ---------- a body of work ---------- */
-.works { --step: clamp(40px, 5vw, 120px); padding: calc(2 * var(--step)) var(--pad) clamp(88px, 11vw, 264px); }   /* one step (5% of the width: 40px on a phone, 72px at 1440) under the switch and under the words; twice it above the label. The bottom gap scales too */
+.works { --step: clamp(40px, 5vw, 120px); padding: calc(2 * var(--step)) var(--pad); }   /* one step (5% of the width: 40px on a phone, 72px at 1440) under the switch and under the words; twice it above the label, and the same twice under the section */
 .works-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 24px; margin: 0 0 var(--step); }
 .works-head p { margin: 0; }
 .works-head-r { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 32px; }
@@ -248,8 +248,6 @@ html:not([data-view="img"]) .tidy { display: none; }
 }
 /* the index on a phone: just the titles — the categories would crowd them (they show on a big screen) */
 @media (max-width: 760px) { .ix .cat { display: none; } }
-/* on a phone the last work has as much room under it as there is between two works (112px, the .scol gap) */
-@media (max-width: 760px) { .works { padding-bottom: 122px; } }
 /* on a phone the shore is 112px tall (the same as the room under the last work in Web and Art): the empty sky at its top is cut away, the drawing itself (boat, reeds) keeps its size */
 @media (max-width: 760px) { .shore { height: 112px; overflow: hidden; } .shore svg { position: absolute; left: 0; bottom: 0; height: 170px; } }
 /* the section labels: a short form on a phone so each keeps to one line (I. Web & front-end, II. Media art) */
