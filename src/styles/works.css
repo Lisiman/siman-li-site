@@ -226,7 +226,7 @@ html:not([data-view="img"]) .tidy { display: none; }
   /* one rhythm on a phone: the label and the switch close, then the same breath before and after the words */
   .vt button { padding-block: 0; }   /* no padding above and below the switch on a phone, so the 16px and 40px around it are what you see */
   .works-head { flex-direction: column; align-items: flex-start; row-gap: 16px; margin-bottom: 40px; }   /* the label, then the switch under it, in every section alike; 40: half the 80px above the label */
-  .about--r, .about-row { margin-bottom: 48px; }
+  .about--r, .about-row { margin-bottom: 40px; }   /* the same 40px under the words as above them */
 }
 @media (prefers-reduced-motion: reduce) {
   .view { animation: none; }
