@@ -4,6 +4,8 @@
   "name": "siman-li-site",
   "compatibility_date": "2025-11-01",
   "assets": {
-    "directory": "./dist"
+    "directory": "./dist",
+    // pages answer at /work/windloom (as every link on the site is written), not /work/windloom/
+    "html_handling": "drop-trailing-slash"
   }
 }
