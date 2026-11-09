@@ -115,6 +115,7 @@ const sway = (i: number): string => {   // deterministic per blade: a gentle ske
       <rect class="boat-hit" x="-50" y="-38" width="100" height="52" />
       <text class="boat-note" x="0" y="-44" text-anchor="middle">write to me</text>
       <g class="moored">
+        <path class="boat-fill" d="M-34,-3 Q0,7 34,-4 L30,-3 L-2,-2.5 V-11 L0,-11 Q-10,-15 -20,-11 L-18,-11 V-2.2 L-30,-2 Z" style="fill:var(--bg);stroke:none" />   <!-- the hull and the cabin are solid: the river behind does not show through -->
         <path d="M-34,-3 Q0,7 34,-4 M-30,-2 L30,-3 M-18,-2 v-9 h16 v9 M-20,-11 q10,-4 20,0" style="stroke:var(--ink)" stroke-width="0.9" />
         <path d="M8,-3 L36,-26" style="stroke:var(--ink)" stroke-width="0.9" />
         <!-- the same paper lantern as the ferry at the top: on a bamboo pole at the stern, swinging on its hook, lit at night (hero.css) -->

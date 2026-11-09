@@ -216,6 +216,8 @@ function drawSeason(windIdx: number): void {
 $('boat').innerHTML =
   '<g id="bob" class="bob"><g id="surge">'
   + '<path class="wake" d="M-44,4 q-9,2 -18,0 M-52,9 q-11,2 -22,0" style="stroke:var(--mid)" stroke-width="0.8"></path>'
+  // the hull and the cabin are solid (filled with the paper): the river behind does not show through the boat
+  + '<path class="boat-fill" d="M-34,-3 Q0,7 34,-4 L30,-3 L-2,-2.5 V-11 L0,-11 Q-10,-15 -20,-11 L-18,-11 V-2.2 L-30,-2 Z" style="fill:var(--bg);stroke:none"></path>'
   + '<path d="M-34,-3 Q0,7 34,-4 M-30,-2 L30,-3 M-18,-2 v-9 h16 v9 M-20,-11 q10,-4 20,0" style="stroke:var(--ink)" stroke-width="1"></path>'
   // a paper lantern on a bamboo pole at the stern; it swings a little on its hook (hero.css .lantern-swing)
   + '<g class="lantern" aria-hidden="true">'
