@@ -22,7 +22,7 @@
    letter); the facts in columns 8–12, out to the right margin (wide enough that each team line fits on one line). The three clips below take the same thirds; desktop and phone split 8 + 4. */
 .d { --gut: var(--pad); }   /* the grid's gutter is the site's side margin: one measure between pictures and around the page */
 /* the page keeps the home page's steps (X, global.css): 2X under the nav and under the title, X inside a part, 2X before
-   a new part (a chapter, Highlights, Screens), 3X before Next */
+   a new part (a chapter, Highlights, Screens) and before Next */
 .d-intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: var(--step); margin-top: calc(2 * var(--step)); align-items: start; }
 .d-intro .d-lede { display: contents; }
 .d-intro .d-lede { display: block; grid-row: 1; grid-column: 1 / span 6; }   /* PROJECT INFO, then MY ROLE below it: the left half, under the title */
@@ -199,7 +199,7 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-press-row + .d-press-row { margin-top: 16px; }   /* Exhibitions, then As seen on */
 .d-press a { color: inherit; text-decoration: none; transition: color .3s ease; }
 .d-press a:hover, .d-press a:focus-visible { color: var(--ink); }
-.d-pager { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: calc(3 * var(--step)); }
+.d-pager { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: calc(2 * var(--step)); }
 @media (max-width: 760px) { .d-pager { margin-top: 32px; } .d { padding-bottom: 32px; } }   /* a phone: Prev / Next in the middle, the same room above (to the last picture) as below (to the footer line) */
 .d-pager .d-prev { grid-column: 1 / span 6; justify-self: start; }   /* prev on the left, from the page's left margin */
 .d-pager .d-next--on { grid-column: 7 / span 6; justify-self: end; text-align: right; }   /* next on the right, to the page's right margin */
