@@ -251,5 +251,5 @@ html:not([data-view="img"]) .tidy { display: none; }
 @media (max-width: 760px) { .ix .cat { display: none; } }
 /* on a phone the last work has as much room under it as there is between two works (112px, the .scol gap) */
 @media (max-width: 760px) { .works { padding-bottom: 122px; } }
-/* on a phone the shore is about half as tall (170px → 89px): the empty sky at its top is cut away, the drawing itself (boat, reeds) keeps its size */
-@media (max-width: 760px) { .shore { height: 89px; overflow: hidden; } .shore svg { position: absolute; left: 0; bottom: 0; height: 170px; } }
+/* on a phone the shore is 112px tall (the same as the room under the last work in Web and Art): the empty sky at its top is cut away, the drawing itself (boat, reeds) keeps its size */
+@media (max-width: 760px) { .shore { height: 112px; overflow: hidden; } .shore svg { position: absolute; left: 0; bottom: 0; height: 170px; } }
