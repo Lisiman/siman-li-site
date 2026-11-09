@@ -25,3 +25,12 @@
 }
 
 .lk-in.lk-eol::after { display: none; }
+
+/* a touch screen has no hover: a tap would leave the hover wave and the floating letters stuck on, so there the links
+   stay as they rest (a link that rests with its faint wave keeps it) */
+@media (hover: none) {
+  .lk-w:not(.lk-u):hover .lk-in::after, .lk-w:not(.lk-u):focus-visible .lk-in::after { opacity: 0; animation: none; }
+  .lk-u:hover .lk-in::after, .lk-u:focus-visible .lk-in::after { opacity: .5; animation: none; }
+  .lk-w:hover .ch, .lk-w:focus-visible .ch { animation: none; }
+  .lk-w:hover .ch.lk-arr, .lk-w:focus-visible .ch.lk-arr { transform: none; }
+}

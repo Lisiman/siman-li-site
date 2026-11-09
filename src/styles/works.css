@@ -238,3 +238,13 @@ html:not([data-view="img"]) .tidy { display: none; }
 
 /* on a phone, less air between the last résumé lines and the shore below (114px → 86px → 65px, a quarter less twice) */
 @media (max-width: 760px) { .shore { margin-top: 47px; } }
+
+/* a touch screen has no hover: a tap or a scroll would leave the hover look stuck on — every other work faded to half,
+   a title slid over and set in the other style (wider, onto its category). There every work stays as it rests. */
+@media (hover: none) {
+  .stag:hover .card .ph { opacity: 1; }
+  .ixl:hover .ix { opacity: 1; }
+  .ix:hover .pt, .ix:focus-visible .pt, .card:hover .pt, .card:focus-visible .pt { transform: none; font-style: normal; }
+  .ix:hover .pt.it, .ix:focus-visible .pt.it, .card:hover .pt.it, .card:focus-visible .pt.it { font-style: italic; }
+}
+@media (max-width: 420px) { .ix .pt { font-size: 28px; } }   /* the narrowest phones: room for the category beside a long title */

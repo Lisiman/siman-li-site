@@ -45,7 +45,7 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
         {d.meta.live && <div><dt>Visit</dt><dd><a class="d-visit" href={d.meta.live.href} target="_blank" rel="noopener">{d.meta.live.label.split('.').map((part, i, all) => <>{part}{i < all.length - 1 && <>.<wbr /></>}</>)} ↗</a></dd></div>}
         {d.meta.watch && d.meta.watch.length > 0 && <div><dt>Watch</dt><dd>{d.meta.watch.map((w) => <a class="d-visit" href={w.href} target="_blank" rel="noopener">{w.label} ↗</a>)}</dd></div>}
         <div><dt>Year</dt><dd>{d.meta.year}</dd></div>
-        {d.meta.credits && d.meta.credits.length > 0 && <div class="d-team"><dt>Team</dt><dd>{d.meta.credits.map((c) => <span><span class="d-team-role">{c.role}, </span>{c.href ? <a href={c.href} target="_blank" rel="noopener">{c.name}</a> : c.name}</span>)}</dd></div>}
+        {d.meta.credits && d.meta.credits.length > 0 && <div class="d-team"><dt>Team</dt><dd>{d.meta.credits.map((c) => <span><span class="d-team-role">{c.role},</span>{" "}{c.href ? <a class="d-team-name" href={c.href} target="_blank" rel="noopener">{c.name}</a> : <span class="d-team-name">{c.name}</span>}</span>)}</dd></div>}
       </dl>
     </div>
 

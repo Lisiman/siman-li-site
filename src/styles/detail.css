@@ -48,6 +48,8 @@
 .d-meta .d-team { margin-top: 14px; }
 .d-team > dd > span { white-space: nowrap; }   /* a person (role, then name) stays on one line where it can */
 .d-team-role { opacity: .7; white-space: nowrap; }   /* a role never splits across lines */
+.d-team-name { white-space: nowrap; overflow-wrap: normal; }   /* a name is never split */
+@media (max-width: 860px) { .d-team > dd > span { white-space: normal; } }   /* on a phone a long "role, name" wraps, the whole name moving to the next line, instead of running off the screen */
 
 
 /* the work itself: full width, no frame */
