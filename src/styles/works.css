@@ -273,10 +273,10 @@ html:not([data-view="img"]) .tidy { display: none; }
 @media (max-width: 760px) { .hi-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .hi-cap { text-transform: uppercase; } }   /* …standing alone, it starts with a capital: Let’s */
 
 /* About keeps the same steps as Web and Art (X = clamp(40px, 5vw, 120px): 40px on a phone, 72px at 1440): one step from
-   the label to the title, as from the label to the words in Web and Art; two steps (as above the label) from the title
-   to the photo and the words, and from them to the résumé lines */
+   the label to the title (as from the label to the words in Web and Art) and from the title to the photo and the words
+   (as from the words to the first work, Windloom); two steps (as above the label) from them to the résumé lines */
 .ferry { --step: clamp(40px, 5vw, 120px); }
 .ferry-main { gap: 0; }
 .ferry .ferry-main > .caps:first-child { margin-bottom: var(--step); }
-.ferry .about-row { margin-top: calc(2 * var(--step)); margin-bottom: 0; }
+.ferry .about-row { margin-top: var(--step); margin-bottom: 0; }
 .ferry .facts { margin-top: calc(2 * var(--step)); }
