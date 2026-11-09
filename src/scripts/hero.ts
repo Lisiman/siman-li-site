@@ -845,7 +845,10 @@ const jump = (e: Event): void => {
   if (!touched || r < 0.55) replay(arm, 'hello', ['hello']);
   else replay(head, r < 0.85 ? 'shake' : 'nod', ['nod', 'shake']);
   touched = true;
+  // on a touch screen (no hover), a tap also shows how far across the ferry is, for a few seconds
+  if (matchMedia('(hover: none)').matches) { svg.classList.add('tap-age'); clearTimeout(ageTimer); ageTimer = window.setTimeout(() => svg.classList.remove('tap-age'), 3500); }
 };
+let ageTimer = 0;
 ferryman.addEventListener('click', jump);
 // rest the pointer on the boat and he waves once, hello (a mouse only: a touch is a click); again only after the pointer
 // has left the boat and come back

@@ -44,7 +44,7 @@
 .intro h1 {
   margin: 0; max-width: 900px;
   font-family: var(--serif); font-weight: 400; font-style: italic;
-  font-size: clamp(48px, min(6.94vw, 11.5svh), 120px); line-height: 1.02; letter-spacing: var(--ls-display);   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
+  font-size: clamp(48px, min(6.94vw, 11.5svh), 100px); line-height: 1.02; letter-spacing: var(--ls-display);   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees; at most 100px, so it keeps to two lines on a big screen (a work's page title may grow to 120) */
 }
 .cursor { font-style: normal; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
@@ -227,3 +227,10 @@
 
 /* the nav links in capitals, like SIMAN LI beside them (trying it) */
 .nav nav a { text-transform: uppercase; letter-spacing: var(--ls-nav); }
+
+/* a tablet held upright: the title larger (about 70px on an iPad), filling more of the tall sky */
+@media (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) { .intro h1 { font-size: clamp(64px, 8.5vw, 92px); } }
+
+/* a tap on the boat (touch screens have no hover): its age shows for a few seconds (hero.ts) */
+.tap-age .boat-age { opacity: .6; animation: float-on 5.5s ease-in-out infinite; }
+
