@@ -8,7 +8,7 @@
 .d-name { font-size: var(--fs-lead); letter-spacing: var(--ls-nav); }   /* as on the home page: one step above the links beside it */
 @media (prefers-reduced-motion: reduce) { .d-rail { transition: none; } }
 
-.d { padding: calc(1.5 * var(--step)) var(--pad) calc(1.5 * var(--step)); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
+.d { padding: calc(1.5 * var(--step)) var(--pad) calc(1.5 * var(--step)); font-family: var(--mono); font-size: var(--fs-lead); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
 /* a blinking cursor after the title, like the one on the home page ("a Creative Technologist_") */
 .d-cursor { margin-left: .04em; font-style: normal; animation: d-blink 1s steps(1) .5s 2; }   /* the cursor after the title blinks twice as the page opens (as if the title had just been typed, like the home page's), then stays */
 @keyframes d-blink { 50% { opacity: 0; } }
@@ -29,12 +29,12 @@
 .d-intro .d-lede p { color: var(--mu); }   /* the body in grey, the headings in ink */
 .d-intro .d-lede section + section { margin-top: 32px; }
 .d-intro .d-meta { grid-row: 1; grid-column: 8 / span 5; grid-template-columns: 1fr; gap: 12px; }
-.d-intro .d-meta div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
+.d-intro .d-meta div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: var(--pad); align-items: baseline; }
 .d-intro .d-meta dt { margin: 0; }
 /* Detail.introFigure: a small picture on the left of the introduction, the words beside it */
 .d-intro-figure { grid-row: 1; grid-column: 1 / span 2; margin: 0; }
 .d-intro-figure img { display: block; width: 100%; height: auto; }
-.d-intro-figure figcaption { margin-top: 12px; color: var(--mu); font-size: .85em; }
+.d-intro-figure figcaption { margin-top: 12px; color: var(--mu); font-size: var(--fs-label); }
 .d-intro--figure .d-lede { grid-column: 3 / span 5; }
 .d-lede { margin: 0; max-width: 48em; }
 .d-lede p { margin: 0 0 1em; }
@@ -126,8 +126,8 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* the gallery: on the same 12-column grid — a row of one runs full width, a row of two splits it in half */
 .d-gallery { margin: var(--gut) 0 0; }   /* no headings: the film and the pictures follow the recording on the grid's gutter, one continuous run */
 .d-gallery > .d-row:first-child, .d-film > .d-yt:first-child { margin-top: 0; }
-.d-media-label { margin: 0 0 16px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
-.d-gallery h2 { margin: var(--step) 0 16px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-media-label { margin: 0 0 16px; font: inherit; font-size: var(--fs-label); color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-gallery h2 { margin: var(--step) 0 16px; font: inherit; font-size: var(--fs-label); color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
 .d-gallery-note { margin: 4px 0 0; max-width: 40em; color: var(--mu); }
 .d-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: var(--gut); align-items: start; }
 .d-gallery h2.d-chapter { margin: calc(2 * var(--step)) 0 0; }   /* a chapter of pictures (gallery.chapters, e.g. Making, Performance): room to breathe above it */
@@ -192,9 +192,9 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* the press: just the publications, one per line, in grey like the rest — white on hover */
 .d-press { margin: calc(var(--step) / 2) 0 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); }
 /* lined up with the facts at the top (ROLE, TEAM…): the same columns (8–12), the label beside the list like TEAM */
-.d-press-row { grid-column: 8 / span 5; display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
+.d-press-row { grid-column: 8 / span 5; display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: var(--pad); align-items: baseline; }
 @media (max-width: 1100px) { .d-press-row { grid-column: 1 / -1; } }
-.d-press h2 { margin: 0; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-press h2 { margin: 0; font: inherit; font-size: var(--fs-label); color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
 .d-press ul { list-style: none; margin: 0; padding: 0; }
 .d-press-row + .d-press-row { margin-top: 16px; }   /* Exhibitions, then As seen on */
 .d-press a { color: inherit; text-decoration: none; transition: color .3s ease; }
@@ -239,7 +239,7 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 
 /* every small heading on the page in capitals: Project info, My role, Role, Year, Editions, Details… */
-.d-lede h2, .d-meta dt, .d-story h2, .d-highlights h2, .d-screens h2 { text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-lede h2, .d-meta dt, .d-story h2, .d-highlights h2, .d-screens h2 { font-size: var(--fs-label); text-transform: uppercase; letter-spacing: var(--ls-caps); }   /* 13px, like the home page's section labels and About's résumé labels */
 
 /* as on the home page: the nav links in capitals (trying it) */
 .d-rail nav a { text-transform: uppercase; letter-spacing: var(--ls-nav); }
@@ -269,3 +269,9 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 .d-row figure[data-split="3"]::after { left: calc(2 * (100% - 2 * var(--gut)) / 3 + var(--gut) - var(--r)); }
 
+/* the narrowest phones: a narrower label column in the facts (ROLE, VISIT…), so a long address keeps to the screen */
+@media (max-width: 400px) { .d-intro .d-meta div { grid-template-columns: 6.5em minmax(0, 1fr); } }
+
+/* the small headings in the intro (PROJECT INFO, WHAT I DID) stand on a line as tall as the text's (16px × 1.7), like
+   ROLE beside its answer: so PROJECT INFO and ROLE sit on one baseline across the page */
+.d-lede h2 { line-height: calc(var(--fs-lead) * 1.7); position: relative; top: 1px; }   /* (and 1px for the smaller letters' own rise) */

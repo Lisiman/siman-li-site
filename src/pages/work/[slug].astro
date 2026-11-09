@@ -176,25 +176,53 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
 <script>
   // Prev / Next turn italic on hover, and italic is narrower: a title on two lines would pull up onto one. So the lines
   // are set where the upright title breaks them (a <br> before each word that starts a line), and set again on resize.
-  document.querySelectorAll<HTMLElement>('.d-next-name').forEach((name) => {
+  // …and Prev and Next take the same number of lines: if one needs two, the other is broken into two as well, at the
+  // word that makes its two lines closest in length, or after the title's own colon (Prev: Emma Stone: / Unavailable beside
+  // Next: Coming Out / to a New World)
+  const pager = document.querySelector<HTMLElement>('.d-pager');
+  const sides = [...document.querySelectorAll<HTMLElement>('.d-next-name')].map((name) => {
     const words = (name.textContent ?? '').split(/(\s+)/);
     name.textContent = '';
     const spans = words.map((w) => { const s = document.createElement('span'); s.textContent = w; name.appendChild(s); return s; });
-    const lay = (): void => {
-      name.querySelectorAll('br').forEach((b) => b.remove());
-      let top = -Infinity;
-      const label = name.previousElementSibling?.getBoundingClientRect();
-      if (label) top = label.top;
-      spans.forEach((s) => {
-        if (!s.textContent?.trim()) return;
-        const t = s.getBoundingClientRect().top;
-        if (t > top + 2) { if (top !== -Infinity && s.previousSibling) name.insertBefore(document.createElement('br'), s); }
-        top = t;
-      });
+    const label = name.previousElementSibling as HTMLElement | null;
+    const real = (): HTMLElement[] => spans.filter((s) => s.textContent?.trim());
+    const lines = (): number => { const tops = new Set(real().map((s) => Math.round(s.getBoundingClientRect().top))); if (label) tops.add(Math.round(label.getBoundingClientRect().top)); return [...new Set([...tops].map((t) => Math.round(t / 4)))].length; };
+    /** pin the breaks where the upright title falls (a <br> before each word that starts a line) */
+    const pin = (): void => {
+      let top = label ? label.getBoundingClientRect().top : -Infinity;
+      real().forEach((s) => { const t = s.getBoundingClientRect().top; if (t > top + 2 && top !== -Infinity && s.previousSibling) name.insertBefore(document.createElement('br'), s); top = t; });
     };
-    document.fonts?.ready.then(lay);
-    let w = 0; new ResizeObserver(([e]) => { const nw = Math.round(e.contentRect.width); if (nw !== w) { w = nw; lay(); } }).observe(name.closest('.d-pager') ?? document.body);
+    /** a one-line side broken in two, before the word that balances the two lines best */
+    const split = (): void => {
+      const ws = real(); if (!ws.length) return;
+      if (ws.length === 1) { if (label) name.insertBefore(document.createElement('br'), ws[0]); return; }   // a one-word title (Windloom) goes under its label
+      const start = (label ?? ws[0]).getBoundingClientRect().left, end = ws[ws.length - 1].getBoundingClientRect().right;
+      let best = ws[0], diff = Infinity;
+      ws.forEach((w) => { const x = w.getBoundingClientRect().left, d = Math.abs((x - start) - (end - x)); if (d < diff) { diff = d; best = w; } });
+      if (best === ws[0] && !label) return;
+      name.insertBefore(document.createElement('br'), best);
+    };
+    /** a title with its own colon (Emma Stone: Unavailable) breaks after it, if both lines then fit: a name stays whole */
+    const atColon = (): boolean => {
+      const ws = real(), i = ws.findIndex((w, k) => k < ws.length - 1 && w.textContent!.trim().endsWith(':'));
+      if (i < 0) return false;
+      name.insertBefore(document.createElement('br'), ws[i + 1]);
+      if (lines() === 2) return true;
+      name.querySelectorAll('br').forEach((b) => b.remove()); return false;
+    };
+    return { name, lines, pin, split, atColon };
   });
+  const lay = (): void => {
+    sides.forEach((x) => x.name.querySelectorAll('br').forEach((b) => b.remove()));
+    const n = sides.map((x) => x.lines());
+    const two = Math.max(...n) >= 2;
+    sides.forEach((x, k) => {
+      if (two && n[k] <= 2 && x.atColon()) return;
+      if (n[k] === 1 && two && sides.length === 2) x.split(); else x.pin();
+    });
+  };
+  document.fonts?.ready.then(lay);
+  let pw = 0; if (pager) new ResizeObserver(([e]) => { const nw = Math.round(e.contentRect.width); if (nw !== pw) { pw = nw; lay(); } }).observe(pager);
 </script>
 <script>
   // a title with one long word (Tetragrammaton) must never run off a narrow screen: if any of its lines, the cursor
