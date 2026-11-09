@@ -44,7 +44,7 @@
 .intro h1 {
   margin: 0; max-width: 900px;
   font-family: var(--serif); font-weight: 400; font-style: italic;
-  font-size: clamp(56px, min(6.6vw, 11.5svh), 96px); line-height: 1.02; letter-spacing: var(--ls-display);   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
+  font-size: clamp(48px, min(6.94vw, 11.5svh), 120px); line-height: 1.02; letter-spacing: var(--ls-display);   /* smaller on a short, wide screen, where the painting (as wide as the screen) leaves less sky above the trees */
 }
 .cursor { font-style: normal; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
@@ -222,8 +222,8 @@
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */
 
-/* on a phone the title a little smaller (three lines, but lighter over the painting) */
-@media (max-width: 760px) { .intro h1 { font-size: 48px; } .intro { row-gap: 14px; } }   /* and the lines under it a little closer */
+/* on a phone the lines under the title a little closer (the title itself is 48px there: --fs-d5's smallest) */
+@media (max-width: 760px) { .intro { row-gap: 14px; } }
 
 /* the nav links in capitals, like SIMAN LI beside them (trying it) */
 .nav nav a { text-transform: uppercase; letter-spacing: var(--ls-nav); }

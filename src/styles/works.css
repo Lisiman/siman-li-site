@@ -31,7 +31,7 @@
 .vt button:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
 
 /* the about: right-aligned statement */
-.about { margin: 0; font-family: var(--serif); font-size: clamp(28px, 3vw, 42px); line-height: 1.3; text-align: right; }
+.about { margin: 0; font-family: var(--serif); font-size: var(--fs-d2); line-height: 1.3; text-align: right; }
 .about--r { max-width: 920px; margin: 0 0 var(--step) auto; }
 .about-row { display: flex; flex-direction: row-reverse; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 32px var(--step); margin: 0 0 var(--step); }
 .about-row .about { flex: 0 1 920px; }
@@ -72,7 +72,7 @@ html:not([data-view="img"]) .view--img, html[data-view="img"] .view--txt { displ
 .stag:hover .card .ph { opacity: .5; } .stag:hover .card:hover .ph { opacity: 1; }
 .cap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .cat { font-size: var(--fs-note); color: var(--mu); }
-.pt { display: inline-block; font-family: var(--serif); font-size: clamp(24px, 2.2vw, 34px); line-height: 1.05; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
+.pt { display: inline-block; font-family: var(--serif); font-size: var(--fs-d1); line-height: 1.05; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
 .pt.it { font-style: italic; }
 /* on hover the titles swap voice: Web's upright titles lean into italic, Art's italic titles stand up straight */
 .ix:hover .pt, .ix:focus-visible .pt, .card:hover .pt, .card:focus-visible .pt { font-style: italic; }
@@ -102,7 +102,7 @@ html:not([data-view="img"]) .tidy { display: none; }
 .ix { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px var(--pad); padding: 20px 0; border-top: 1px solid var(--rule); text-decoration: none; color: var(--ink); transition: opacity .5s ease, z-index 0s linear .8s; }
 /* the hovered row sits above the others, so no row line ever crosses its preview image (and stays up while the image fades out) */
 .ix:hover, .ix:focus-visible { z-index: 3; transition: opacity .5s ease, z-index 0s; }
-.ix .pt { font-size: clamp(32px, 3.8vw, 58px); line-height: 1; letter-spacing: var(--ls-display); }
+.ix .pt { font-size: var(--fs-d3); line-height: 1; letter-spacing: var(--ls-display); }
 .ixl:hover .ix { opacity: .38; } .ixl:hover .ix:hover { opacity: 1; }
 .ix:hover .pt, .ix:focus-visible .pt { transform: translateX(10px); }
 /* the preview is a little handscroll (line only): two hollow rollers and a hairline paper edge top and bottom.
@@ -189,7 +189,7 @@ html:not([data-view="img"]) .tidy { display: none; }
 .facts-list li:not(:last-child)::after { content: '·'; margin: 0 .85em; opacity: .6; }
 @media (max-width: 760px) { .facts-row { grid-template-columns: 1fr; row-gap: 12px; } .facts-roles p { grid-template-columns: 1fr auto; } .facts-roles p span:nth-child(2) { grid-column: 1; grid-row: 2; } .facts-yr { grid-row: 1 / span 2; grid-column: 2; } }
 .bio [lang="zh"] { font-family: var(--zh); font-size: .92em; }
-.ferry-big { font-family: var(--serif); font-size: clamp(44px, 5.4vw, 80px); line-height: 1.02; letter-spacing: var(--ls-display); }
+.ferry-big { font-family: var(--serif); font-size: var(--fs-d4); line-height: 1.02; letter-spacing: var(--ls-display); }
 /* the ferryman from the painting at the top, standing after the title and waving hello (arm: .wave-on in hero.css) */
 .hi-wave { display: inline-block; height: .465em; width: auto; aspect-ratio: 16 / 25; margin-left: .16em; vertical-align: -.02em; overflow: visible; fill: none; stroke: currentColor; stroke-width: .7; stroke-linecap: round; stroke-linejoin: round; }
 .ferry-links { font-size: var(--fs-lead); font-family: var(--mono); line-height: 1.6; }   /* under the bio, in the plain type of the rest of the page */

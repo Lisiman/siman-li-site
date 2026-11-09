@@ -10,6 +10,13 @@
   --fs-label: 13px;   /* labels: the capitals (I. WEB, EDUCATION), the switch, small tags */
   --fs-text: 14px;    /* small text: the nav, the lines under the title, the résumé, the footer */
   --fs-lead: 16px;    /* a step up: SIMAN LI, the About links, small serif text (it reads a size smaller than the mono) */
+  /* display type: five sizes, each a third larger than the one below on a big screen (×1.33: 32 · 42 · 56 · 75 · 100 at
+     1440), closer together on a phone (24 · 29 · 35 · 42 · 48), growing with the width in between */
+  --fs-d1: clamp(24px, 2.22vw, 38px);    /* a work's name on its card (Images) */
+  --fs-d2: clamp(29px, 2.92vw, 50px);    /* the words under each section's label */
+  --fs-d3: clamp(35px, 3.89vw, 67px);    /* a work's name in the index; Next on a work's page */
+  --fs-d4: clamp(42px, 5.21vw, 90px);    /* About's Let’s say hi */
+  --fs-d5: clamp(48px, 6.94vw, 120px);   /* the page titles: Hi, I’m Siman and each work's name on its page */
   /* letter-spacing: four, by kind of text */
   --ls-caps: .14em;   /* small capitals used as labels */
   --ls-nav: .06em;    /* the larger capitals of the nav and SIMAN LI */

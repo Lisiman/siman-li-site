@@ -14,7 +14,7 @@
 @keyframes d-blink { 50% { opacity: 0; } }
 @keyframes d-breathe { 0%, 100% { opacity: .9; } 50% { opacity: .12; } }
 @media (prefers-reduced-motion: reduce) { .d-cursor { animation: none; } }
-.d-title { margin: 0; color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 8.5vw, 140px); line-height: .92; letter-spacing: var(--ls-display); }
+.d-title { margin: 0; color: var(--ink); font-family: var(--serif); font-weight: 400; font-size: var(--fs-d5); line-height: .92; letter-spacing: var(--ls-display); }
 
 /* what it is, and the facts beside it */
 /* ONE GRID for the whole page: 12 columns with the same gutter, so every edge lines up from top to bottom.
@@ -201,7 +201,7 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-pager .d-next--on { grid-column: 7 / span 6; justify-self: end; text-align: right; }   /* next on the right, to the page's right margin */
 /* Next: <title> — set and moving like the home page's Work list: on hover the whole line ("Next:" too) turns italic,
    brightens and slides 10px */
-.d-next { color: var(--mu); text-decoration: none; font-family: var(--serif); font-size: clamp(32px, 3.8vw, 58px); line-height: 1; letter-spacing: var(--ls-display); }
+.d-next { color: var(--mu); text-decoration: none; font-family: var(--serif); font-size: var(--fs-d3); line-height: 1; letter-spacing: var(--ls-display); }
 .d-next-text { display: inline-block; transition: color .4s ease; }
 
 .d-next:hover .d-next-text, .d-next:focus-visible .d-next-text { font-style: italic; color: var(--ink); }   /* all grey at rest; white and italic on hover — it doesn't move */
