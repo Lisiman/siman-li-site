@@ -156,7 +156,6 @@ html:not([data-view="img"]) .tidy { display: none; }
 .about-photo.is-waiting .about-photo-clip, .about-photo.is-waiting .roller:last-child { transition: none; }   /* rolled up in place before it shows */
 .about-photo figcaption { margin-top: 12px; font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--mu); }
 @media (max-width: 760px) { .ferry .about-row { grid-template-columns: 1fr; align-items: start; row-gap: 48px; } .about-photo { justify-self: center; width: min(224px, 56%); } }   /* on a phone the photo sits in the middle, under the centred title */
-@media (max-width: 760px) { .ferry-main > .caps:first-child { margin-bottom: 30px; } .ferry .about-row { margin-top: 48px; } .ferry .facts { margin-top: 36px; } }   /* on a phone, the same rhythm as Web and Art: 48px under the label (30 + the 18px gap), 48px under the title, and 48px from the links to the résumé lines (measured) */
 /* how to say the name: small, grey, in the plain type; a tiny play button when there is a recording */
 .say { font-family: var(--mono); font-size: .58em; color: var(--mu); letter-spacing: .02em; white-space: nowrap; vertical-align: .18em; }
 .say-btn { display: inline-flex; align-items: center; justify-content: center; width: 1.7em; height: 1.7em; margin: 0 .3em 0 .45em; padding: 0; border: 1px solid currentColor; border-radius: 50%; background: none; color: inherit; cursor: var(--cur-link, pointer); vertical-align: -.5em; transition: color .3s ease; }
