@@ -816,9 +816,13 @@ if (logo) {
       raf = requestAnimationFrame(tick);
     });
   };
-  logo.addEventListener('mouseenter', () => morph('zh'));
-  logo.addEventListener('mouseleave', () => morph('en'));
-  logo.addEventListener('focus', () => morph('zh'));
+  // only where there is a real hover (a mouse): a phone fakes a hover on a tap and never takes it back, which left the
+  // name stuck in Chinese. From the keyboard (Tab) it still turns; a tap's focus does not.
+  if (matchMedia('(hover: hover)').matches) {
+    logo.addEventListener('mouseenter', () => morph('zh'));
+    logo.addEventListener('mouseleave', () => morph('en'));
+  }
+  logo.addEventListener('focus', () => { if (logo.matches(':focus-visible')) morph('zh'); });
   logo.addEventListener('blur', () => morph('en'));
   void document.fonts?.ready.then(() => prepLogo());
 }
