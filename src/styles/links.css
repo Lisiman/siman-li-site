@@ -39,3 +39,9 @@
    the letters still float a little */
 .nav nav a .lk-in::after, .nav .logo .lk-in::after, .d-rail nav a .lk-in::after, .d-name .lk-in::after,
 .foot a .lk-in::after, .d-foot a .lk-in::after { display: none; }
+
+/* a work's page on a phone (or any touch screen): no wave under its links at all — the facts (Visit, the team), the
+   shows and the press. They read as links by their arrow and their brighter tone. */
+@media (hover: none), (max-width: 760px) {
+  .d-meta a .lk-in::after, .d-press a .lk-in::after { display: none; }
+}
