@@ -1,6 +1,6 @@
 /* ---------- hero: sticky, the next section slides over it ---------- */
 .hero {
-  --rail: calc(var(--pad) * 2 + 12px);   /* top nav and bottom bar: the text sits as far from the top and bottom edges as from the sides */
+  --rail: calc(var(--pad-y) * 2 + 12px);   /* top nav and bottom bar: the text sits as far from the top and bottom edges as from the sides */
   --rail-edge: var(--pad); /* nav & bottom bar: on the site's one side margin, so the rails line up with everything below */
   --rail-x: var(--pad);    /* the hero text: on the site's side margin, with the nav above and every section below */
   position: sticky; top: 0; z-index: 0;
@@ -25,7 +25,7 @@
 .nav nav a:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
 .nav-city { padding: 10px 0; }
 /* the same nav, floating: it comes down from the top when you scroll back up past the painting (Hero.astro) */
-.nav--float { --rail: calc(var(--pad) * 2 + 12px); --rail-edge: var(--pad); position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--bg); color: var(--ink); transform: translateY(-101%); transition: transform .4s cubic-bezier(.22,.61,.36,1); }
+.nav--float { --rail: calc(var(--pad-y) * 2 + 12px); --rail-edge: var(--pad); position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--bg); color: var(--ink); transform: translateY(-101%); transition: transform .4s cubic-bezier(.22,.61,.36,1); }
 .nav--float.is-shown { transform: none; }
 @media (prefers-reduced-motion: reduce) { .nav--float { transition: none; } }
 

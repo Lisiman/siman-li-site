@@ -5,6 +5,7 @@
   --mono: 'Cutive Mono', ui-monospace, Menlo, monospace;
   --zh: 'Noto Serif SC', 'Songti SC', serif;
   --pad: clamp(20px, 1.8vw, 28px);   /* the one side margin of the whole site: the nav, the hero text, every section and the footer line up on it */
+  --pad-y: var(--pad);   /* the room above and below the text in the nav and footer rails: the same as the side margin… */
   color-scheme: light;
 }
 :root.dark {
@@ -79,3 +80,7 @@ html:active-view-transition-type(to-prev)::view-transition-new(root) { animation
   src: url('/fonts/noto-serif-sc-500-lisiman.woff2') format('woff2');
   unicode-range: U+601D, U+66FC, U+674E;
 }
+
+/* …except on a short screen (a laptop window pulled flat, a phone on its side), where the rails give the page back a
+   little height: 3% of it, never under 16px */
+@media (max-height: 600px) { :root { --pad-y: min(var(--pad), max(16px, 3vh)); } }

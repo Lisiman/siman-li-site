@@ -231,7 +231,7 @@ html:not([data-view="img"]) .tidy { display: none; }
 .boat-mail:hover .lantern-glow, .boat-mail:hover .lantern-flame { display: inline; }
 @keyframes moor-ripple { from { opacity: .25; transform: translateX(-5px); } to { opacity: .85; transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .moored, .moor-ripple { animation: none; } }
-.foot { min-height: calc(var(--pad) * 2 + 12px); box-sizing: border-box; padding: 0 var(--pad); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 14px; border-top: 1px solid var(--mu); }   /* the same rail as the top nav: its text as far from every edge, 14px text; text and rule in the muted grey of the section labels */
+.foot { min-height: calc(var(--pad-y) * 2 + 12px); box-sizing: border-box; padding: 0 var(--pad); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 14px; border-top: 1px solid var(--mu); }   /* the same rail as the top nav: its text as far from every edge, 14px text; text and rule in the muted grey of the section labels */
 .foot a { text-decoration: none; }   /* the email: no line at rest (the wave only comes on hover) */
 
 @media (max-width: 760px) {

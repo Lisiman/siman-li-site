@@ -768,6 +768,70 @@ svg.addEventListener('click', (e) => {
   if (p.y > G.w0 - 4 && !onRock) ripple(p.x, p.y);
   else if (p.y < G.w0 - 40) flock(p.x, p.y);
 });
+// now and then a little fish leaps out of the river and back in, somewhere on the open water — a small arc, a ring
+// where it leaves the water and another where it goes back in. Not while the painting is out of sight, nor with
+// reduced motion.
+if (!reduceMotion) {
+  const onStone = (x: number, y: number): boolean => {
+    const near = G.rocks.reduce((b, q) => (Math.abs(q[0] - x) < Math.abs(b[0] - x) ? q : b), G.rocks[0] ?? [-999, 9999]);
+    if (Math.abs(near[0] - x) <= 8 && y > near[1] - 12) return true;
+    return G.islets.some(({ top, by }) => x > top[0][0] - 30 && x < top[top.length - 1][0] + 30 && y > by - 40 && y < by + 20);
+  };
+  const splash = (g: SVGGElement, x: number): void => {
+    const r = svgG(''); r.setAttribute('transform', `translate(${x},0)`);
+    r.innerHTML = ([[16, 2, 0.8], [9, 1.2, 0.7]] as const).map(([rx, ry, w]) => `<ellipse class="ripple" rx="${rx}" ry="${ry}" style="stroke:var(--ink)" stroke-width="${w}"></ellipse>`).join('');
+    g.appendChild(r);
+  };
+  const leap = (): void => {
+    if (document.hidden || scrollY > innerHeight * 0.9) return;
+    let x = 0, y = 0, ok = false;
+    for (let i = 0; i < 16 && !ok; i++) {
+      x = vx0 + 80 + Math.random() * (vw - 160); y = G.w0 + 30 + Math.random() * (720 - G.w0 - 80);
+      ok = !onStone(x, y) && !onStone(x + 30, y) && !onStone(x - 30, y);
+    }
+    if (!ok) return;
+    const dir = Math.random() < 0.5 ? -1 : 1, s = touchScale() * 1.4, D = 24, Hh = 15, T = 1000;
+    const g = svgG(''); g.setAttribute('transform', `translate(${f1(x)},${f1(y)}) scale(${f1(dir * s)},${f1(s)})`);
+    const fish = svgG(''); fish.setAttribute('opacity', '0');
+    // drawn in line, like everything in the painting: the body, a forked tail, a dot of an eye
+    fish.innerHTML = '<path d="M4.5,0 C2.5,-2.3 -1.5,-2.1 -3.2,0 C-1.5,2.1 2.5,2.3 4.5,0 M-3.2,0 L-6,-2.2 Q-5.1,0 -6,2.2 Z M2.6,-0.5 h0.1" style="fill:none;stroke:var(--ink)" stroke-width="0.6" stroke-linejoin="round" stroke-linecap="round" opacity="0.9"></path>';
+    g.appendChild(fish); splash(g, 0); $('fx').appendChild(g);
+    const t0 = performance.now();
+    const step = (now: number): void => {
+      const t = Math.min(1, (now - t0) / T), px = D * t, py = -4 * Hh * t * (1 - t);
+      const ang = Math.atan2(-4 * Hh * (1 - 2 * t), D) * 180 / Math.PI;
+      fish.setAttribute('transform', `translate(${f1(px)},${f1(py)}) rotate(${f1(ang)})`);
+      fish.setAttribute('opacity', String(t < 0.06 || t > 0.94 ? 0 : 1));
+      if (t < 1) requestAnimationFrame(step); else { splash(g, D); setTimeout(() => g.remove(), 3200); }
+    };
+    requestAnimationFrame(step);
+  };
+  // how lively the fish are, from New York's weather right now (1 = now and then, every ~25 s; more is livelier):
+  // they leap most before rain — warm, close, overcast — and in light rain, at dawn and dusk, in warm water; seldom in
+  // the cold, at night or in the heat of a bright noon; not at all under ice, in snow, in a downpour or a gale
+  const liveliness = (): number => {
+    const c = lastCur; if (!c) return 0.8;
+    const kind = codeToKind(c.weather_code), tF = c.temperature_2m, code = c.weather_code, wl = windLevel(c.wind_speed_10m);
+    if ((tF <= 32 && kind !== 'rain') || kind === 'snow' || wl >= 3 || [65, 67, 82, 95, 96, 99].includes(code)) return 0;
+    const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: SITE.city.tz, hour: 'numeric', hourCycle: 'h23' }).format(new Date()));
+    let m = tF < 45 ? 0.25 : tF < 60 ? 0.6 : tF < 75 ? 1 : 1.3;                         // warm water, lively fish
+    if (kind === 'rain') m *= [51, 53, 55, 56, 57, 61, 80].includes(code) ? 2 : 1;       // light rain, drizzle: they rise
+    if (code === 3 && tF >= 68) m *= 2;                                                  // close and overcast: rain on the way
+    if (kind === 'fog') m *= 0.8;
+    if ((hour >= 5 && hour < 9) || (hour >= 17 && hour < 20)) m *= 1.6;                  // dawn and dusk
+    else if (hour >= 21 || hour < 5) m *= 0.5;                                           // night
+    else if (hour >= 11 && hour < 15 && kind === 'clear' && tF >= 75) m *= 0.6;          // a bright, hot noon: down in the shade
+    if (wl === 2) m *= 0.6;
+    if (SEASON === 'winter') m *= 0.5;
+    return m;
+  };
+  const next = (): void => {
+    const m = liveliness();
+    if (m < 0.15) { setTimeout(next, 60000); return; }   // too cold or rough: look again in a minute
+    setTimeout(() => { leap(); next(); }, Math.max(6000, (25000 / m) * (0.5 + Math.random())));
+  };
+  setTimeout(next, 4000);
+}
 const ferryman = $<SVGGElement>('ferryman');
 const head = $<SVGGElement>('ferry-head');
 const arm = $<SVGPathElement>('ferry-arm');
