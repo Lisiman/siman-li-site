@@ -17,7 +17,7 @@ function wrap(a: HTMLAnchorElement): void {
   const label = text.trim();
   a.textContent = '';
   let i = 0;
-  label.split(/(\s+)/).flatMap((w) => (/^\s+$/.test(w) ? [w] : w.split(/(?<=\.)/))).filter(Boolean).forEach((part) => {   // long urls may break after a dot, like the <wbr>s did
+  label.split(/(\s+)/).flatMap((w) => (/^\s+$/.test(w) ? [w] : w.split(/(?<=[.-])/))).filter(Boolean).forEach((part) => {   // long urls may break after a dot or a hyphen, like the <wbr>s did
     const unit = document.createElement('span');
     unit.className = /^\s+$/.test(part) ? 'lk-in lk-sp' : 'lk-in';
     unit.setAttribute('aria-hidden', 'true');

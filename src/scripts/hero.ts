@@ -426,7 +426,7 @@ function drawFerry(): void {
       + '</g>';
   })() : '';
   if (AGE_PARAM > 0) svg.classList.add('show-age');   // previewing an age: keep the label up
-  const lbl = $('boat-age'); lbl.textContent = `${Math.floor(age)}/${SITE.lifespan}`;
+  const lbl = $('boat-age'); lbl.textContent = `${Math.floor(age / SITE.lifespan * 100)}%`;   // how far across: 32%
   $('boat-age-g').setAttribute('transform', `translate(${f1(bx)},${f1(by + 6 + 8 * s)})`);   // just under the hull, on the water
   setText('c-life', `Crossing · year ${Math.floor(age)} of ${SITE.lifespan}`);
 }

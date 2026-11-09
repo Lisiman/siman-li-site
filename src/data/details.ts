@@ -4,7 +4,7 @@
 
 export interface DetailMedia { src: string; poster?: string; w: number; h: number; kind: 'video' | 'image'; alt?: string }
 /** a picture in a gallery row */
-export type GalleryItem = DetailMedia & { /** show it cropped (from the centre) to this shape, e.g. '2 / 1' */ ratio?: string; /** draw it smaller inside its columns, centred (0.6 = 60% as wide) */ scale?: number; /** a CSS filter for its look, e.g. 'contrast(1.2) saturate(1.3)' */ filter?: string; /** wider than the page's measure: out to the site's side margins (on a narrowed page) */ bleed?: boolean; caption?: string; fill?: boolean; /** a background behind a transparent picture (e.g. a logo) */ bg?: string; /** a little one (a small animation): two columns wide, in a black square */ small?: boolean; /** where a small (or narrower) one starts, on the 12 columns */ at?: number; /** a narrower picture: how many of the 12 columns it takes */ span?: number };
+export type GalleryItem = DetailMedia & { /** show it cropped (from the centre) to this shape, e.g. '2 / 1' */ ratio?: string; /** where a cropped one is anchored, as CSS object-position (e.g. '50% 100%': keep the bottom) */ pos?: string; /** draw it smaller inside its columns, centred (0.6 = 60% as wide) */ scale?: number; /** a CSS filter for its look, e.g. 'contrast(1.2) saturate(1.3)' */ filter?: string; /** wider than the page's measure: out to the site's side margins (on a narrowed page) */ bleed?: boolean; caption?: string; fill?: boolean; /** a background behind a transparent picture (e.g. a logo) */ bg?: string; /** a little one (a small animation): two columns wide, in a black square */ small?: boolean; /** where a small (or narrower) one starts, on the 12 columns */ at?: number; /** a narrower picture: how many of the 12 columns it takes */ span?: number };
 /** a film (YouTube or Vimeo): a still and a play button until clicked */
 export interface Film { heading: string; note?: string; /** a YouTube id, or… */ youtube?: string; /** …a Vimeo id */ vimeo?: string; title: string; /** the still before it plays (YouTube has its own) */ poster?: string }
 export interface Detail {
@@ -85,12 +85,11 @@ export const DETAILS: Detail[] = [
     // the Jeff Koons edition (2024): the site, the phones, the posters in the subway
     gallery: {
       heading: '',
-      lead: 1,   // the poster and the site on a laptop, side by side, right under the recording
+      lead: 1,   // the poster in the subway (the 16:9 film cropped to the picture it replaced, 4:5) and the site on a laptop (cropped to the same height), side by side, right under the recording
       rows: [
-        [{ kind: 'image', src: `${W}/squarespace-collection/jk-subway-poster.webp`, w: 1080, h: 1350, alt: 'A Jeff Koons poster in the New York subway' },
+        [{ kind: 'video', src: `${W}/squarespace-collection/jk-subway-poster.mp4`, w: 1080, h: 1350, ratio: '4 / 5', alt: 'A Jeff Koons poster in the New York subway, a train passing' },
          { kind: 'image', src: `${W}/squarespace-collection/jk-laptop-studio.jpg`, w: 2500, h: 1667, alt: 'jeffkoons.com on a laptop in the studio' }],
-        [{ kind: 'image', src: `${W}/squarespace-collection/jk-poster-cycle.gif`, w: 1500, h: 844, alt: 'The campaign poster cycling through Balloon Dogs' }],
-        [{ kind: 'image', src: `${W}/squarespace-collection/jk-subway-trio.webp`, w: 1920, h: 1080, alt: 'Three campaign posters in a subway station' }],
+        [{ kind: 'video', src: `${W}/squarespace-collection/jk-subway-trio.mp4`, w: 1920, h: 1080, alt: 'Three campaign posters in a subway station' }],
       ],
     },
   },
@@ -178,11 +177,15 @@ export const DETAILS: Detail[] = [
     hero: { kind: 'video', src: `${W}/emma-stone-unavailable/hero.mp4`, poster: `${W}/emma-stone-unavailable/hero.jpg`, w: 2538, h: 1780, url: 'emmastone.com' },
     story: [],
     highlights: [],
-    // the campaign's three posters, side by side
+    // the campaign's three posters, side by side, then the posters in motion
     gallery: {
       heading: '',
       rows: [
         [{ kind: 'image', src: `${W}/emma-stone-unavailable/es-poster-1.jpg`, w: 1200, h: 1600, alt: 'Unavailable poster: Emma Stone looking up' }, { kind: 'image', src: `${W}/emma-stone-unavailable/es-poster-2.jpg`, w: 1200, h: 1599, alt: 'Unavailable poster: a face in pieces' }, { kind: 'image', src: `${W}/emma-stone-unavailable/es-poster-3.jpg`, w: 800, h: 1066, alt: 'Unavailable poster: a single tear' }],
+        // the posters in motion: three sets of three
+        [{ kind: 'video', src: `${W}/emma-stone-unavailable/es-posters-1.mp4`, w: 1920, h: 1080, alt: 'Three Unavailable posters in motion: a tower, Emma Stone, a cut-up face' }],
+        [{ kind: 'video', src: `${W}/emma-stone-unavailable/es-posters-2.mp4`, w: 1920, h: 1080, alt: 'Three Unavailable posters in motion: an eye, Emma Stone, a burning house' },
+         { kind: 'video', src: `${W}/emma-stone-unavailable/es-posters-3.mp4`, w: 1920, h: 1080, alt: 'Three Unavailable posters in motion: a castle, Emma Stone, a figure in the dark' }],
       ],
     },
     // the Super Bowl LX spot, directed by Yorgos Lanthimos — last on the page

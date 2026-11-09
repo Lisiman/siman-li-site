@@ -8,7 +8,7 @@
 .d-name { font-size: var(--fs-lead); letter-spacing: var(--ls-nav); }   /* as on the home page: one step above the links beside it */
 @media (prefers-reduced-motion: reduce) { .d-rail { transition: none; } }
 
-.d { padding: clamp(64px, 9vw, 160px) var(--pad) clamp(40px, 5vw, 80px); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
+.d { padding: calc(2 * var(--step)) var(--pad) var(--step); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
 /* a blinking cursor after the title, like the one on the home page ("a Creative Technologist_") */
 .d-cursor { margin-left: .04em; font-style: normal; animation: d-blink 1s steps(1) .5s 2; }   /* the cursor after the title blinks twice as the page opens (as if the title had just been typed, like the home page's), then stays */
 @keyframes d-blink { 50% { opacity: 0; } }
@@ -20,44 +20,47 @@
 /* ONE GRID for the whole page: 12 columns with the same gutter, so every edge lines up from top to bottom.
    Under the title: PROJECT INFO and, below it, MY ROLE in the left half (columns 1–6, under the title's first
    letter); the facts in columns 8–12, out to the right margin (wide enough that each team line fits on one line). The three clips below take the same thirds; desktop and phone split 8 + 4. */
-.d { --gut: clamp(16px, 2vw, 32px); }
-.d-intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: 40px; margin-top: clamp(72px, 9vw, 160px); align-items: start; }
+.d { --gut: var(--pad); }   /* the grid's gutter is the site's side margin: one measure between pictures and around the page */
+/* the page keeps the home page's steps (X, global.css): 2X under the nav and under the title, X inside a part, 2X before
+   a new part (a chapter, Highlights, Screens), 3X before Next */
+.d-intro { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: var(--step); margin-top: calc(2 * var(--step)); align-items: start; }
 .d-intro .d-lede { display: contents; }
 .d-intro .d-lede { display: block; grid-row: 1; grid-column: 1 / span 6; }   /* PROJECT INFO, then MY ROLE below it: the left half, under the title */
 .d-intro .d-lede p { color: var(--mu); }   /* the body in grey, the headings in ink */
-.d-intro .d-lede section + section { margin-top: 28px; }
-.d-intro .d-meta { grid-row: 1; grid-column: 8 / span 5; grid-template-columns: 1fr; gap: 10px; }
+.d-intro .d-lede section + section { margin-top: 32px; }
+.d-intro .d-meta { grid-row: 1; grid-column: 8 / span 5; grid-template-columns: 1fr; gap: 12px; }
 .d-intro .d-meta div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
 .d-intro .d-meta dt { margin: 0; }
 /* Detail.introFigure: a small picture on the left of the introduction, the words beside it */
 .d-intro-figure { grid-row: 1; grid-column: 1 / span 2; margin: 0; }
 .d-intro-figure img { display: block; width: 100%; height: auto; }
-.d-intro-figure figcaption { margin-top: 10px; color: var(--mu); font-size: .85em; }
+.d-intro-figure figcaption { margin-top: 12px; color: var(--mu); font-size: .85em; }
 .d-intro--figure .d-lede { grid-column: 3 / span 5; }
 .d-lede { margin: 0; max-width: 48em; }
 .d-lede p { margin: 0 0 1em; }
 .d-lede p:last-child { margin-bottom: 0; }
-.d-lede section + section { margin-top: 28px; }
+.d-lede section + section { margin-top: 32px; }
 .d-lede h2 { margin: 0 0 4px; font: inherit; color: var(--ink); }   /* Project info, My role: headings in ink, like the facts beside them */
-.d-meta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px; }
+.d-meta { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px var(--pad); }
 .d-meta div { min-width: 0; }
 .d-meta dt { color: var(--ink); }
 .d-meta dd { margin: 0; display: flex; flex-direction: column; overflow-wrap: anywhere; color: var(--mu); }
 .d-meta a { color: inherit; text-decoration: none; align-self: flex-start; transition: color .3s ease; }   /* no underline: grey like the rest, white on hover */
 .d-meta a:hover, .d-meta a:focus-visible { color: var(--ink); }
 /* the team, last: one name per line, the role after it, a little fainter */
-.d-meta .d-team { margin-top: 14px; }
+.d-meta .d-team { margin-top: 16px; }
 .d-team > dd > span { white-space: normal; }   /* a person (role, then name) on one line where it fits; if not, the whole name moves to the next line */
-.d-team-role { opacity: .7; white-space: nowrap; }   /* a role never splits across lines */
-.d-team-name { white-space: nowrap; overflow-wrap: normal; }   /* a name is never split */
+.d-team-role { opacity: .7; display: inline-block; max-width: 100%; }   /* a role stays in one piece where it fits; on a very narrow screen a long one may wrap rather than run off the edge */
+.d-team-name { white-space: nowrap; overflow-wrap: normal; }   /* a name is never split… */
+@media (max-width: 400px) { .d-team-name { white-space: normal; } }   /* …except a long one (Jing Yan + Mengyu Chen) on the narrowest phones, which breaks between its words rather than run off the edge */
 
 
 /* the work itself: full width, no frame */
 .d-hero-plain { display: block; width: 100%; height: auto; border-radius: 4px; }
-.d-hero { margin: clamp(64px, 8vw, 128px) 0 0; }
+.d-hero { margin: calc(1.5 * var(--step)) 0 0; }
 /* hero.last: the pictures come straight after the words (with the space the hero would have had), and the site playing
    follows them on the gutter */
-.d-intro + .d-gallery { margin-top: clamp(64px, 8vw, 128px); }
+.d-intro + .d-gallery { margin-top: calc(1.5 * var(--step)); }
 .d-gallery + .d-hero { margin-top: var(--gut); }
 .d-hero video, .d-hero img, .d-highlights video, .d-highlights img, .d-screen video, .d-screen img { display: block; width: 100%; height: auto; border-radius: 4px; }
 .d-hero .d-hero-plain { max-height: 100svh; object-fit: cover; object-position: 50% 30%; }   /* an artwork's picture: the full width, but never taller than the screen (a little cropped, more from the bottom, on a short screen) */
@@ -77,7 +80,7 @@
 .d-dots { display: flex; gap: 8px; }
 .d-dots i { width: 12px; height: 12px; border-radius: 50%; }
 .d-dots i:nth-child(1) { background: #ED6A5E; } .d-dots i:nth-child(2) { background: #F4BF4F; } .d-dots i:nth-child(3) { background: #61C554; }   /* the window's traffic lights: it reads as a real browser at a glance */
-.d-url { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: min(360px, 44vw); padding: 6px 16px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); color: color-mix(in srgb, var(--ink) 80%, var(--bg)); font-size: var(--fs-label); letter-spacing: var(--ls-small); transition: color .3s ease, background-color .3s ease; }
+.d-url { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: min(360px, 44vw); padding: 8px 16px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); color: color-mix(in srgb, var(--ink) 80%, var(--bg)); font-size: var(--fs-label); letter-spacing: var(--ls-small); transition: color .3s ease, background-color .3s ease; }
 .d-lock { opacity: .7; }
 .d-url-arrow { opacity: .6; transition: opacity .3s ease, transform .3s ease; }
 .d-browser:hover .d-url, .d-browser:focus-visible .d-url { color: var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); }
@@ -85,11 +88,11 @@
 .d-screen-wrap { position: relative; display: block; }
 .d-browser video, .d-browser img { border-radius: 0; }
 /* on hover, a label says plainly that it opens */
-.d-visit-pill { position: absolute; right: 20px; bottom: 20px; padding: 10px 18px; border-radius: 999px; background: rgba(17, 17, 17, .82); color: #fff; font-size: var(--fs-label); letter-spacing: var(--ls-small); opacity: 0; transition: opacity .4s ease; backdrop-filter: blur(6px); }
+.d-visit-pill { position: absolute; right: 20px; bottom: 20px; padding: 12px 20px; border-radius: 999px; background: rgba(17, 17, 17, .82); color: #fff; font-size: var(--fs-label); letter-spacing: var(--ls-small); opacity: 0; transition: opacity .4s ease; backdrop-filter: blur(6px); }
 .d-browser:hover .d-visit-pill, .d-browser:focus-visible .d-visit-pill { opacity: 1; }
 
 /* the story: a small label on the left, the words on the right */
-.d-story { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 4px clamp(40px, 6vw, 120px); margin: clamp(40px, 4vw, 64px) 0 0; }   /* the same two columns as the intro above: label and words on the left */
+.d-story { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 4px var(--step); margin: var(--step) 0 0; }   /* the same two columns as the intro above: label and words on the left */
 .d-story > div { grid-column: 1; }
 .d-story h2 { grid-column: 1; }
 .d-story h2, .d-highlights h2, .d-screens h2 { margin: 0; font: inherit; color: var(--ink); text-transform: none; letter-spacing: 0; }
@@ -97,7 +100,7 @@
 
 /* a list set like the résumé: name in ink, detail in grey, the year at the right */
 .d-list ul { grid-column: 1; list-style: none; margin: 0; padding: 0; max-width: 48em; }
-.d-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) 4em; column-gap: 20px; }
+.d-list li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr) 4em; column-gap: var(--pad); }
 .d-list-name { color: var(--ink); text-decoration: none; }
 a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-list-year { text-align: right; }
@@ -116,20 +119,20 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-slides-track:focus-visible { outline: 1px solid var(--ink); outline-offset: 4px; }
 .d-slide { flex: 0 0 100%; margin: 0; scroll-snap-align: start; }
 .d-slide img { display: block; width: 100%; height: auto; aspect-ratio: 1.6; object-fit: cover; }
-.d-slides-ui { display: flex; justify-content: flex-end; align-items: center; gap: 18px; margin-top: 12px; }
+.d-slides-ui { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 12px; }
 .d-slides-btn { border: 0; background: none; padding: 4px 6px; color: var(--mu); font: inherit; font-size: 18px; cursor: var(--cur-link, pointer); transition: color .3s ease; }
 .d-slides-btn:hover, .d-slides-btn:focus-visible { color: var(--ink); }
 .d-slides-count { font-variant-numeric: tabular-nums; }
 /* the gallery: on the same 12-column grid — a row of one runs full width, a row of two splits it in half */
 .d-gallery { margin: var(--gut) 0 0; }   /* no headings: the film and the pictures follow the recording on the grid's gutter, one continuous run */
 .d-gallery > .d-row:first-child, .d-film > .d-yt:first-child { margin-top: 0; }
-.d-media-label { margin: 0 0 14px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
-.d-gallery h2 { margin: clamp(48px, 5vw, 80px) 0 14px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-media-label { margin: 0 0 16px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
+.d-gallery h2 { margin: var(--step) 0 16px; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
 .d-gallery-note { margin: 4px 0 0; max-width: 40em; color: var(--mu); }
 .d-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: var(--gut); align-items: start; }
-.d-gallery h2.d-chapter { margin: clamp(72px, 10vw, 160px) 0 0; }   /* a chapter of pictures (gallery.chapters, e.g. Making, Performance): room to breathe above it */
+.d-gallery h2.d-chapter { margin: calc(2 * var(--step)) 0 0; }   /* a chapter of pictures (gallery.chapters, e.g. Making, Performance): room to breathe above it */
 .d-gallery h2.d-chapter + .d-row { margin-top: 24px; }
-.d-gallery .d-chapter-note { margin: 10px 0 0; }   /* the line under a chapter heading */
+.d-gallery .d-chapter-note { margin: 12px 0 0; }   /* the line under a chapter heading */
 .d-gallery .d-chapter-note + .d-row { margin-top: 32px; }
 .d-gallery--narrow { padding-inline: calc((100% - 11 * var(--gut)) / 12 + var(--gut)); }   /* gallery.narrow: the pictures on a slightly narrower measure, one column in from each side */
 @media (max-width: 860px) { .d-gallery--narrow { padding-inline: 0; } }
@@ -144,21 +147,21 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-row figure.is-small { grid-column: span 2; background: #000; border-radius: 4px; }
 .d-row figure.is-small img { aspect-ratio: 1; object-fit: contain; }
 .d-row img, .d-row video { display: block; width: 100%; height: auto; border-radius: 4px; }
-.d-row figure[data-ratio] img, .d-row figure[data-ratio] video { aspect-ratio: var(--ratio); object-fit: cover; }   /* a picture shown at a set shape (GalleryItem.ratio) */
+.d-row figure[data-ratio] img, .d-row figure[data-ratio] video { aspect-ratio: var(--ratio); object-fit: cover; object-position: var(--pos, 50% 50%); }   /* a picture shown at a set shape (GalleryItem.ratio) */
 .d-row figure[data-scale] { width: calc(var(--scale) * 100%); justify-self: center; }
 .d-row figure[data-filter] img, .d-row figure[data-filter] video { filter: var(--filter); }
 .d-row figure[data-bleed] { width: calc(100vw - 2 * var(--pad)); margin-left: calc(50% - 50vw + var(--pad)); }   /* wider than a narrowed page: out to the site's side margins (GalleryItem.bleed) */   /* a picture or clip given a look of its own (GalleryItem.filter) */   /* a picture drawn smaller inside its columns (GalleryItem.scale) */
 @media (max-width: 860px) { .d-row figure[data-scale] { width: 100%; } }
 /* in a pair, both pictures take the same height: one sets it, the other (is-fill: by default the second) is cropped from the centre to match */
 .d-row--2 { align-items: stretch; }
-.d-row--2 figure.is-fill img, .d-row--2 figure.is-fill video { height: 100%; object-fit: cover; }   /* the cropped one takes the other's height */
+.d-row--2 figure.is-fill img, .d-row--2 figure.is-fill video { height: 100%; object-fit: cover; object-position: var(--pos, 50% 50%); }   /* the cropped one takes the other's height */
 @media (min-width: 861px) {   /* with captions under both, the pictures (not the picture + caption) match in height; on a phone they stack */
   .d-row--2 figure.is-fill:has(figcaption) { display: flex; flex-direction: column; }
   .d-row--2 figure.is-fill:has(figcaption) img, .d-row--2 figure.is-fill:has(figcaption) video { flex: 1 1 0; min-height: 0; }
 }
 .d-row figure[data-card] { background: var(--bg-card); border-radius: 4px; padding: clamp(40px, 8vw, 140px) clamp(48px, 12vw, 220px); }   /* a transparent picture (a logo) on its own colour */
 .d-row figure[data-card] img { border-radius: 0; }
-.d-row figcaption { margin-top: 10px; color: var(--mu); }
+.d-row figcaption { margin-top: 12px; color: var(--mu); }
 @media (hover: hover) {   /* with a mouse: the caption sits on the picture, bottom left, and shows on hover */
   .d-row figure:has(figcaption) { position: relative; }
   .d-row figcaption { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 28px 14px 12px; color: #fff; background: linear-gradient(to top, rgba(0, 0, 0, .55), transparent); border-radius: 0 0 4px 4px; opacity: 0; transition: opacity .35s ease; pointer-events: none; }
@@ -166,12 +169,13 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 @media (max-width: 860px) { .d-row figure.is-small { grid-column: span 4 !important; } }
 @media (max-width: 860px) { .d-row figure[data-span] { grid-column: 1 / -1 !important; } }   /* a narrower picture (span) takes the full width on a phone, like the others */
+@media (max-width: 860px) { .d-row--2 figure[data-span]:first-child { grid-column: 1 / span 6 !important; } .d-row--2 figure[data-span]:last-child { grid-column: 7 / span 6 !important; margin-top: 0; } }   /* …but a narrow pair (two tall posters) stays side by side */
 @media (max-width: 860px) { .d-row--3 figure { grid-column: 1 / -1 !important; } .d-row--3 figure + figure { margin-top: var(--gut); } .d-row--4 figure:nth-child(odd) { grid-column: 1 / span 6; } .d-row--4 figure:nth-child(even) { grid-column: 7 / span 6; } .d-row--4 figure:nth-child(n+3) { margin-top: var(--gut); } .d-row--2 figure:first-child, .d-row--2 figure:last-child { grid-column: 1 / -1; } .d-row--2 figure + figure { margin-top: var(--gut); } }
-.d-highlights, .d-screens { margin: clamp(80px, 10vw, 160px) 0 0; }
-.d-hl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px var(--gut); margin-top: 24px; }   /* thirds of the 12-column grid */
+.d-highlights, .d-screens { margin: calc(2 * var(--step)) 0 0; }
+.d-hl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--step) var(--gut); margin-top: 24px; }   /* thirds of the 12-column grid */
 .d-hl-grid figure, .d-screen { margin: 0; }
-.d-hl-grid figcaption { margin-top: 10px; }
-.d-screens-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: 40px; align-items: end; margin-top: 24px; }
+.d-hl-grid figcaption { margin-top: 12px; }
+.d-screens-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); row-gap: var(--step); align-items: end; margin-top: 24px; }
 .d-screen--desktop { grid-column: 1 / span 8; }
 .d-screen--mobile { grid-column: 9 / span 4; }
 .d-screen--mobile { max-width: 280px; justify-self: center; width: 100%; }   /* centred in its four columns */
@@ -186,16 +190,16 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* the press, quietly, after the work: one line */
 /* the press: just the publications, one per line, in grey like the rest — white on hover */
-.d-press { margin: clamp(28px, 2.8vw, 44px) 0 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); }
+.d-press { margin: calc(var(--step) / 2) 0 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); }
 /* lined up with the facts at the top (ROLE, TEAM…): the same columns (8–12), the label beside the list like TEAM */
 .d-press-row { grid-column: 8 / span 5; display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
 @media (max-width: 1100px) { .d-press-row { grid-column: 1 / -1; } }
 .d-press h2 { margin: 0; font: inherit; color: var(--ink); text-transform: uppercase; letter-spacing: var(--ls-caps); }
 .d-press ul { list-style: none; margin: 0; padding: 0; }
-.d-press-row + .d-press-row { margin-top: 18px; }   /* Exhibitions, then As seen on */
+.d-press-row + .d-press-row { margin-top: 16px; }   /* Exhibitions, then As seen on */
 .d-press a { color: inherit; text-decoration: none; transition: color .3s ease; }
 .d-press a:hover, .d-press a:focus-visible { color: var(--ink); }
-.d-pager { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: clamp(120px, 14vw, 240px); }
+.d-pager { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gut); margin-top: calc(3 * var(--step)); }
 @media (max-width: 760px) { .d-pager { margin-top: 32px; } .d { padding-bottom: 32px; } }   /* a phone: Prev / Next in the middle, the same room above (to the last picture) as below (to the footer line) */
 .d-pager .d-prev { grid-column: 1 / span 6; justify-self: start; }   /* prev on the left, from the page's left margin */
 .d-pager .d-next--on { grid-column: 7 / span 6; justify-self: end; text-align: right; }   /* next on the right, to the page's right margin */
@@ -219,7 +223,7 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* tablets: the facts on top, the two texts side by side */
 @media (max-width: 1100px) {
-  .d-intro .d-meta { grid-column: 1 / -1; grid-row: 1; grid-template-columns: 1fr; gap: 10px; }   /* one fact per line, as on wide screens: YEAR under VISIT, then the team */
+  .d-intro .d-meta { grid-column: 1 / -1; grid-row: 1; grid-template-columns: 1fr; gap: 12px; }   /* one fact per line, as on wide screens: YEAR under VISIT, then the team */
   .d-intro .d-lede { grid-row: 2; grid-column: 1 / -1; }
   .d-intro-figure { grid-row: 2; grid-column: 1 / span 3; }
   .d-intro--figure .d-lede { grid-column: 4 / -1; }
@@ -240,3 +244,12 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* as on the home page: the nav links in capitals (trying it) */
 .d-rail nav a { text-transform: uppercase; letter-spacing: var(--ls-nav); }
+
+/* on a phone the title is short: 1.5X (60px) from it to the intro, the same as from the intro to the first picture */
+@media (max-width: 760px) { .d-intro { margin-top: calc(1.5 * var(--step)); } }
+
+/* the browser bar on a phone: the address takes the room between the dots and may wrap, so it never runs off the bar */
+@media (max-width: 760px) {
+  .d-bar { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; height: auto; min-height: 44px; padding: 8px 12px; }
+  .d-url { min-width: 0; justify-self: center; padding: 6px 10px; gap: 6px; text-align: center; }   /* (it breaks only after a dot: DetailHero.astro) */
+}
