@@ -52,14 +52,14 @@ const skyScale = (): number => Math.min(2.4, Math.max(1, Math.sqrt((720 - skyTop
 function fitSky(): boolean {
   const box = svg.parentElement!.getBoundingClientRect();
   if (!box.width || !box.height) return false;
-  const zoom = Math.min(1.4, Math.max(1, 1 + (box.height / box.width - 1) * 0.6));   // 1 up to a square, 1.4 on a phone
+  const zoom = Math.min(1.4, Math.max(1, 1 + (box.height / box.width - 1) * 2));   // 1 up to a square, 1.4 from a little taller than square (a tablet held upright, a phone)
   let w = Math.round(1800 / zoom), x0 = Math.round((1800 - w) * 0.4);
   // a screen wider than the painting: it still spans the width (the hills reach both edges), and the empty sky at its
   // top is cut instead — up to 95 units (the main peak is at ~138), never into the hills; past that the view widens
   // past the painting's edges, where the river and the hills carry on (the wings, section 1)
   let top = Math.round(720 - w * box.height / box.width);
   if (top > 95) { top = 95; if (zoom === 1) { const ww = Math.round((720 - top) * box.width / box.height); x0 = Math.round((1800 - ww) / 2); w = ww; } }   // wider still: the wings (below) fill the sides
-  treeGrow = Math.min(1.3, Math.max(1, 1 + (box.height / box.width - 1) * 0.5));
+  treeGrow = Math.min(1.3, Math.max(1, 1 + (box.height / box.width - 1) * 1.5));
   if (top === skyTop && w === vw) return false;
   skyTop = top; vw = w; vx0 = x0; svg.setAttribute('viewBox', `${x0} ${top} ${w} ${720 - top}`);
   return true;
