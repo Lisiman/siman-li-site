@@ -1007,15 +1007,15 @@ if (logo) {
 
   const prepLogo = (): Promise<Dots | null> => {
     if (prep) return prep;
-    const EN = 'SIMAN LI', ZH = '李思曼', fs = 18, fEn = `${fs}px "Cutive Mono", monospace`;
+    const EN = 'SIMAN LI', ZH = '李思曼', fs = parseFloat(getComputedStyle(logo).fontSize) || 14, ls = `${(fs * 0.04).toFixed(2)}px`, fEn = `${fs}px "Cutive Mono", monospace`;   // the logo's own size and letter-spacing (.04em)
     const load = document.fonts?.load ? Promise.all([document.fonts.load(fEn, EN), document.fonts.load(`500 ${fs}px "Noto Serif SC"`, ZH)]).catch(() => undefined) : Promise.resolve();
     prep = load.then(() => {
       const S = 3, PADX = 50, PADY = 34, cv = document.createElement('canvas');
       const cx = cv.getContext('2d', { willReadFrequently: true });
       if (!cx || !dots || !zhEl) return null;
       const spacing = (ls: string): void => { if ('letterSpacing' in cx) (cx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = ls; };
-      cx.font = fEn; spacing('0.72px');
-      const wEn = cx.measureText(EN).width + 7 * 0.72;
+      cx.font = fEn; spacing(ls);
+      const wEn = cx.measureText(EN).width + 7 * fs * 0.04;
       cx.font = `500 ${fs}px "Noto Serif SC", serif`;
       // 李思曼: about as tall as the capitals of SIMAN LI (70% of its size), and spread to the same width with gaps between
       // the characters, so the two names occupy the same space
@@ -1032,7 +1032,7 @@ if (logo) {
         return out;
       };
       const shuffle = <T>(a: T[]): T[] => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-      let en = sample(fEn, EN, '0.72px'), zh = sample(`500 ${zhSize}px "Noto Serif SC", serif`, ZH, `${zhGap.toFixed(2)}px`, zhDy);
+      let en = sample(fEn, EN, ls), zh = sample(`500 ${zhSize}px "Noto Serif SC", serif`, ZH, `${zhGap.toFixed(2)}px`, zhDy);
       const N = Math.min(300, Math.max(en.length, zh.length));   // sparse enough that the dots never read heavier than the letters
       const fit = (a: Point[]): Point[] => { let b = shuffle(a.slice()); if (!b.length) b = [[PADX, PADY]]; return Array.from({ length: N }, (_, i) => b[i % b.length]); };
       en = fit(en); zh = fit(zh);

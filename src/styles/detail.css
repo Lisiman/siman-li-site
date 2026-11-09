@@ -5,7 +5,7 @@
 .d-rail a { text-decoration: none; }
 .d-rail nav { display: flex; gap: var(--pad); }
 .d-rail nav a:hover, .d-name:hover { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
-.d-name { font-size: 18px; letter-spacing: .04em; }
+.d-name { font-size: 16px; letter-spacing: .04em; }   /* as on the home page: one step above the links beside it */
 @media (prefers-reduced-motion: reduce) { .d-rail { transition: none; } }
 
 .d { padding: clamp(64px, 9vw, 160px) var(--pad) clamp(40px, 5vw, 80px); font-family: var(--mono); font-size: clamp(15px, 1.04vw, 20px); line-height: 1.7; color: color-mix(in srgb, var(--ink) 78%, var(--bg)); -webkit-font-smoothing: auto; }   /* apart from the big titles, every word is set like the résumé in About — but a little larger and a lighter grey, for reading on the dark: headings in ink, the rest in soft grey */
@@ -237,3 +237,6 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* every small heading on the page in capitals: Project info, My role, Role, Year, Editions, Details… */
 .d-lede h2, .d-meta dt, .d-story h2, .d-highlights h2, .d-screens h2 { text-transform: uppercase; letter-spacing: .08em; }
+
+/* as on the home page: the nav links in capitals (trying it) */
+.d-rail nav a { text-transform: uppercase; letter-spacing: .04em; }

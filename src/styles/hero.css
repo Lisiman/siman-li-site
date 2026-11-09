@@ -30,7 +30,7 @@
 @media (prefers-reduced-motion: reduce) { .nav--float { transition: none; } }
 
 /* logo: SIMAN LI ⇄ 李思曼 particle morph */
-.logo { position: relative; display: inline-block; justify-self: start; font-size: 18px; letter-spacing: .04em; }
+.logo { position: relative; display: inline-block; justify-self: start; font-size: 16px; letter-spacing: .04em; }   /* one step above the links on the right (14px), in the same capitals: the name leads */
 .logo-en { transition: opacity .3s ease; }
 .logo-zh { position: absolute; left: 0; top: 10px;   /* exactly where the dots draw it (hero.ts sets the top to centre the smaller characters) */ white-space: nowrap; font-family: var(--zh); font-weight: 500; line-height: 1; opacity: 0; transition: opacity .3s ease; }
 .logo-dots { position: absolute; left: -50px; top: -24px; height: 90px; overflow: visible; pointer-events: none; opacity: 0; transition: opacity .22s ease; }   /* hands over to the letters as they fade in (hero.ts), so there is no flash of heavy dot-lettering */
@@ -224,3 +224,6 @@
 
 /* on a phone the title a little smaller (three lines, but lighter over the painting) */
 @media (max-width: 760px) { .intro h1 { font-size: 48px; } .intro { row-gap: 14px; } }   /* and the lines under it a little closer */
+
+/* the nav links in capitals, like SIMAN LI beside them (trying it) */
+.nav nav a { text-transform: uppercase; letter-spacing: .04em; }
