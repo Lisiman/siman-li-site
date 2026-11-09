@@ -69,3 +69,13 @@ html:active-view-transition-type(to-prev)::view-transition-new(root) { animation
 /* scroll reveal, site-wide (scripts/reveal.ts): each block fades up a little the first time it comes into view */
 .reveal-on .reveal { opacity: 0; translate: 0 14px; transition: opacity .9s cubic-bezier(.22,.61,.36,1), translate .9s cubic-bezier(.22,.61,.36,1); }
 .reveal-on .reveal.is-in { opacity: 1; translate: 0 0; }
+
+/* 李思曼 in the logo: Noto Serif SC 500 (SIL Open Font License), just these three characters, served from this site */
+@font-face {
+  font-family: 'Noto Serif SC';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/noto-serif-sc-500-lisiman.woff2') format('woff2');
+  unicode-range: U+601D, U+66FC, U+674E;
+}

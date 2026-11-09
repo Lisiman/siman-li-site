@@ -40,10 +40,9 @@ const imageUrl = new URL(image, site).href;
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={imageUrl} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <!-- only the three characters 李思曼 come from Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500&text=%E6%9D%8E%E6%80%9D%E6%9B%BC&display=swap" rel="stylesheet" />
+  <!-- the three characters 李思曼 (Noto Serif SC 500, OFL), served from this site, not Google: Google is blocked in China, and
+       its stylesheet held the whole page back there. 1.5 KB; the face itself is in global.css -->
+  <link rel="preload" href="/fonts/noto-serif-sc-500-lisiman.woff2" as="font" type="font/woff2" crossorigin />
   <!-- dark mode before first paint: night in New York (sun below the horizon). Same sun formula as Painting.astro();
        hero.ts keeps it up to date. Clicking the sun/moon flips it for this page view only — a reload follows the sky again. -->
   <script is:inline>(function () {
