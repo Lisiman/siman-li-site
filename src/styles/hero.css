@@ -38,7 +38,7 @@
 .logo.is-moving .logo-en, .logo.is-moving .logo-zh { opacity: 0; } .logo.is-moving .logo-dots { opacity: 1; }
 
 .intro {
-  padding: 48px var(--rail-x) 0;
+  padding: 72px var(--rail-x) 0;   /* a big screen: one step (72px at 1440); more and the title would sit on the hills */
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px 40px;
 }   /* the row gap: when the lines drop under the title (a phone), ~50px to the eye below its last line */
 .intro h1 {
