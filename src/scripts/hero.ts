@@ -652,10 +652,10 @@ ferryman.addEventListener('click', jump);
 ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(e); } });
 
 // ---------------------------------------------------------------------------
-// 7b. The title types itself: a Creative Technologist → Design Engineer → Professor → Media Artist
+// 7b. The title types itself: a Creative Technologist → Design Engineer → Professor at NYU → New Media Artist
 // ---------------------------------------------------------------------------
 {
-  const ROLES = ['Creative Technologist', 'Design Engineer', 'Professor', 'Media Artist'];
+  const ROLES = ['Creative Technologist', 'Design Engineer', 'Professor at NYU', 'New Media Artist'];
   const HOLD = 4200, TYPE = 95, ERASE = 45, GAP = 450;   // ms: unhurried
   const el = $<HTMLElement>('role');
   const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
