@@ -1,6 +1,6 @@
 /* ---------- hero: sticky, the next section slides over it ---------- */
 .hero {
-  --rail: calc(var(--pad-y) * 2 + 12px);   /* top nav and bottom bar: the text sits as far from the top and bottom edges as from the sides */
+  --rail: calc(var(--pad-y) * 2 + 12px);   /* top nav and bottom bar: 52px (20px above and below the text, global.css) */
   --rail-edge: var(--pad); /* nav & bottom bar: on the site's one side margin, so the rails line up with everything below */
   --rail-x: var(--pad);    /* the hero text: on the site's side margin, with the nav above and every section below */
   position: sticky; top: 0; z-index: 0;

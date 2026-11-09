@@ -23,7 +23,7 @@
   --ls-small: .04em;  /* small lower-case mono (12–13px); from 14px up, none */
   --ls-display: -.02em;   /* serif headings from 32px up */
   --step: clamp(40px, min(5vw, 8svh), 120px);   /* X, the home page's step: 5% of the width or 8% of the height, whichever is less (40px on a phone, 72px at 1440×900; less on a short, wide screen): one X inside a section, 2X above and below it; the Images view's spacing is in X too */
-  --pad-y: var(--pad);   /* the room above and below the text in the nav and footer rails: the same as the side margin… */
+  --pad-y: 20px;   /* the room above and below the text in the nav and footer rails: 20px on every screen (a 52px rail), so the bars stay slim on a big one… */
   color-scheme: light;
 }
 :root.dark {
@@ -101,4 +101,4 @@ html:active-view-transition-type(to-prev)::view-transition-new(root) { animation
 
 /* …except on a short screen (a laptop window pulled flat, a phone on its side), where the rails give the page back a
    little height: 3% of it, never under 16px */
-@media (max-height: 600px) { :root { --pad-y: min(var(--pad), max(16px, 3vh)); } }
+@media (max-height: 600px) { :root { --pad-y: max(16px, 3vh); } }
