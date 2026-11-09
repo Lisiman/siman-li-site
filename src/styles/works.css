@@ -227,6 +227,8 @@ html:not([data-view="img"]) .tidy { display: none; }
 .boat-hit { fill: transparent; stroke: none; }
 .boat-note { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; fill: var(--mu); stroke: none; opacity: 0; transition: opacity .5s ease; pointer-events: none; }
 .boat-mail:hover .boat-note { opacity: 1; }
+/* …and its lantern lights up while the pointer rests on it (at night it is lit already, hero.css) */
+.boat-mail:hover .lantern-glow, .boat-mail:hover .lantern-flame { display: inline; }
 @keyframes moor-ripple { from { opacity: .25; transform: translateX(-5px); } to { opacity: .85; transform: translateX(5px); } }
 @media (prefers-reduced-motion: reduce) { .moored, .moor-ripple { animation: none; } }
 .foot { min-height: calc(var(--pad) * 2 + 12px); box-sizing: border-box; padding: 0 var(--pad); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 14px; border-top: 1px solid var(--mu); }   /* the same rail as the top nav: its text as far from every edge, 14px text; text and rule in the muted grey of the section labels */
