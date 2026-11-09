@@ -1,0 +1,78 @@
+---
+// A lotus lamp in the shape of the 🪷: pointed petals fanned from one point, the middle one tallest, two rows of them;
+// pale at the base, pink to the tips, no outlines. A small flame burns in its heart (between the rows, so the front
+// petals hold it), flickering, a warm glow round the flower. (Under the portrait in Detail.memorial; styles: .d-lotus.)
+const f1 = (n: number): string => n.toFixed(1);
+/** a pointed lotus petal, its base at 0,0, pointing up */
+const petal = (L: number, W: number): string => `M0,0 C${f1(-W)},${f1(-L * .32)} ${f1(-W * .72)},${f1(-L * .78)} 0,${f1(-L)} C${f1(W * .72)},${f1(-L * .78)} ${f1(W)},${f1(-L * .32)} 0,0 Z`;
+/** a row of petals fanned from the base: [angle, length, width] each */
+const row = (gr: string, ps: [number, number, number][]): string => ps.map(([a, L, W]) =>
+  `<g transform="rotate(${a})"><path d="${petal(L, W)}" fill="url(#${gr})" /><path d="M0,-2 L0,${f1(-L * .85)}" fill="none" stroke="#FFF3F6" stroke-opacity=".4" stroke-width=".5" stroke-linecap="round" /></g>`).join('');
+// the outer ones first, then toward the middle: each overlaps the one beside it
+const back = row('lt-back', [[-78, 18, 7], [78, 18, 7], [-52, 24, 8], [52, 24, 8], [-26, 29, 8.4], [26, 29, 8.4], [0, 33, 8.8]]);
+const front = row('lt-front', [[-64, 17, 8], [64, 17, 8], [-38, 21, 8.6], [38, 21, 8.6], [-13, 23, 8.6], [13, 23, 8.6]]);
+---
+<svg class="d-lotus" viewBox="-36 -50 72 58" aria-hidden="true">
+  <defs>
+    <radialGradient id="lt-glow"><stop offset="0" stop-color="#FFD9A8" stop-opacity=".7" /><stop offset=".45" stop-color="#FF9FC0" stop-opacity=".22" /><stop offset="1" stop-color="#FF9FC0" stop-opacity="0" /></radialGradient>
+    <linearGradient id="lt-back" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#F7C6D6" /><stop offset=".6" stop-color="#F08BB2" /><stop offset="1" stop-color="#E05A92" /></linearGradient>
+    <linearGradient id="lt-front" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFF1F4" /><stop offset=".55" stop-color="#F9B9CF" /><stop offset="1" stop-color="#EE7BA8" /></linearGradient>
+    <linearGradient id="lt-flame" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF8A2E" /><stop offset=".4" stop-color="#FFC94F" /><stop offset="1" stop-color="#FFF6D2" /></linearGradient>
+    <linearGradient id="lt-leaf-l" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#3E7A3E" /><stop offset=".6" stop-color="#6FA866" /><stop offset="1" stop-color="#94C483" /></linearGradient>
+    <linearGradient id="lt-leaf-r" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3E7A3E" /><stop offset=".6" stop-color="#6FA866" /><stop offset="1" stop-color="#94C483" /></linearGradient>
+    <radialGradient id="lt-halo"><stop offset="0" stop-color="#FFF1C2" stop-opacity=".9" /><stop offset="1" stop-color="#FFC56B" stop-opacity="0" /></radialGradient>
+  </defs>
+  <!-- the charge: a faint ring of light that fills round the lamp while the pointer rests on it -->
+  <circle class="d-lotus-ring-track" cx="0" cy="-20" r="27" fill="none" />
+  <circle class="d-lotus-ring" cx="0" cy="-20" r="27" fill="none" pathLength="100" transform="rotate(-90 0 -20)" />
+  <g class="d-lotus-lit-glow"><circle class="d-lotus-glow" cx="0" cy="-22" r="30" fill="url(#lt-glow)" /></g>
+  <!-- the leaves it sits on, as in the 🪷: two broad leaves spreading out from under it, and a pad between them -->
+  <path d="M-2,1 C-10,-5 -24,-6 -33,-1 C-27,4 -13,6 -2,3 Z" fill="url(#lt-leaf-l)" />
+  <path d="M2,1 C10,-5 24,-6 33,-1 C27,4 13,6 2,3 Z" fill="url(#lt-leaf-r)" />
+  <path d="M-3,2 C-13,-1.5 -24,-2 -31,-.6 M3,2 C13,-1.5 24,-2 31,-.6" fill="none" stroke="#2F5A30" stroke-opacity=".5" stroke-width=".45" stroke-linecap="round" />
+  <ellipse cx="0" cy="3.4" rx="13" ry="2.6" fill="#4F8A4A" />
+  <g set:html={back} />
+  <!-- the flame, in the cup of the flower -->
+  <g class="d-lotus-lit-halo"><circle class="d-lotus-halo" cx="0" cy="-30" r="8" fill="url(#lt-halo)" /></g>
+  <g class="d-lotus-lit"><path class="d-lotus-flame" d="M0,-42 C3.2,-36.5 4.2,-32.5 2.8,-29.8 C1.8,-28.2 -1.8,-28.2 -2.8,-29.8 C-4.2,-32.5 -3.2,-36.5 0,-42 Z" fill="url(#lt-flame)" /></g>
+  <path d="M0,-28.4 V-24" stroke="#5A3A22" stroke-width=".7" stroke-linecap="round" />
+  <g set:html={front} />
+
+</svg>
+<script>
+  // light the lamp: rest the pointer on it (or hold a finger on it) and it gathers light, slowly, as if charging — a
+  // ring of light fills round it; after about four seconds it is fully lit, the flame tall and bright, and it stays so.
+  // A click gives it a little more as well. Coming near brings a faint warmth before that. (--lit and --charge, 0–1,
+  // on the lamp: styles .d-lotus…)
+  document.querySelectorAll<SVGSVGElement>('.d-lotus').forEach((lamp) => {
+    const FULL = 4000;   // ms of resting on it to light it fully
+    let near = 0, kindled = 0, holding = false, timer = 0, last = 0;
+    const set = (): void => {
+      lamp.style.setProperty('--lit', Math.min(1, Math.max(near * .25, kindled)).toFixed(3));
+      lamp.style.setProperty('--charge', kindled.toFixed(3));
+      lamp.classList.toggle('is-charging', holding && kindled < 1);
+      lamp.classList.toggle('is-lit', kindled >= 1);
+      lamp.closest('.d-memorial')?.classList.toggle('is-lit', kindled >= 1);   // the light drifting off the flowers above grows too
+    };
+    // a steady clock (not tied to frames, so it keeps time even where frames are held back)
+    const tick = (): void => {
+      const now = performance.now(), dt = last ? now - last : 0; last = now;
+      if (holding && kindled < 1) { kindled = Math.min(1, kindled + dt / FULL); set(); }
+      else { clearInterval(timer); timer = 0; last = 0; set(); }
+    };
+    const start = (): void => { holding = true; if (!timer) { last = performance.now(); timer = window.setInterval(tick, 30); } set(); };
+    const stop = (): void => { holding = false; set(); };
+    lamp.addEventListener('pointerenter', start);
+    lamp.addEventListener('pointerleave', stop);
+    lamp.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') start(); });
+    lamp.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') stop(); });
+    lamp.addEventListener('pointercancel', stop);
+    lamp.addEventListener('click', () => { kindled = Math.min(1, kindled + .15); set(); });
+    addEventListener('pointermove', (e) => {
+      const r = lamp.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height * .45));
+      near = Math.max(0, 1 - d / 260) ** 1.4; set();
+    }, { passive: true });
+    lamp.style.cursor = 'var(--cur-link, pointer)';
+    lamp.style.touchAction = 'manipulation';
+  });
+</script>

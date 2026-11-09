@@ -38,6 +38,8 @@ export interface Detail {
   onBlack?: boolean;
   /** a small picture beside the introduction, on its left (e.g. the painting a work comes from) */
   introFigure?: DetailMedia & { caption?: string };
+  /** in memory of someone: a portrait in an oval and a few lines under it, at the end of the page (before the press) */
+  memorial?: DetailMedia & { lines: string[]; /** a few words about her, under the dates: one string per paragraph */ note?: string[] };
   next?: { title: string; href: string };
   prev?: { title: string; href: string };
 }
@@ -556,8 +558,13 @@ const META: Record<string, Partial<Detail['meta']>> = {
 };
 
 // the pictures and film for a page that is not written yet
-const MEDIA: Record<string, Pick<Detail, 'gallery' | 'film' | 'making' | 'onBlack' | 'introFigure'>> = {
+const MEDIA: Record<string, Pick<Detail, 'gallery' | 'film' | 'making' | 'onBlack' | 'introFigure' | 'memorial'>> = {
   'windloom': {
+    // the end of the page: my grandmother, whose loom and wind box the work is made from
+    memorial: { kind: 'image', src: '/art/windloom/grandmother.jpg', w: 960, h: 1280, alt: 'My grandmother, Fengling Zhao, as a young woman',
+      lines: ['In forever memory of', 'my loving Grandmother,', 'Fengling Zhao', '赵风龄', 'May 16, 1935 – June 13, 2006'],
+      note: ['Poverty and hardship meant that my grandmother received only a few years of formal education, but she always made sure I had the opportunity to learn. Through the hungry years of the great famine, she sewed clothes and worked the bellows at the stove to cook for her big family, doing everything she could to care for them. Even when she had very little, she always found a way to share what she had with families who had less.',
+        'She taught me to keep learning, to love, and to be generous.'] },
     gallery: {
       heading: '',
       rows: [

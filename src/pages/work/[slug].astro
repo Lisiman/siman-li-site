@@ -6,6 +6,8 @@ import { PAGES, type Detail, type DetailMedia } from '../../data/details';
 import '../../styles/detail.css';
 import DetailHero from '../../components/DetailHero.astro';
 import GalleryRows from '../../components/GalleryRows.astro';
+import Wreath from '../../components/Wreath.astro';
+import Lotus from '../../components/Lotus.astro';
 import Slides from '../../components/Slides.astro';
 import Film from '../../components/Film.astro';
 
@@ -159,6 +161,25 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
         </div>
         )}
       </section>
+    )}
+
+    {d.memorial && (
+      <!-- the last word on the page, before the way on: a dedication -->
+      <figure class="d-memorial">
+        <div class="d-memorial-pic">
+          <img src={d.memorial.src} alt={d.memorial.alt ?? ''} width={d.memorial.w} height={d.memorial.h} loading="lazy" decoding="async" />
+          <Wreath />
+        </div>
+        <!-- a little lotus lamp under her picture, its flame flickering (Lotus.astro) -->
+        <Lotus />
+        <figcaption>
+          <span class="d-memorial-for">{d.memorial.lines.slice(0, 2).map((l) => <span>{l}</span>)}</span>
+          <span class="d-memorial-name">{d.memorial.lines[2]}</span>
+          <span class="d-memorial-zh" lang="zh">{d.memorial.lines[3]}</span>
+          <span class="d-memorial-dates">{d.memorial.lines[4]}</span>
+          {d.memorial.note && <span class="d-memorial-note">{d.memorial.note.map((para) => <span>{para}</span>)}</span>}
+        </figcaption>
+      </figure>
     )}
 
     <!-- the way on: "Next: <title>", on the right, with the home page's Work hover — the whole line leans into italic
