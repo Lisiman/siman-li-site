@@ -219,6 +219,5 @@
 .teaching p { margin: 0; }
 .teaching-zh { font-family: var(--zh); font-size: 13.5px; line-height: 1.6; letter-spacing: .04em; margin-top: 4px !important; }   /* 13.5px: Chinese characters fill their square, so this reads the same size as the 15px English */
 .teaching-en { font-family: var(--serif); font-size: 15px; line-height: 1.22; }   /* upright: easier to read small than italic */
-.teaching-src { font-family: var(--serif); font-size: 12px; line-height: 1.2; color: var(--mu); margin-top: 4px !important; text-align: right; }   /* the source signs off at the right */
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */

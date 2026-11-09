@@ -10,7 +10,7 @@ import type { Cloud, Point, Stroke, WeatherKind } from './painting-types';
 import { starPositions } from './stars';
 import { moonLines } from './moon';
 import { SITE } from '../data/site';
-import { TEACHINGS, sourceEn } from '../data/teachings';
+import { TEACHINGS } from '../data/teachings';
 
 type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 interface Wind { /** sway degrees */ a: number; /** seconds per swing */ d: number; /** boat bob px */ b: number }
@@ -53,8 +53,12 @@ function fitSky(): boolean {
   const box = svg.parentElement!.getBoundingClientRect();
   if (!box.width || !box.height) return false;
   const zoom = Math.min(1.4, Math.max(1, 1 + (box.height / box.width - 1) * 0.6));   // 1 up to a square, 1.4 on a phone
-  const w = Math.round(1800 / zoom), x0 = Math.round((1800 - w) * 0.4);
-  const top = Math.min(20, Math.round(720 - w * box.height / box.width));
+  let w = Math.round(1800 / zoom), x0 = Math.round((1800 - w) * 0.4);
+  // a screen wider than the painting: it still spans the width (the hills reach both edges), and the empty sky at its
+  // top is cut instead — up to 95 units (the main peak is at ~138), never into the hills; past that the view widens
+  // past the painting's edges, where the river and the hills carry on (the wings, section 1)
+  let top = Math.round(720 - w * box.height / box.width);
+  if (top > 95) { top = 95; if (zoom === 1) { const ww = Math.round((720 - top) * box.width / box.height); x0 = Math.round((1800 - ww) / 2); w = ww; } }   // wider still: the wings (below) fill the sides
   treeGrow = Math.min(1.3, Math.max(1, 1 + (box.height / box.width - 1) * 0.5));
   if (top === skyTop && w === vw) return false;
   skyTop = top; vw = w; vx0 = x0; svg.setAttribute('viewBox', `${x0} ${top} ${w} ${720 - top}`);
@@ -65,6 +69,12 @@ const svgG = (cls: string): SVGGElement => { const g = document.createElementNS(
 
 /** tiny seeded random, so seasonal marks sit in the same places every visit */
 const rng = (seed: number): (() => number) => { let a = seed >>> 0; return () => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; }; };
+/** smooth value noise, a few octaves (the same kind the painting's ridges are made with) */
+const fbm = (x: number): number => {
+  const hash = (n: number): number => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); };
+  const noise = (t: number): number => { const i = Math.floor(t), fr = t - i, u = fr * fr * (3 - 2 * fr); return hash(i) * (1 - u) + hash(i + 1) * u; };
+  let v = 0, a = 0.5, fq = 1; for (let o = 0; o < 4; o++) { v += a * noise(x * fq); fq *= 2; a *= 0.5; } return v / 0.9375;
+};
 
 // ---------------------------------------------------------------------------
 // 1. The fixed painting
@@ -106,12 +116,111 @@ $('layers').innerHTML = P.layers.map((L, li) => `<g>${L.paths.map((p) => pathStr
       if (i >= 0 && i <= N && pt.y < top[i]) top[i] = pt.y;
     }
   });
-  const sky = `M-400,-4000 L2200,-4000 L2200,${f1(top[N])} ` + top.map((y, i) => `L${f1(i * step)},${f1(y)}`).reverse().join(' ') + ' L-400,' + f1(top[0]) + ' Z';
+  const sky = `M-6000,-4000 L7800,-4000 L7800,${f1(G.w0)} L1800,${f1(G.w0)} L1800,${f1(top[N])} ` + top.map((y, i) => `L${f1(i * step)},${f1(y)}`).reverse().join(' ') + ` L0,${f1(G.w0)} L-6000,${f1(G.w0)} Z`;
   const clip = document.createElementNS(SVGNS, 'clipPath');
   clip.setAttribute('id', 'sky-clip');
   clip.innerHTML = `<path d="${sky}"></path>`;
   svg.prepend(clip);
   $('orb').setAttribute('clip-path', 'url(#sky-clip)');
+}
+
+/** where the rocks, carried on past the left edge, come down to the ground: the shore beyond starts there */
+let leftShore = 0;
+// the wings: on a screen wider than the painting the river and the hills carry on past its edges. Every hill and rock
+// outline that meets an edge goes on the way it was heading, over a gentle shoulder, and comes down to the water (a
+// rock, to the ground), drawn like the painting: a slightly wavering ridge with moss dots, dotted contours and 皴 strokes
+// under it (their look taken from the painting's own). The water line runs on, and the ripples are laid on again, one
+// painting's width over. Out of sight on most screens.
+{
+  const r = rng(SITE.seed + 977);
+  const look = (cls: string, fb: string): string => {
+    const q = document.querySelector<SVGPathElement>(`#layers path.${cls}`);
+    return q ? `class="${cls}" style="${q.getAttribute('style')}" stroke-width="${q.getAttribute('stroke-width')}" opacity="${q.getAttribute('opacity')}"` : fb;
+  };
+  const LK = { contour: look('contour', 'class="contour" style="stroke:var(--mid)"'), cun: look('cun', 'class="cun" style="stroke:var(--mid)"'), moss: look('moss', 'class="moss" style="stroke:var(--ink)"') };
+  const at = (path: SVGPathElement, d: number): DOMPoint => path.getPointAtLength(d);
+  const line = (pts: [number, number][]): string => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${f1(x)},${f1(y)}`).join(' ');
+  let html = '';
+  document.querySelectorAll<SVGPathElement>('#layers path.ridge, #layers path.rock, #layers path.horizon').forEach((path) => {
+    const len = path.getTotalLength(); if (len < 6) return;
+    const isRock = path.classList.contains('rock'), isLine = path.classList.contains('horizon');
+    const ground = isRock ? 740 : G.w0;
+    [[at(path, 0), at(path, Math.min(10, len))], [at(path, len), at(path, Math.max(0, len - 10))]].forEach(([e, nb]) => {
+      const side = e.x <= 4 ? -1 : e.x >= 1796 ? 1 : 0; if (!side) return;
+      if ((nb.x - e.x) * side > 0) return;   // only where the line runs out over the edge
+      const keep = `class="${path.getAttribute('class')}" style="${path.getAttribute('style')}" stroke-width="${path.getAttribute('stroke-width')}" opacity="${path.getAttribute('opacity')}"`;
+      if (isLine) { html += `<path ${keep} d="M${f1(e.x)},${f1(e.y)} H${side > 0 ? 7800 : -6000}"></path>`; return; }
+      const h = ground - e.y; if (h < 3) return;
+      // the profile: a Hermite curve from the edge (height 1, the slope it had) down to the ground (height 0, flat)
+      const L = Math.max(140, Math.min(700, h * 3.6));
+      const dx = Math.abs(e.x - nb.x) || 1, slope = (nb.y - e.y) / dx;   // >0: rising outward
+      const m = Math.max(-1, Math.min(2.2, slope * L / h));
+      const N = Math.max(24, Math.round(L / 6));
+      const f = (u: number): number => (1 + 2 * u) * (1 - u) ** 2 + m * u * (1 - u) ** 2;
+      // the ridge, made the way the painting makes its own (painting.ts range()): the height wanders slowly (fbm at
+      // 0.012 per unit, ±12%) and the line trembles finely on top (fbm at 0.09, ±2.5 units); both fade out at the two
+      // ends so it meets the painting's line and the water cleanly
+      const off = r() * 200;
+      const xAt = (u: number): number => e.x + side * u * L;
+      const fade = (u: number): number => Math.min(1, u * 8, (1 - u) * 6);
+      const Hof = (u: number): number => h * f(u) * (1 + 0.24 * (fbm(xAt(u) * 0.012 + off) - fbm(e.x * 0.012 + off)) * fade(u));
+      const pts: [number, number][] = Array.from({ length: N + 1 }, (_, i) => {
+        const u = i / N, H = Hof(u);
+        return [xAt(u), ground - H + (H > 2 ? (fbm(xAt(u) * 0.09 + off) - 0.5) * 5 * fade(u) : 0)];
+      });
+      if (isRock && side < 0) leftShore = Math.min(leftShore, e.x - L);
+      html += `<path class="occ" d="${line(pts)} L${f1(e.x)},${f1(ground)} Z" style="fill:var(--bg);stroke:none"></path>`;
+      if (!isRock) {
+        // the inner lines: the same profile drawn lower each time (as painting.ts does), dotted, trembling a little
+        for (let k = 1; k <= 4; k++) {
+          const fk = 1 - k / 4.6; let d = '', on = false;
+          for (let i = 0; i <= N; i++) {
+            const u = i / N, H = Hof(u); if (H < 1.5 + k * 2) { on = false; continue; }
+            d += `${on ? ' L' : ' M'}${f1(xAt(u))},${f1(ground - H * fk + k * 1.4 + (fbm(xAt(u) * 0.06 + k * 13) - 0.5) * 4)}`; on = true;
+          }
+          if (d) html += `<path ${LK.contour} d="${d}"></path>`;
+        }
+        // 皴: curved strokes hanging from the ridge, sweeping away from the top
+        let cun = '';
+        for (let i = 0, nC = Math.floor(L / 7); i < nC; i++) {
+          const u = r(), H = Hof(u); if (H < 12) continue;
+          const x = xAt(u), y = ground - H + 3 + r() * Math.min(30, H * 0.5), len = 10 + r() * Math.min(50, H * 0.7), sg = side * (u > 0.15 ? 1 : -1);
+          cun += `M${f1(x)},${f1(y)} q${f1(sg * (2 + r() * 4))},${f1(len * 0.5)} ${f1(sg * (5 + r() * 9))},${f1(len)} `;
+        }
+        if (cun) html += `<path ${LK.cun} d="${cun}"></path>`;
+        // moss dots on the ridge, as the painting puts them
+        let moss = '';
+        for (let x = 6 + r() * 20; x < L - 6; x += 6 + r() * 18) { const u = x / L, H = Hof(u); if (H < 8) continue; moss += `M${f1(xAt(u))},${f1(ground - H - 1)} l0.6,1.6 `; }
+        if (moss) html += `<path ${LK.moss} d="${moss}"></path>`;
+      }
+      html += `<path ${keep} d="${line(pts)}"></path>`;
+    });
+  });
+  // far off on each side, a row of pale hills (the palest ink of the painting), rising out of the water a little way
+  // past the painting's edge: they give the wings the same depth as the middle
+  let far = '';
+  ([-1, 1] as const).forEach((side) => {
+    const edge = side < 0 ? 0 : 1800, start = 60, span = 3200, off = r() * 300;
+    const peaks: { c: number; top: number; w: number }[] = [];
+    for (let d = start + 120 + r() * 120; d < span; d += 170 + r() * 260) peaks.push({ c: edge + side * d, top: 30 + r() * 70, w: 110 + r() * 170 });
+    const shape = (t: number): number => (t >= 1 ? 0 : Math.pow(1 - Math.pow(t, 1.1), 2.2));
+    const rise = (d: number): number => { const u = Math.max(0, Math.min(1, (d - start) / 180)); return u * u * (3 - 2 * u); };
+    const Hx = (x: number): number => { const d = (x - edge) * side; let hh = 0; peaks.forEach((p) => { hh = Math.max(hh, p.top * shape(Math.abs(x - p.c) / p.w)); }); return hh * rise(d) * (0.86 + 0.24 * fbm(x * 0.012 + off)); };
+    const xs: number[] = []; for (let d = start; d <= span; d += 5) xs.push(edge + side * d);
+    const ridge: [number, number][] = xs.map((x) => { const hh = Hx(x); return [x, G.w0 - hh + (hh > 2 ? (fbm(x * 0.09 + off) - 0.5) * 3 : 0)]; });
+    far += `<path class="occ" d="${line(ridge)} L${f1(xs[xs.length - 1])},${f1(G.w0)} L${f1(xs[0])},${f1(G.w0)} Z" style="fill:var(--bg);stroke:none"></path>`;
+    for (let k = 1; k <= 2; k++) {
+      const fk = 1 - k / 3.2; let d = '', on = false;
+      xs.forEach((x) => { const hh = Hx(x); if (hh < 4 + k * 3) { on = false; return; } d += `${on ? ' L' : ' M'}${f1(x)},${f1(G.w0 - hh * fk + k * 1.4 + (fbm(x * 0.06 + k * 7) - 0.5) * 3)}`; on = true; });
+      if (d) far += `<path class="contour" d="${d}" style="stroke:var(--lt)" stroke-width="0.6" opacity="0.6"></path>`;
+    }
+    far += `<path d="${line(ridge)}" style="stroke:var(--lt)" stroke-width="0.9" opacity="0.9"></path>`;
+  });
+  // the ripples, laid on again one painting's width to each side
+  const ripples = [...document.querySelectorAll<SVGPathElement>('#layers path.water')].map((p) => p.outerHTML).join('');
+  const wings = document.createElementNS(SVGNS, 'g');
+  wings.innerHTML = `<g transform="translate(-1800,0)">${ripples}</g><g transform="translate(1800,0)">${ripples}</g>` + far + html;
+  $('layers').appendChild(wings);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,6 +282,24 @@ const reedEls = P.reeds.map((t) => {
   $('reeds').appendChild(g);
   return { g, r: t.r };
 });
+// on a screen wider than the painting the reeds carry on to the right, thinning and paling: the last third of the bed
+// laid on again past the edge, then once more further out (they sway with the others: see the wind)
+{
+  const xOf = (d: string): number => Number(d.match(/^M\s*(-?[\d.]+)/)?.[1] ?? 0);
+  const tail = P.reeds.filter((t) => xOf(t.d) > 1200);
+  // …and on the left as well, past the rocks
+  const lx = leftShore - 1800 - 60;   // the left copies start just past where the rocks come down
+  [[600, 0.85, 1], [1200, 0.6, 2], [1800, 0.4, 3], [lx, 0.8, 1], [lx - 600, 0.55, 2]].forEach(([dx, o, every]) => {
+    const wrap = svgG(''); wrap.setAttribute('transform', `translate(${dx},0)`); wrap.setAttribute('opacity', String(o));
+    tail.forEach((t, i) => {
+      if (i % every) return;
+      const g = svgG('bend');
+      g.innerHTML = `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="0.7" opacity="0.8"></path>`;
+      wrap.appendChild(g); reedEls.push({ g, r: (t.r + 0.37 * Math.abs(dx) / 600) % 1 });
+    });
+    $('reeds').appendChild(wrap);
+  });
+}
 
 function drawSeason(windIdx: number): void {
   const r = rng(SITE.seed + 7);
@@ -374,18 +501,19 @@ function drawSky(): void {
   // sky shows above the hills, so the sun is lifted further into it: its ceiling moves up toward the top, and a given
   // altitude climbs higher (it reaches the ceiling at ~40° instead of 62°), so it never sits low in a big empty sky
   const tall = Math.max(0, Math.min(1, (20 - skyTop) / 700));   // 0 on wide screens … 1 on square / portrait ones
-  const sc = skyScale(), yTop = skyTop < 20 ? Math.min(70, skyTop + (0.2 - 0.14 * tall) * (720 - skyTop)) : 70;
+  const sc = skyScale(), yTop = skyTop < 20 ? Math.min(70, skyTop + (0.2 - 0.14 * tall) * (720 - skyTop)) : Math.max(70, skyTop + 40);   // (under the cut on a very wide screen)
   const altMax = 62 - 22 * tall;
   const lift = Math.max(0, Math.min(1, body.alt * deg / altMax)) ** (1 - 0.4 * tall);   // on squarer screens a low sun is lifted most
   let y = Math.max(yTop, Math.min(330, 330 - (body.alt > 0 ? lift : body.alt * deg / altMax) * (330 - yTop)));
   // once it is up (past ~10°) the sun / moon always clears the main mountain, even where the sky is short (wide screens);
   // near the horizon it may still rise and set behind the hills
   if (body.alt > 0) { const u = Math.min(1, body.alt * deg / 10); y = Math.min(y, 330 + (G.peakY - 40 - 330) * u); }
+  y = Math.max(y, skyTop + 40 * sc);   // never cut by the top of the painting (a very wide screen cuts its sky)
   // the sun and the moon simply set behind the hills, where they really are in the New York sky
   // a new moon (a dotted ring: the moon you cannot see) is shown on such a night even though it is below the horizon —
   // it always is at night — high on the right, where the sky is open
   const newMoon = useMoon && (A.phase < 0.03 || A.phase > 0.97);
-  if (newMoon && body.alt < 0) { x = vx0 + vw * 0.83; y = Math.min(120, yTop + 0.25 * (330 - yTop)); }
+  if (newMoon && body.alt < 0) { x = vx0 + vw * 0.83; y = Math.max(yTop, Math.min(120, yTop + 0.25 * (330 - yTop))); }
   let inner: string;
   if (!useMoon) {
     inner = '<circle cx="0" cy="0" r="46" style="fill:transparent"></circle><circle class="orb-ring" cx="0" cy="0" r="24" style="stroke:var(--ink)" stroke-width="1.4"></circle>' + sunHalo();
@@ -718,8 +846,8 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
     last = i;
     const t = TEACHINGS[i], esc = (x: string): string => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
     // a little handscroll, like the work previews: it unrolls from the middle (works.css .rod)
-    card.innerHTML = `<div class="teaching-in"><p class="teaching-en">${esc(t.en)}</p>`   // English only for now (the Chinese, t.zh, is in teachings.ts)
-      + `<p class="teaching-src">— ${esc(sourceEn(t.src))}</p></div><i class="rod rod-l"></i><i class="rod rod-r"></i>`;
+    // just the words: no source under them, so it reads as a quiet thought rather than scripture (the sources stay in teachings.ts)
+    card.innerHTML = `<div class="teaching-in"><p class="teaching-en">${esc(t.en)}</p></div><i class="rod rod-l"></i><i class="rod rod-r"></i>`;   // English only for now (the Chinese, t.zh, is in teachings.ts)
     // just above him, centred on him, kept inside the painting
     card.style.transition = 'none'; card.classList.remove('is-on'); card.style.left = '0px'; card.style.top = '0px';   // start rolled up
     const h = heroEl.getBoundingClientRect(), b = hit.getBoundingClientRect(), cw = card.offsetWidth, ch = card.offsetHeight;
