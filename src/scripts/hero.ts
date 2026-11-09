@@ -835,14 +835,24 @@ if (!reduceMotion) {
 const ferryman = $<SVGGElement>('ferryman');
 const head = $<SVGGElement>('ferry-head');
 const arm = $<SVGPathElement>('ferry-arm');
-let nods = 0;   // nod, shake, nod, … and now and then he waves back instead
+// a touch: the first time he always waves (the clearest answer); after that mostly a wave, sometimes a shake of the
+// head, now and then a nod (the head is small, so a nod is the quietest)
+let touched = false;
 const replay = (el: SVGGraphicsElement, cls: string, all: string[]): void => { el.classList.remove(...all); void el.getBBox(); el.classList.add(cls); };
 const jump = (e: Event): void => {
   e.stopPropagation();
-  if (nods > 0 && Math.random() < 0.35) { replay(arm, 'hello', ['hello']); return; }
-  replay(head, nods++ % 2 ? 'shake' : 'nod', ['nod', 'shake']);
+  const r = Math.random();
+  if (!touched || r < 0.55) replay(arm, 'hello', ['hello']);
+  else replay(head, r < 0.85 ? 'shake' : 'nod', ['nod', 'shake']);
+  touched = true;
 };
 ferryman.addEventListener('click', jump);
+// rest the pointer on the boat and he waves once, hello (a mouse only: a touch is a click); again only after the pointer
+// has left the boat and come back
+ferryman.addEventListener('pointerenter', (e) => {
+  if (e.pointerType !== 'mouse' || reduceMotion) return;
+  replay(arm, 'hello', ['hello']); touched = true;
+});
 ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(e); } });
 
 // ---------------------------------------------------------------------------
