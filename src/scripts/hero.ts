@@ -43,15 +43,20 @@ const root = document.documentElement;
 const svg = $<SVGSVGElement>('scene');
 // On tall (portrait) screens the sky grows upward so it starts right under the header: the landscape keeps its size
 // and stays on the bottom; only the viewBox reaches higher. skyTop = the top of the visible sky in painting units.
-let skyTop = 20;
+// On a portrait screen the whole width would leave the trees and rocks a thin strip at the bottom, so the painting is
+// drawn larger there (up to 1.4×) and a little of each side is left out: vx0 / vw = the part of the 1800 units across
+// that shows (a little more is kept on the right, where the pagoda stands, than on the left).
+let skyTop = 20, vx0 = 0, vw = 1800;
 /** how much the sky's things (sun, moon, clouds) are enlarged on tall screens, where the painting is drawn small */
 const skyScale = (): number => Math.min(2.4, Math.max(1, Math.sqrt((720 - skyTop) / 700)));
 function fitSky(): boolean {
   const box = svg.parentElement!.getBoundingClientRect();
   if (!box.width || !box.height) return false;
-  const top = Math.min(20, Math.round(720 - 1800 * box.height / box.width));
-  if (top === skyTop) return false;
-  skyTop = top; svg.setAttribute('viewBox', `0 ${top} 1800 ${720 - top}`);
+  const zoom = Math.min(1.4, Math.max(1, 1 + (box.height / box.width - 1) * 0.6));   // 1 up to a square, 1.4 on a phone
+  const w = Math.round(1800 / zoom), x0 = Math.round((1800 - w) * 0.4);
+  const top = Math.min(20, Math.round(720 - w * box.height / box.width));
+  if (top === skyTop && w === vw) return false;
+  skyTop = top; vw = w; vx0 = x0; svg.setAttribute('viewBox', `${x0} ${top} ${w} ${720 - top}`);
   return true;
 }
 fitSky();
@@ -346,7 +351,7 @@ function drawSky(): void {
   }
   skyDrawn = true;
 
-  let x = Math.max(90, Math.min(1710, 900 + (body.az / (Math.PI / 2)) * 760));
+  let x = Math.max(vx0 + 90, Math.min(vx0 + vw - 90, vx0 + vw / 2 + (body.az / (Math.PI / 2)) * 760 * vw / 1800));   // across the part that shows
   // highest the sun / moon goes: on wide screens near the top of the sky. The squarer (and taller) the screen, the more
   // sky shows above the hills, so the sun is lifted further into it: its ceiling moves up toward the top, and a given
   // altitude climbs higher (it reaches the ceiling at ~40° instead of 62°), so it never sits low in a big empty sky
@@ -362,7 +367,7 @@ function drawSky(): void {
   // a new moon (a dotted ring: the moon you cannot see) is shown on such a night even though it is below the horizon —
   // it always is at night — high on the right, where the sky is open
   const newMoon = useMoon && (A.phase < 0.03 || A.phase > 0.97);
-  if (newMoon && body.alt < 0) { x = 1500; y = Math.min(120, yTop + 0.25 * (330 - yTop)); }
+  if (newMoon && body.alt < 0) { x = vx0 + vw * 0.83; y = Math.min(120, yTop + 0.25 * (330 - yTop)); }
   let inner: string;
   if (!useMoon) {
     inner = '<circle cx="0" cy="0" r="46" style="fill:transparent"></circle><circle class="orb-ring" cx="0" cy="0" r="24" style="stroke:var(--ink)" stroke-width="1.4"></circle>' + sunHalo();
@@ -514,12 +519,12 @@ function applyWeather(cur: Current | null): void {
   const heavy = kind === 'snow' && [75, 86].includes(cur.weather_code);   // heavy snow: it settles on the rocks
   svg.classList.toggle('heavy-snow', heavy);
   svg.classList.toggle('wet', kind === 'rain' || kind === 'snow');      // the ferryman puts on his hat
-  const look = `${cur.weather_code}|${kind}|${Math.round(mph)}|${lvlNow}|${frozen}`, sig = `${look}|${skyTop}`;
+  const look = `${cur.weather_code}|${kind}|${Math.round(mph)}|${lvlNow}|${frozen}`, sig = `${look}|${skyTop}|${vw}`;
   if (sig !== lastSig) {   // only redraw when something you can see changes; a new look cross-fades, a resize just redraws
     const fade = look !== lastLook; lastSig = sig; lastLook = look;
   const up = fall(W.wx, kind, mph);   // rain / snow, falling over the whole sky
   const sc = skyScale();   // the cloud band (y ≈ 85–185) starts 15% down the scene, enlarged on tall screens
-  swapIn('wx', `<g transform="translate(900,${f1(skyTop + 0.15 * (720 - skyTop))}) scale(${sc.toFixed(3)}) translate(-900,-85)">${drawClouds(W.clouds, mph, dir)}</g>` + up, fade);
+  swapIn('wx', `<g transform="translate(${f1(vx0 + vw / 2)},${f1(skyTop + 0.15 * (720 - skyTop))}) scale(${sc.toFixed(3)}) translate(-900,-85)">${drawClouds(W.clouds, mph, dir)}</g>` + up, fade);
   swapIn('fog', W.fog.map((fg, i) => `<g class="mist" style="--d:${9 + i * 3}s;--dl:${-i * 4}s"><rect x="-20" y="${fg.y}" width="1840" height="${fg.h}" style="fill:var(--bg)" opacity="${fg.o}"></rect></g>`).join(''), fade);   // fog banks breathe
   $('layers').setAttribute('opacity', String(W.dim));
   // trees, reeds and the water only change with the wind *level* (or its side) and rain / ice, so their sway never restarts for a 1 mph change
