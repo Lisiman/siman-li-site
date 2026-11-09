@@ -72,7 +72,7 @@
 .d--onblack .d-hero .d-hero-plain { width: min(100%, 66%); margin: 0 auto; }
 @media (max-width: 860px) { .d--onblack .d-hero .d-hero-plain { width: 100%; } }
 /* a modern, quiet browser window: rounded, a slim bar with three soft dots and the address in a pill */
-.d-browser { display: block; color: inherit; text-decoration: none; cursor: var(--cur-link, pointer); border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--ink) 11%, var(--bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); transition: box-shadow .5s ease; }   /* it doesn't move on hover: only its shadow and labels change */
+.d-browser { display: block; color: inherit; text-decoration: none; cursor: var(--cur-link, pointer); border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 11%, var(--bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); transition: box-shadow .5s ease; }   /* it doesn't move on hover: only its shadow and labels change */
 .d-browser:hover, .d-browser:focus-visible { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent), 0 44px 90px -30px rgba(0, 0, 0, .8); }
 .d-browser:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
 .d-browser.is-static { cursor: auto; } .d-browser.is-static:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); }   /* no live site: not a link */
@@ -205,7 +205,7 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* Next: <title> — set and moving like the home page's Work list: on hover the whole line ("Next:" too) turns italic,
    brightens and slides 10px */
 .d-next { color: var(--mu); text-decoration: none; font-family: var(--serif); font-size: var(--fs-d3); line-height: 1; letter-spacing: var(--ls-display); }
-.d-next-text { display: inline-block; transition: color .4s ease; }
+.d-next-text { display: inline-block; text-wrap: balance; transition: color .4s ease; }   /* two lines of about the same length (Next: Squarespace / Browser History), not one long and one short */
 
 .d-next:hover .d-next-text, .d-next:focus-visible .d-next-text { font-style: italic; color: var(--ink); }   /* all grey at rest; white and italic on hover — it doesn't move */
 .d-next:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }
@@ -252,3 +252,20 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
   .d-bar { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; height: auto; min-height: 44px; padding: 8px 12px; }
   .d-url { min-width: 0; justify-self: center; padding: 6px 10px; gap: 6px; text-align: center; }   /* (it breaks only after a dot: DetailHero.astro) */
 }
+
+/* a triptych (GalleryItem.split: 3): three posters in one picture, shown as three, the grid's gutter between them, each as
+   wide as four of the twelve columns. Two bars in the page's colour cover the seams; their ends are cut as quarter
+   circles, so every poster has the same 4px rounded corners as the picture's outer ones */
+.d-row figure[data-split="3"] { position: relative; }
+.d-row figure[data-split="3"]::before, .d-row figure[data-split="3"]::after {
+  --r: 4px; content: ''; position: absolute; top: 0; bottom: 0; width: calc(var(--gut) + 2 * var(--r)); pointer-events: none;
+  left: calc((100% - 2 * var(--gut)) / 3 - var(--r));
+  background:
+    radial-gradient(circle at 0 100%, transparent var(--r), var(--bg) calc(var(--r) + .5px)) 0 0 / var(--r) var(--r) no-repeat,
+    radial-gradient(circle at 0 0, transparent var(--r), var(--bg) calc(var(--r) + .5px)) 0 100% / var(--r) var(--r) no-repeat,
+    radial-gradient(circle at 100% 100%, transparent var(--r), var(--bg) calc(var(--r) + .5px)) 100% 0 / var(--r) var(--r) no-repeat,
+    radial-gradient(circle at 100% 0, transparent var(--r), var(--bg) calc(var(--r) + .5px)) 100% 100% / var(--r) var(--r) no-repeat,
+    linear-gradient(var(--bg), var(--bg)) 50% 0 / var(--gut) 100% no-repeat;
+}
+.d-row figure[data-split="3"]::after { left: calc(2 * (100% - 2 * var(--gut)) / 3 + var(--gut) - var(--r)); }
+
