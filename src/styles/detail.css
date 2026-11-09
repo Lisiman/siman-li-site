@@ -325,7 +325,11 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* the lamp's light: --lit (0–1) rises as the pointer comes near and with each click (Lotus.astro) — the flame grows
    taller and brighter, the light round it wider */
-.d-lotus { --lit: 0; pointer-events: auto; }
+.d-lotus { --lit: 0; pointer-events: auto;
+  /* held with a finger: no scrolling, no text selection, no callout — the press is for lighting it */
+  touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+/* on a touch screen the lamp takes a larger touch (the picture itself stays the same size) */
+@media (pointer: coarse) { .d-lotus { padding: 14px; margin: -14px; box-sizing: content-box; } }
 .d-lotus-lit { transform-box: fill-box; transform-origin: 50% 100%; transform: scale(calc(1 + var(--lit) * .55)); filter: brightness(calc(1 + var(--lit) * .35)); transition: transform .6s ease, filter .6s ease; }
 .d-lotus-lit-halo { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 + var(--lit) * 1.1)); opacity: calc(.7 + var(--lit) * .3); transition: transform .6s ease, opacity .6s ease; }
 .d-lotus-lit-glow { transform-box: fill-box; transform-origin: center; transform: scale(calc(1 + var(--lit) * .6)); opacity: calc(.75 + var(--lit) * .25); transition: transform .8s ease, opacity .8s ease; }

@@ -40,9 +40,9 @@ const front = row('lt-front', [[-64, 17, 8], [64, 17, 8], [-38, 21, 8.6], [38, 2
 
 </svg>
 <script>
-  // light the lamp: rest the pointer on it (or hold a finger on it) and it gathers light, slowly, as if charging — a
-  // ring of light fills round it; after about four seconds it is fully lit, the flame tall and bright, and it stays so.
-  // A click gives it a little more as well. Coming near brings a faint warmth before that. (--lit and --charge, 0–1,
+  // light the lamp: a tap or a click lights it (over a second and a half); or rest the pointer on it and it gathers
+  // light slowly, as if charging — a ring of light fills round it, and after about four seconds it is fully lit. It
+  // stays lit. Coming near brings a faint warmth before that. (--lit and --charge, 0–1,
   // on the lamp: styles .d-lotus…)
   document.querySelectorAll<SVGSVGElement>('.d-lotus').forEach((lamp) => {
     const FULL = 4000;   // ms of resting on it to light it fully
@@ -50,29 +50,29 @@ const front = row('lt-front', [[-64, 17, 8], [64, 17, 8], [-38, 21, 8.6], [38, 2
     const set = (): void => {
       lamp.style.setProperty('--lit', Math.min(1, Math.max(near * .25, kindled)).toFixed(3));
       lamp.style.setProperty('--charge', kindled.toFixed(3));
-      lamp.classList.toggle('is-charging', holding && kindled < 1);
+      lamp.classList.toggle('is-charging', (holding || tapped) && kindled < 1);
       lamp.classList.toggle('is-lit', kindled >= 1);
       lamp.closest('.d-memorial')?.classList.toggle('is-lit', kindled >= 1);   // the light drifting off the flowers above grows too
     };
     // a steady clock (not tied to frames, so it keeps time even where frames are held back)
+    let tapped = false;   // a tap or a click lights it at once — still gently, over about a second and a half
     const tick = (): void => {
       const now = performance.now(), dt = last ? now - last : 0; last = now;
-      if (holding && kindled < 1) { kindled = Math.min(1, kindled + dt / FULL); set(); }
-      else { clearInterval(timer); timer = 0; last = 0; set(); }
+      if ((holding || tapped) && kindled < 1) { kindled = Math.min(1, kindled + dt / (tapped ? 1500 : FULL)); set(); }
+      else { clearInterval(timer); timer = 0; last = 0; tapped = false; set(); }
     };
-    const start = (): void => { holding = true; if (!timer) { last = performance.now(); timer = window.setInterval(tick, 30); } set(); };
+    const run = (): void => { if (!timer) { last = performance.now(); timer = window.setInterval(tick, 30); } };
+    const start = (): void => { holding = true; run(); set(); };
     const stop = (): void => { holding = false; set(); };
     lamp.addEventListener('pointerenter', start);
     lamp.addEventListener('pointerleave', stop);
-    lamp.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') start(); });
-    lamp.addEventListener('pointerup', (e) => { if (e.pointerType !== 'mouse') stop(); });
     lamp.addEventListener('pointercancel', stop);
-    lamp.addEventListener('click', () => { kindled = Math.min(1, kindled + .15); set(); });
+    lamp.addEventListener('click', () => { if (kindled < 1) { tapped = true; run(); lamp.classList.add('is-charging'); } });
     addEventListener('pointermove', (e) => {
       const r = lamp.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height * .45));
       near = Math.max(0, 1 - d / 260) ** 1.4; set();
     }, { passive: true });
+    lamp.addEventListener('contextmenu', (e) => e.preventDefault());   // a long press is for the lamp, not a menu
     lamp.style.cursor = 'var(--cur-link, pointer)';
-    lamp.style.touchAction = 'manipulation';
   });
 </script>
