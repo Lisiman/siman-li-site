@@ -79,6 +79,9 @@ html:not([data-view="img"]) .view--img, html[data-view="img"] .view--txt { displ
 .works--uniform .card .ph:not([style]), .works--uniform .card .cap:not([style]) { width: 82%; }   /* a card with its own size sets width inline */   /* Web: one size for every card */
 .works--uniform:not(#art) .ph img, .works--uniform:not(#art) .ph video, .works--uniform:not(#art) .ixp img, .works--uniform:not(#art) .ixp video { width: 100%; height: auto; }   /* every one as wide as the others, each in its own shape (not cropped) */
 .ixp[style*='--s'] { width: calc(var(--ixp-w, min(360px, 28.8vw)) * var(--s)); }   /* a work with its own size: the hover preview scales too */
+/* Art: a preview as large in area as a Web one — width from its shape (√ of width/height), at most the band; centred in
+   the band between the titles and the categories (works.ts sets --ixp-k, --ixp-free, --ixp-cx) */
+#art .ixl[style*='--ixp-cx'] .ixp { left: var(--ixp-cx); right: auto; width: min(var(--ixp-free), calc(var(--ixp-k) * sqrt(var(--r, 1.5)))); transform: translate(-50%, -50%); }
 #web .ixp { width: var(--ixp-w, min(562px, 45vw)); }   /* Web previews larger */
 /* Art: never cropped — the works share one width (above) and each keeps its own proportions */
 .card:focus-visible { outline: 1px solid currentColor; outline-offset: 6px; }

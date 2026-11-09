@@ -98,7 +98,21 @@ document.querySelectorAll<HTMLAnchorElement>('.ix').forEach((row) => {
 
 // Index previews sit in the empty band between the longest title and the category column, so a preview never
 // covers another work's title. Measured per list on load, once the fonts are in, and on resize.
+function bandOf(list: HTMLElement): { titleEnd: number; free: number } {
+  const lr = list.getBoundingClientRect();
+  let titleEnd = 0, catStart = lr.width;
+  list.querySelectorAll<HTMLElement>('.ix').forEach((ix) => {
+    const pt = ix.querySelector('.pt'), rg = document.createRange();
+    if (pt) rg.selectNodeContents(pt);
+    const t = pt ? rg.getBoundingClientRect() : null, c = ix.querySelector('.cat')?.getBoundingClientRect();
+    if (t) titleEnd = Math.max(titleEnd, t.right - lr.left + 10);
+    if (c) catStart = Math.min(catStart, c.left - lr.left);
+  });
+  return { titleEnd, free: catStart - titleEnd - 80 };
+}
 function placePreviews(): void {
+  const webList = document.querySelector<HTMLElement>('#web .ixl');
+  const webFree = webList && webList.getBoundingClientRect().width ? bandOf(webList).free : 562;
   document.querySelectorAll<HTMLElement>('.ixl').forEach((list) => {
     const lr = list.getBoundingClientRect();
     if (!lr.width) return;
@@ -120,6 +134,14 @@ function placePreviews(): void {
     list.style.setProperty('--ixp-x', `${Math.round(titleEnd + gap + (free - w) / 2)}px`);
     list.style.setProperty('--ixp-w', `${Math.round(w)}px`);
     list.style.setProperty('--ixp-r', 'auto');
+    // Art: each preview as large in area as a Web one (a Web screen is about 3:2), so a wide one is wider and a tall one
+    // narrower but taller; centred in its band and never wider than the band (works.css)
+    if (list.closest('#art')) {
+      const webW = Math.min(562, webFree);
+      list.style.setProperty('--ixp-k', `${(webW / Math.sqrt(1.5)).toFixed(1)}px`);
+      list.style.setProperty('--ixp-free', `${Math.round(free)}px`);
+      list.style.setProperty('--ixp-cx', `${Math.round(titleEnd + gap + free / 2)}px`);
+    }
   });
 }
 document.fonts.ready.then(placePreviews);

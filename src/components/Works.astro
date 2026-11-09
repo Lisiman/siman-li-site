@@ -95,7 +95,7 @@ const vt = (href: string, part: 'media' | 'title'): string | undefined => {
         <a class="ix" href={w.href} {...(ext(w.href) ? { target: '_blank', rel: 'noopener' } : {})}>
           <span class={`pt ${italic ? 'it' : ''}`} style={vt(w.href, 'title')}>{w.title}</span>
           <span class="cat">{w.cat}</span>
-          <span class="ixp" aria-hidden="true" style={w.size && w.size !== 1 ? `--s:${w.size}` : undefined}><span class="ixp-in" style={vt(w.href, 'media')}>{w.media.kind === 'video'
+          <span class="ixp" aria-hidden="true" style={[w.size && w.size !== 1 ? `--s:${w.size}` : '', `--r:${(w.media.w / w.media.h).toFixed(3)}`].filter(Boolean).join(';')}><span class="ixp-in" style={vt(w.href, 'media')}>{w.media.kind === 'video'
             ? <video muted loop playsinline preload="none" poster={w.media.poster} width={w.media.w} height={w.media.h}><source src={w.media.video} type="video/mp4" /></video>
             : <img src={still(w.media)} alt="" loading="lazy" width={w.media.w} height={w.media.h} />}</span><i class="rod rod-l"></i><i class="rod rod-r"></i></span>
         </a>
