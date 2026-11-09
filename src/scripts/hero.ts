@@ -46,7 +46,7 @@ const svg = $<SVGSVGElement>('scene');
 // On a portrait screen the whole width would leave the trees and rocks a thin strip at the bottom, so the painting is
 // drawn larger there (up to 1.4×) and a little of each side is left out: vx0 / vw = the part of the 1800 units across
 // that shows (a little more is kept on the right, where the pagoda stands, than on the left).
-let skyTop = 20, vx0 = 0, vw = 1800;
+let skyTop = 20, vx0 = 0, vw = 1800, treeGrow = 1;   // treeGrow: on a portrait screen the trees grow taller still (up to 1.3×, from their roots)
 /** how much the sky's things (sun, moon, clouds) are enlarged on tall screens, where the painting is drawn small */
 const skyScale = (): number => Math.min(2.4, Math.max(1, Math.sqrt((720 - skyTop) / 700)));
 function fitSky(): boolean {
@@ -55,6 +55,7 @@ function fitSky(): boolean {
   const zoom = Math.min(1.4, Math.max(1, 1 + (box.height / box.width - 1) * 0.6));   // 1 up to a square, 1.4 on a phone
   const w = Math.round(1800 / zoom), x0 = Math.round((1800 - w) * 0.4);
   const top = Math.min(20, Math.round(720 - w * box.height / box.width));
+  treeGrow = Math.min(1.3, Math.max(1, 1 + (box.height / box.width - 1) * 0.5));
   if (top === skyTop && w === vw) return false;
   skyTop = top; vw = w; vx0 = x0; svg.setAttribute('viewBox', `${x0} ${top} ${w} ${720 - top}`);
   return true;
@@ -133,12 +134,12 @@ const SEASON_LABEL: Record<Season, string> = { spring: 'Spring', summer: 'Summer
 const LEAF_KEEP: Record<Season, number> = { spring: 0.4, summer: 1, autumn: 0.55, winter: 0.03 };
 svg.classList.add(`s-${SEASON}`);
 
-const leafPoints: Point[] = [];              // canopy positions, for blossoms & falling leaves
+const leafPoints: [number, number, number][] = [];   // canopy positions (x, y, which tree), for blossoms & falling leaves
 const treeEls = P.trees.map((t, ti) => {
   const r = rng(SITE.seed + ti * 97);
   const marks = t.l.split(/(?=M)/).filter(Boolean);
   const kept = marks.filter(() => r() < LEAF_KEEP[SEASON]);
-  marks.forEach((m) => { const xy = m.match(/^M(-?[\d.]+),(-?[\d.]+)/); if (xy) leafPoints.push([Number(xy[1]), Number(xy[2])]); });
+  marks.forEach((m) => { const xy = m.match(/^M(-?[\d.]+),(-?[\d.]+)/); if (xy) leafPoints.push([Number(xy[1]), Number(xy[2]), ti]); });
   // summer: a second, offset layer of leaves makes the canopy dense; autumn: about half the leaves turn pale
   const extra = SEASON === 'summer' ? marks.filter(() => r() < 0.6).map((m) => m.replace(/^M(-?[\d.]+),(-?[\d.]+)/, (_, x, y) => `M${f1(+x + 2.4)},${f1(+y - 2)}`)) : [];
   const pale = SEASON === 'autumn' ? kept.filter(() => r() < 0.5) : [];
@@ -148,9 +149,24 @@ const treeEls = P.trees.map((t, ti) => {
   g.innerHTML = `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="1"></path>`
     + `<path d="${dark.concat(extra).join('')}" style="stroke:var(--${leafC})" stroke-width="${leafW}" opacity="0.9"></path>`
     + (pale.length ? `<path d="${pale.join('')}" style="stroke:var(--mid)" stroke-width="0.8" opacity="0.7"></path>` : '');
-  $('trees').appendChild(g);
-  return { g, r: t.r };
+  const grow = svgG('');   // scaled from the root on a portrait screen (growTrees); the sway stays inside it
+  grow.appendChild(g); $('trees').appendChild(grow);
+  return { g, grow, r: t.r, root: [0, 0] as Point };
 });
+// each tree's root: the middle of the foot of its trunk
+treeEls.forEach((t) => { const b = t.g.getBBox(); t.root = [b.x + b.width / 2, b.y + b.height]; });
+/** where a point on a tree is drawn once the tree has grown */
+const grown = (x: number, y: number, ti: number): Point => {
+  const [rx, ry] = treeEls[ti].root;
+  return [rx + (x - rx) * treeGrow, ry + (y - ry) * treeGrow];
+};
+function growTrees(): void {
+  treeEls.forEach(({ grow, root: [rx, ry] }) => {
+    if (treeGrow === 1) grow.removeAttribute('transform');
+    else grow.setAttribute('transform', `translate(${f1(rx)},${f1(ry)}) scale(${treeGrow.toFixed(3)}) translate(${f1(-rx)},${f1(-ry)})`);
+  });
+}
+growTrees();
 const reedEls = P.reeds.map((t) => {
   const g = svgG('bend');
   g.innerHTML = `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="0.7" opacity="0.8"></path>`;
@@ -160,7 +176,7 @@ const reedEls = P.reeds.map((t) => {
 
 function drawSeason(windIdx: number): void {
   const r = rng(SITE.seed + 7);
-  const pick = (n: number): Point[] => Array.from({ length: Math.min(n, leafPoints.length) }, () => leafPoints[Math.floor(r() * leafPoints.length)]);
+  const pick = (n: number): Point[] => Array.from({ length: Math.min(n, leafPoints.length) }, () => { const [x, y, ti] = leafPoints[Math.floor(r() * leafPoints.length)]; return grown(x, y, ti); });
   let html = '';
   if (SEASON === 'spring') {                 // a scatter of blossoms in the canopies
     html = pick(80).map(([x, y]) => `<circle cx="${f1(x + (r() - 0.5) * 10)}" cy="${f1(y + (r() - 0.5) * 8)}" r="${f1(1.3 + r() * 1.2)}" style="stroke:var(--mid)" stroke-width="0.8"></circle>`).join('');
@@ -846,7 +862,7 @@ setInterval(drawSky, 60 * 1000);
 // refit the sky when the hero changes shape (rotation, resizing)
 {
   let raf = 0;
-  new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (fitSky()) { drawSky(); if (lastCur) applyWeather(lastCur); } }); }).observe(svg.parentElement!);
+  new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (fitSky()) { growTrees(); drawSky(); if (lastCur) applyWeather(lastCur); } }); }).observe(svg.parentElement!);
 }
 
 // the clock in the bottom bar: New York time, ticking over exactly on the minute
