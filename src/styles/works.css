@@ -249,3 +249,5 @@ html:not([data-view="img"]) .tidy { display: none; }
 }
 /* the index on a phone: just the titles — the categories would crowd them (they show on a big screen) */
 @media (max-width: 760px) { .ix .cat { display: none; } }
+/* on a phone the last work has as much room under it as there is between two works (112px, the .scol gap) */
+@media (max-width: 760px) { .works { padding-bottom: 122px; } }
