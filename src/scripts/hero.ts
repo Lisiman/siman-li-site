@@ -659,14 +659,22 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
   const HOLD = 4200, TYPE = 95, ERASE = 45, GAP = 450;   // ms: unhurried
   const el = $<HTMLElement>('role');
   const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
-  // the title keeps the height of its tallest role at this width (Creative Technologist takes three lines on a phone,
-  // the others two), so the lines under it stay put while the roles change
+  // the lines under the title stay put while the roles change. Where the roles would take different numbers of lines
+  // (at some widths Creative Technologist needs three, Professor at NYU two), each role breaks before its last word —
+  // a Professor at / NYU, a Creative / Technologist — so every one takes the same lines and none leaves a gap; the title
+  // also keeps the height of its tallest role, in case one still differs
+  let split = false;
+  const shown = (r: string): string => (split ? r.replace(/ (\S+)$/, '\n$1') : r);
+  el.style.whiteSpace = 'pre-line';
   const h1 = el.closest<HTMLElement>('h1');
   if (h1) {
     const reserve = (): void => {
-      const now = el.textContent; h1.style.minHeight = '';
-      const tallest = Math.max(...ROLES.map((r) => { el.textContent = r; return h1.getBoundingClientRect().height; }));
-      el.textContent = now; h1.style.minHeight = `${tallest}px`;
+      const now = (el.textContent ?? '').replace('\n', ' '); h1.style.minHeight = '';
+      const tall = (): number[] => ROLES.map((r) => { el.textContent = shown(r); return Math.round(h1.getBoundingClientRect().height); });
+      split = false; const plain = tall();
+      split = Math.max(...plain) !== Math.min(...plain);
+      const hs = split ? tall() : plain;
+      el.textContent = ROLES.includes(now) ? shown(now) : now; h1.style.minHeight = `${Math.max(...hs)}px`;
     };
     let w = 0;
     new ResizeObserver(([e]) => { const nw = Math.round(e.contentRect.width); if (nw !== w) { w = nw; reserve(); } }).observe(h1.parentElement!);
@@ -675,10 +683,10 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
   const loop = async (): Promise<void> => {
     for (let i = 1; ; i = (i + 1) % ROLES.length) {
       await wait(HOLD);
-      if (reduceMotion) { el.textContent = ROLES[i]; continue; }   // no typing, just the next word
+      if (reduceMotion) { el.textContent = shown(ROLES[i]); continue; }   // no typing, just the next word
       for (let n = el.textContent!.length; n >= 0; n--) { el.textContent = el.textContent!.slice(0, n); await wait(ERASE); }
       await wait(GAP);
-      for (let n = 1; n <= ROLES[i].length; n++) { el.textContent = ROLES[i].slice(0, n); await wait(TYPE); }
+      for (let n = 1; n <= ROLES[i].length; n++) { el.textContent = shown(ROLES[i]).slice(0, n); await wait(TYPE); }
     }
   };
   void loop();
