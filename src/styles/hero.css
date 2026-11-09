@@ -222,3 +222,7 @@
 .teaching-src { font-family: var(--serif); font-size: 12px; line-height: 1.2; color: var(--mu); margin-top: 4px !important; text-align: right; }   /* the source signs off at the right */
 @media (prefers-reduced-motion: reduce) { .teaching { transition: none; } }
 @media (max-width: 760px) { .wx-more { display: none; } }   /* a phone: the bar under the painting without the °C and the wind, so it keeps to two lines */
+
+/* on a phone, the same room above the title as above each section's label (2 × the step: 80px, works.css); on a big
+   screen it stays 48px, or the title would sit on the hills */
+@media (max-width: 760px) { .intro { padding-top: 80px; } }
