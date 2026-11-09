@@ -95,7 +95,7 @@ html:not([data-view="img"]) .tidy { display: none; }
 
 /* Index: one line per work */
 .ixl { display: flex; flex-direction: column; border-bottom: 1px solid var(--rule); }
-.ix { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px 28px; padding: 22px 0 20px; border-top: 1px solid var(--rule); text-decoration: none; color: var(--ink); transition: opacity .5s ease, z-index 0s linear .8s; }
+.ix { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 8px 28px; padding: 21px 0; border-top: 1px solid var(--rule); text-decoration: none; color: var(--ink); transition: opacity .5s ease, z-index 0s linear .8s; }
 /* the hovered row sits above the others, so no row line ever crosses its preview image (and stays up while the image fades out) */
 .ix:hover, .ix:focus-visible { z-index: 3; transition: opacity .5s ease, z-index 0s; }
 .ix .pt { font-size: clamp(32px, 3.8vw, 58px); line-height: 1; letter-spacing: -.01em; }
