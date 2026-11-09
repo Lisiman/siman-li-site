@@ -141,12 +141,7 @@ html:not([data-view="img"]) .tidy { display: none; }
    frame, for the parallax), so they always show; they unroll with it */
 .about-photo-clip::after { content: ''; position: absolute; inset: 0; border-left: 1px solid var(--frame); border-right: 1px solid var(--frame); pointer-events: none; z-index: 2; }
 .about-photo img { display: block; width: 100%; height: auto; }
-/* Maodo (毛豆), the dog at the bottom of the photo: hover him and his name appears; he links to his Instagram */
-.about-photo-clip > div { position: relative; transform: scale(1.09); will-change: transform; }   /* a little larger than its frame, so it can drift (parallax, Ferry.astro); Maodo's link moves with it */
-.about-photo .dog { position: absolute; left: 19%; top: 76%; width: 38%; height: 24%; border-radius: 50% 50% 0 0; cursor: var(--cur-link, pointer); }
-.about-photo .dog-tag { position: absolute; left: 50%; bottom: 100%; transform: translate(-50%, 4px); padding: 3px 8px; font-family: var(--mono); font-size: var(--fs-note); letter-spacing: var(--ls-small); white-space: nowrap; color: var(--bg); background: var(--ink); opacity: 0; transition: opacity .35s ease, transform .35s ease; pointer-events: none; }
-.about-photo .dog:hover .dog-tag, .about-photo .dog:focus-visible .dog-tag { opacity: 1; transform: translate(-50%, -4px); }
-.about-photo .dog:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+.about-photo-clip > div { position: relative; transform: scale(1.09); will-change: transform; }   /* a little larger than its frame, so it can drift (parallax, Ferry.astro) */
 .about-photo { transition: opacity .6s ease; } .about-photo.is-waiting { opacity: 0; }   /* never an empty frame: shown once the picture has loaded */
 /* the scroll unrolls the first time it comes into view (Ferry.astro): the picture is uncovered from the top while the
    lower roller travels down with the edge; nothing else moves */
