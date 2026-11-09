@@ -174,6 +174,29 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
 </Base>
 
 <script>
+  // Prev / Next turn italic on hover, and italic is narrower: a title on two lines would pull up onto one. So the lines
+  // are set where the upright title breaks them (a <br> before each word that starts a line), and set again on resize.
+  document.querySelectorAll<HTMLElement>('.d-next-name').forEach((name) => {
+    const words = (name.textContent ?? '').split(/(\s+)/);
+    name.textContent = '';
+    const spans = words.map((w) => { const s = document.createElement('span'); s.textContent = w; name.appendChild(s); return s; });
+    const lay = (): void => {
+      name.querySelectorAll('br').forEach((b) => b.remove());
+      let top = -Infinity;
+      const label = name.previousElementSibling?.getBoundingClientRect();
+      if (label) top = label.top;
+      spans.forEach((s) => {
+        if (!s.textContent?.trim()) return;
+        const t = s.getBoundingClientRect().top;
+        if (t > top + 2) { if (top !== -Infinity && s.previousSibling) name.insertBefore(document.createElement('br'), s); }
+        top = t;
+      });
+    };
+    document.fonts?.ready.then(lay);
+    let w = 0; new ResizeObserver(([e]) => { const nw = Math.round(e.contentRect.width); if (nw !== w) { w = nw; lay(); } }).observe(name.closest('.d-pager') ?? document.body);
+  });
+</script>
+<script>
   // a title with one long word (Tetragrammaton) must never run off a narrow screen: if any of its lines, the cursor
   // included, is wider than the column, the title is set a little smaller, just enough to fit
   const title = document.querySelector<HTMLElement>('.d-title');
