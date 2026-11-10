@@ -863,7 +863,7 @@ ferryman.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key ===
 // ---------------------------------------------------------------------------
 {
   const ROLES = ['Creative Technologist', 'Design Engineer', 'Professor at NYU', 'New Media Artist'];
-  const HOLD = 4200, TYPE = 95, ERASE = 45, GAP = 450;   // ms: unhurried
+  const HOLD = 3000, TYPE = 70, ERASE = 35, GAP = 350;   // ms: unhurried, but not slow
   const el = $<HTMLElement>('role');
   const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
   // the lines under the title stay put while the roles change. Where the roles would take different numbers of lines
