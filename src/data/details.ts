@@ -277,11 +277,11 @@ export const DETAILS: Detail[] = [
       heading: '',
       rows: [
         [{ kind: 'image', src: `${W}/tetragrammaton/tg-hero.jpg`, w: 2500, h: 1406, alt: 'Rick Rubin in the studio' }],
-        [{ kind: 'image', src: `${W}/tetragrammaton/tg-logo.gif`, w: 1920, h: 1080, alt: 'The tetragrammaton logo' }],
+        [{ kind: 'video', src: `${W}/tetragrammaton/tg-logo.mp4`, poster: `${W}/tetragrammaton/tg-logo.webp`, w: 1920, h: 1080, alt: 'The tetragrammaton logo' }],
         [{ kind: 'image', src: `${W}/tetragrammaton/tg-logo-progress.jpg`, w: 2500, h: 1406, alt: 'Drawing the t.' }, { kind: 'image', src: `${W}/tetragrammaton/tg-logo-wall.jpg`, w: 1920, h: 1080, alt: 'The logo on the studio wall' }],
         [{ kind: 'image', src: `${W}/tetragrammaton/tg-site-laptop.webp`, w: 1920, h: 1080, alt: 'tetragrammaton.com in the studio' }],
         [{ kind: 'image', src: `${W}/tetragrammaton/tg-site.webp`, w: 1920, h: 1080, alt: 'tetragrammaton.com' }, { kind: 'image', src: `${W}/tetragrammaton/tg-site-mobile.webp`, w: 1920, h: 1080, alt: 'On the phone' }],
-        [{ kind: 'image', src: `${W}/tetragrammaton/tg-poster.gif`, w: 2000, h: 1333, alt: 'The poster', fill: true }, { kind: 'image', src: `${W}/tetragrammaton/tg-phone.webp`, w: 1200, h: 1080, alt: 'The t. on a phone' }],
+        [{ kind: 'video', src: `${W}/tetragrammaton/tg-poster.mp4`, poster: `${W}/tetragrammaton/tg-poster.webp`, w: 2000, h: 1332, alt: 'The poster', fill: true }, { kind: 'image', src: `${W}/tetragrammaton/tg-phone.webp`, w: 1200, h: 1080, alt: 'The t. on a phone' }],
         [{ kind: 'image', src: `${W}/tetragrammaton/tg-poster-outdoor.jpg`, w: 1920, h: 1080, alt: 'The poster, outdoors' }],
       ],
     },
@@ -392,9 +392,9 @@ export const DETAILS: Detail[] = [
     gallery: {
       heading: '',
       rows: [
-        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-looks.png`, w: 2000, h: 1862, alt: 'The four 3D-rendered looks' }],
-        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-mobile.png`, w: 1830, h: 868, alt: 'Four looks on the phone, two of them counting down to release' }],
-        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-ar.png`, w: 1805, h: 715, alt: 'The AR filters' }],
+        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-looks.webp`, w: 2000, h: 1862, alt: 'The four 3D-rendered looks' }],
+        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-mobile.webp`, w: 1830, h: 868, alt: 'Four looks on the phone, two of them counting down to release' }],
+        [{ kind: 'image', src: `${W}/coming-out-to-a-new-world/co-ar.webp`, w: 1805, h: 715, alt: 'The AR filters' }],
       ],
     },
   },
