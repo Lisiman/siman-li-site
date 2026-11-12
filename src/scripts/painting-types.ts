@@ -5,7 +5,7 @@ export type Tone = 'ink' | 'mid' | 'lt' | 'sink' | 'smid' | 'slt';
 
 export interface Stroke { d: string; c: Tone | 'bg'; w: number; o: number; t?: number; /** filled wash instead of a line: gradient kind */ fill?: 'down' | 'band' | 'blob'; /** a paper-coloured fill that hides what lies behind */ bg?: boolean; /** snow on the rocks: shown only in heavy snow */ snow?: boolean }
 export interface Layer { depth: number; paths: Stroke[] }
-export interface TreeStrokes { /** trunk & branches */ d: string; /** leaf marks */ l: string; r: number; /** canopy wash (style.wash) */ w?: string }
+export interface TreeStrokes { /** trunk & branches */ d: string; /** leaf marks */ l: string; /** paper inside the trunk & branches (hides what lies behind) */ f?: string; /** the sides of the trunk & thick branches (part of d) */ e?: string; /** the rest of d: bark marks, twigs, roots */ o?: string; r: number; /** canopy wash (style.wash) */ w?: string }
 export interface ReedStrokes { d: string; r: number }
 export type Point = [x: number, y: number];
 

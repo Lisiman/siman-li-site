@@ -124,7 +124,22 @@ export const Painting: PaintingAPI = {
       const hide = opt.hide || (() => false);   // opt.hide(x): leave out the strokes there (randoms are still drawn, so nothing else changes)
       const ridge = (x) => bAt(x) - hgt(x);
       const xs0 = Math.max(-10, x0), xs1 = Math.min(W + 10, x1);
-      { let sd = `M${f1(xs0)},${f1(base + 4)}`; for (let x = xs0; x <= xs1; x += 5) sd += ` L${f1(x)},${f1(Math.min(bAt(x), ridge(x)))}`; sd += ` L${f1(xs1)},${f1(bAt(xs1) + 4)} Z`; Ls[layer].push({ d: sd, c: col, w: 0, o: 1, t: t0, bg: true }); }
+      if (layer !== 'far') { let sd = `M${f1(xs0)},${f1(base + 4)}`; for (let x = xs0; x <= xs1; x += 5) sd += ` L${f1(x)},${f1(Math.min(bAt(x), ridge(x)))}`; sd += ` L${f1(xs1)},${f1(bAt(xs1) + 4)} Z`; Ls[layer].push({ d: sd, c: col, w: 0, o: 1, t: t0, bg: true }); }
+      else {
+        // the far hills' paper only where a hill is drawn (the same test as its outline below): a flat strip of paper
+        // along the base where there is no hill was an invisible horizon that cut off a low sun above the bank
+        let sd = '', run: [number, number][] = [];
+        const flush = (): void => {
+          if (run.length > 1) { const [xa] = run[0], [xb] = run[run.length - 1]; sd += `M${f1(xa)},${f1(bAt(xa) + 4)}` + run.map(([x, y]) => ` L${f1(x)},${f1(y)}`).join('') + ` L${f1(xb)},${f1(bAt(xb) + 4)} Z `; }
+          run = [];
+        };
+        for (let x = xs0; x <= xs1; x += 5) {
+          const inTail = (opt.tailR && x > x1 - opt.tailR * (x1 - x0)) || (opt.tailL && x < x0 + opt.tailL * (x1 - x0));
+          if ((hgt(x) < 1.5 && x >= fxa && !inTail) || hide(x)) flush(); else run.push([x, Math.min(bAt(x), ridge(x))]);
+        }
+        flush();
+        if (sd) Ls[layer].push({ d: sd.trim(), c: col, w: 0, o: 1, t: t0, bg: true });
+      }
       for (let k = 0; k < n; k++) {
         const f = 1 - k / (n + 0.6); let d = '', on = false;
         for (let x = xs0; x <= xs1; x += 5) {
@@ -485,15 +500,22 @@ export const Painting: PaintingAPI = {
       return d;
     };
     const tree = (x, y, h, type, lean) => {
-      let trunk = '', leaves = '';
+      // trunk: every line of the tree, as before. Split for drawing: edge (the two sides of each thick segment), fill (the
+      // paper between them) and other (bark marks, thin twigs, the roots). hero.ts draws the edges twice as thick, then the
+      // paper over them, then the rest: the paper hides the inner half of each edge and every edge that runs inside
+      // another branch, so the whole tree shows one outline, with nothing behind it (or inside it) showing through
+      let trunk = '', leaves = '', fill = '', edge = '', other = '';
       const seg = (x, y, ang, len, wid, depth) => {
         const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len, bend = R(-0.22, 0.22) * len;
         const mx = (x + ex) / 2 + Math.cos(ang + Math.PI / 2) * bend, my = (y + ey) / 2 + Math.sin(ang + Math.PI / 2) * bend;
         if (wid > 1.8) {
           const nx = Math.cos(ang + Math.PI / 2) * wid / 2, ny = Math.sin(ang + Math.PI / 2) * wid / 2;
-          trunk += `M${f1(x + nx)},${f1(y + ny)} Q${f1(mx + nx)},${f1(my + ny)} ${f1(ex + nx * 0.62)},${f1(ey + ny * 0.62)} M${f1(x - nx)},${f1(y - ny)} Q${f1(mx - nx)},${f1(my - ny)} ${f1(ex - nx * 0.62)},${f1(ey - ny * 0.62)} `;
-          if (rnd() < 0.45) trunk += `M${f1(mx + nx * 0.3)},${f1(my)} q${f1(R(-2, 2))},-3 0,-6 `;
-        } else trunk += `M${f1(x)},${f1(y)} Q${f1(mx)},${f1(my)} ${f1(ex)},${f1(ey)} `;
+          const sides = `M${f1(x + nx)},${f1(y + ny)} Q${f1(mx + nx)},${f1(my + ny)} ${f1(ex + nx * 0.62)},${f1(ey + ny * 0.62)} M${f1(x - nx)},${f1(y - ny)} Q${f1(mx - nx)},${f1(my - ny)} ${f1(ex - nx * 0.62)},${f1(ey - ny * 0.62)} `;
+          trunk += sides; edge += sides;
+          // (no randoms used for the paper)
+          fill += `M${f1(x + nx)},${f1(y + ny)} Q${f1(mx + nx)},${f1(my + ny)} ${f1(ex + nx * 0.62)},${f1(ey + ny * 0.62)} L${f1(ex - nx * 0.62)},${f1(ey - ny * 0.62)} Q${f1(mx - nx)},${f1(my - ny)} ${f1(x - nx)},${f1(y - ny)} Z `;
+          if (rnd() < 0.45) { const bark = `M${f1(mx + nx * 0.3)},${f1(my)} q${f1(R(-2, 2))},-3 0,-6 `; trunk += bark; other += bark; }
+        } else { const twig = `M${f1(x)},${f1(y)} Q${f1(mx)},${f1(my)} ${f1(ex)},${f1(ey)} `; trunk += twig; other += twig; }
         if (depth <= 0 || len < 9) { leaves += foliage(ex, ey, type, 1); return; }
         const n = depth >= 3 ? 2 : (rnd() < 0.55 ? 2 : 3);
         for (let i = 0; i < n; i++) { const da = (i - (n - 1) / 2) * R(0.38, 0.62) + R(-0.14, 0.14); seg(ex, ey, ang + da, len * R(0.6, 0.78), wid * 0.6, depth - 1); }
@@ -501,8 +523,9 @@ export const Painting: PaintingAPI = {
       };
       const wid = h * R(0.02, 0.028) + 3;
       seg(x, y, -Math.PI / 2 + lean, h * R(0.36, 0.44), wid, 4);
-      trunk += `M${f1(x - wid)},${f1(y + 1)} q-6,2 -11,7 M${f1(x + wid)},${f1(y + 1)} q6,2 11,7 `;
-      st.trees++; return { trunk, leaves };
+      const roots = `M${f1(x - wid)},${f1(y + 1)} q-6,2 -11,7 M${f1(x + wid)},${f1(y + 1)} q6,2 11,7 `;
+      trunk += roots; other += roots;
+      st.trees++; return { trunk, leaves, fill, edge, other };
     };
     const nT = RI(3, 5); const tx0 = rk.x0 + 0.05 * W + 20, tx1 = rk.x1 - 0.06 * W;
     // always one tree in the middle: with an even count, the left one of the middle pair is grown (so the randoms, and every
@@ -518,7 +541,7 @@ export const Painting: PaintingAPI = {
       const h = 0.4 * H * (1 - 0.14 * dm) * (dm === 0 ? 1.2 : 1);
       const lean = i === nT - 1 ? R(0.3, 0.55) : R(-0.18, 0.18);
       const tr = tree(x, y, h, types[RI(0, types.length - 1)], lean);
-      if (i !== skip) TR.push({ d: tr.trunk, l: tr.leaves, r: (i * 0.618 + 0.13) % 1 });
+      if (i !== skip) TR.push({ d: tr.trunk, l: tr.leaves, f: tr.fill, e: tr.edge, o: tr.other, r: (i * 0.618 + 0.13) % 1 });
     }
     // reeds
     const rd = g.reed; let reeds = ''; const rb = ['', '', '', '']; const band = (x) => Math.max(0, Math.min(3, Math.floor((x - (rd.x0 - 0.12 * W)) / ((rd.x1 - rd.x0 + 0.12 * W) / 4))));

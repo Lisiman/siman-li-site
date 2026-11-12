@@ -255,7 +255,13 @@ const treeEls = P.trees.map((t, ti) => {
   const dark = SEASON === 'autumn' ? kept.filter((m) => !pale.includes(m)) : kept;
   const leafW = SEASON === 'spring' ? 0.75 : 0.9, leafC = SEASON === 'spring' ? 'mid' : 'ink';   // spring leaves: fine, light
   const g = svgG('sway');
-  g.innerHTML = `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="1"></path>`
+  // one outline for the whole tree: its sides drawn twice as thick, then its paper over them (hiding their inner half, and
+  // every side that runs inside another branch, and the hills behind), then the bark marks, twigs and roots
+  g.innerHTML = (t.f && t.e && t.o !== undefined
+    ? `<path d="${t.e}" style="stroke:var(--ink)" stroke-width="2"></path>`
+      + `<path class="trunk-fill" d="${t.f}" style="fill:var(--bg);stroke:none"></path>`
+      + `<path d="${t.o}" style="stroke:var(--ink)" stroke-width="1"></path>`
+    : `<path d="${t.d}" style="stroke:var(--ink)" stroke-width="1"></path>`)
     + `<path d="${dark.concat(extra).join('')}" style="stroke:var(--${leafC})" stroke-width="${leafW}" opacity="0.9"></path>`
     + (pale.length ? `<path d="${pale.join('')}" style="stroke:var(--mid)" stroke-width="0.8" opacity="0.7"></path>` : '');
   const grow = svgG('');   // scaled from the root on a portrait screen (growTrees); the sway stays inside it
