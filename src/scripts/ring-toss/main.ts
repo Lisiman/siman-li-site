@@ -660,7 +660,7 @@ renderer.setAnimationLoop(() => {
   if (!ready) job = null;
   // on the front of her stand, hanging from just under the laptop's edge (the stand's face is bare there): its top
   // edge there, centred under the laptop, kept on screen
-  termAt.set(owner.x, STAND_TOP - 0.13, owner.z + 0.58).project(camera);   // (a little lower down the stand front than it was)
+  termAt.set(owner.x, STAND_TOP - 0.22, owner.z + 0.58).project(camera);   // (a little lower down the stand front than it was)
   const tw = termEl.offsetWidth, th = termEl.offsetHeight;
   const tx = Math.min(innerWidth - 16 - tw / 2, Math.max(16 + tw / 2, (termAt.x + 1) / 2 * innerWidth));
   const ty = Math.min(innerHeight - 16 - th, (1 - termAt.y) / 2 * innerHeight);
