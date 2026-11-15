@@ -58,7 +58,8 @@ export function playOpening(el: HTMLElement, o: { ready(): boolean; soundOn(): b
   const cursor = document.createElement('span');
   cursor.className = 'rt-cine-cursor';
   cursor.textContent = '\u2588';   // a terminal's block cursor
-  const rows = [...text.querySelectorAll<HTMLElement>('.rt-cine-group')].flatMap((g) => [...g.querySelectorAll('p')].map((p, i) => {
+  // (only the lines shown: on a short screen some are left out, the page's CSS)
+  const rows = [...text.querySelectorAll<HTMLElement>('.rt-cine-group')].filter((g) => getComputedStyle(g).display !== 'none').flatMap((g) => [...g.querySelectorAll('p')].map((p, i) => {
     const [typed, rest] = [...p.children] as HTMLElement[];
     return { typed, rest, full: rest.textContent ?? '', gap: i === 0, fast: g.classList.contains('is-cmd') };
   }));

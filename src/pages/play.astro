@@ -7,13 +7,14 @@ const dev = import.meta.env.DEV;
 // the opening's lines (opening.ts types them), in groups with a gap between; the dateline and the welcome brighter.
 // They are in the page from the start, untyped and invisible, so the screen is laid out before the first letter and
 // nothing below them (Skip intro) moves.
-const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean }[] = [
+// long: left out on a phone held sideways (a short screen), where the opening is kept to its bones
+const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean; long?: boolean }[] = [
   { lines: ['lucky88@chinatown:~$ ./open --stall ring-toss'], cmd: true },   // a terminal: the command that starts it all
   { lines: ['Chinatown, New York City · 2026'], bright: true },
   { lines: ['In a neighborhood where cash is still king…'] },
-  { lines: ['A Design Engineer, between jobs,', 'decided to try something new.'] },
-  { lines: ['A little business.', 'A modern twist.', 'Just a tap away.'] },
-  { lines: ['Could this be the start of something new for this neighborhood?'] },
+  { lines: ['A Design Engineer, between jobs,', 'decided to try something new.'], long: true },
+  { lines: ['A little business.', 'A modern twist.', 'Just a tap away.'], long: true },
+  { lines: ['Could this be the start of something new for this neighborhood?'], long: true },
   { lines: ['Same old luck. New ways to pay.'] },
   { lines: ['Welcome to Lucky 88.'], bright: true },
 ];
@@ -86,7 +87,7 @@ siman.li</b></pre>
       <div class="rt-cine-in">
         <div class="rt-cine-text">
           {OPENING.map((g) => (
-            <div class:list={['rt-cine-group', { 'is-bright': g.bright, 'is-cmd': g.cmd }]}>
+            <div class:list={['rt-cine-group', { 'is-bright': g.bright, 'is-cmd': g.cmd, 'is-long': g.long }]}>
               {g.lines.map((l) => <p><span></span><span class="rt-cine-rest">{l}</span></p>)}
             </div>
           ))}
@@ -376,8 +377,9 @@ siman.li</b></pre>
   @media (max-height: 520px) {
     /* the opening: smaller and tighter, with the button held at the foot of the screen, so it's always there to press */
     .rt-cine { padding: 14px 16px 64px; }
-    .rt-cine-in { width: min(620px, 100%); font-size: 11px; line-height: 1.15; }
-    .rt-cine-group + .rt-cine-group { margin-top: .75em; }
+    .rt-cine-in { width: min(620px, 100%); font-size: 13px; line-height: 1.2; }
+    .rt-cine-group + .rt-cine-group { margin-top: 1em; }
+    .rt-cine-group.is-long { display: none; }   /* the short version: where, the hook, and the welcome */
     .rt-cine-ctas { position: fixed; left: 0; right: 0; bottom: 14px; margin: 0; }
     .rt-cine-cta { font-size: 13px; }
     .rt-cine-sound { position: fixed; left: 0; right: 0; bottom: 2px; margin: 0; font-size: 9px; }
