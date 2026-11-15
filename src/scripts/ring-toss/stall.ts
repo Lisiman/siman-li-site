@@ -274,7 +274,6 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
   };
 
   on('coin', ({ method, both }) => pick(both ? 'payBoth' : method === 'cash' ? 'payCash' : 'payTap', 2));
-  on('throw', ({ count }) => { if (count === 1) pick('first', 1); });
   on('miss', ({ streak }) => (streak === 3 || streak === 5 || streak >= 8 && streak % 4 === 0 ? pick('missStreak', 2) : pick('miss', 1, 0.35)));
   on('near', () => pick('near', 2, 0.8));
   on('clink', ({ prize }) => { if (prize.glass) pick('clink', 1, 0.5); });
@@ -285,7 +284,9 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
   });
   on('streak', () => pick('streak', 3));
   on('owner', () => pick('owner', 4));
-  on('idle', ({ rings }) => pick(rings > 0 ? 'idle' : 'empty', 1));
+  // standing there: before paying at all, her pitch again (her recorded opening lines, not the hellos); with rings
+  // in hand, a dig; out of rings, a nudge to buy more
+  on('idle', ({ rings, paid }) => (!paid && rings === 0 ? pick('open', 1, 1, [2, 3, 4]) : pick(rings > 0 ? 'idle' : 'empty', 1)));
   on('empty', ({ wins }) => pick('end', 2, 1, END[endMood(wins)]));
   // after the line about how you paid has had its moment
   on('restock', ({ unseen }) => window.setTimeout(() => pick(unseen ? 'restockNew' : 'restock', 2), 2600));

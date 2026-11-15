@@ -13,7 +13,7 @@ import { buildOwner, startTalking, STAND_TOP } from './stall';
 import { oddsJob } from './odds';
 import { STATUS, LINES } from './lines';
 import { setupPay, type Method } from './pay';
-import { stamp, plop, wake, clank, rustle, soundOn, key, glitch, hover, streetLevel, bulb, buzz, mute } from './sound';
+import { stamp, plop, press, wake, clank, rustle, soundOn, key, glitch, hover, streetLevel, bulb, buzz, mute } from './sound';
 import { playOpening } from './opening';
 import { buildBag } from './bag';
 import { wakeVoice, muteVoice } from './voice';
@@ -119,11 +119,14 @@ const D = 0.09, T = 0.022;   // face, thickness
 const shell = new THREE.MeshStandardMaterial({ color: 0xeceef1, roughness: 0.4, metalness: 0.05 });
 const reader = new THREE.Mesh(new RoundedBoxGeometry(D, D, T, 4, 0.014), shell);
 const READER_X = 0.48;   // in toward the middle, as the cash tin is on the other side
-reader.position.set(READER_X, COUNTER_TOP + 0.062 * READER, 0.1);
+// as far forward as the cash tin's front, so their feet are in line on the counter (the tin, 0.075 round its middle
+// at z 0.1, comes forward to 0.175; the dock, 0.05 deep, shown READER times bigger)
+const READER_Z = 0.175 - 0.025 * READER + 0.012 * READER;
+reader.position.set(READER_X, COUNTER_TOP + 0.062 * READER, READER_Z);
 reader.scale.setScalar(READER);
 reader.rotation.set(-0.42, -0.25, 0);
 const dock = new THREE.Mesh(new RoundedBoxGeometry(0.075, 0.03, 0.05, 3, 0.008), new THREE.MeshStandardMaterial({ color: 0xd2d5da, roughness: 0.5 }));
-dock.position.set(READER_X, COUNTER_TOP + 0.015 * READER, 0.1 - 0.012 * READER);
+dock.position.set(READER_X, COUNTER_TOP + 0.015 * READER, READER_Z - 0.012 * READER);
 dock.scale.setScalar(READER);
 dock.rotation.y = -0.25;
 // the face: the contactless sign, printed dark grey
@@ -178,7 +181,7 @@ const roundNew = new Set<Kind>();
 const paidWith = new Set<Method>();
 let cashTeased = -Infinity;
 let bothSaid = false;
-let lastAction = performance.now(), idleSaid = false;
+let lastAction = performance.now(), idleSaid = 0;   // idleSaid: how many times she's said something about it since
 const flying: Ring[] = [];
 const resting: Ring[] = [];
 /** prizes on their way to you: up off the stand, held up in front of you, then into the bag (into: its spot there,
@@ -203,7 +206,7 @@ function next(): void {
   showRings();
 }
 
-function touch(): void { lastAction = performance.now(); idleSaid = false; }
+function touch(): void { lastAction = performance.now(); idleSaid = 0; }
 
 // paying: the cash tin on the left, the card reader on the right (pay.ts)
 const pay = setupPay({
@@ -258,6 +261,10 @@ const STAMP_AT = 1.3, STAMP_GAP = 0.42, STAMP_HIT = 0.21;   // s: the first, bet
 let stampTimers: number[] = [];
 function summary(): void {
   renderBook();
+  // all of it found: the receipt's last state (SOLD OUT, and a way to start over or to see more work)
+  const complete = foundCount() === CATALOG.length;
+  summaryEl.classList.toggle('is-complete', complete);
+  summaryEl.querySelector('.rt-summary-title')!.textContent = complete ? 'Collection complete' : "Today's damage";
   stampTimers.forEach(clearTimeout);
   const n = new Set(roundWins).size;
   stampTimers = Array.from({ length: n }, (_, i) => window.setTimeout(() => stamp(i), (STAMP_AT + STAMP_GAP * i + STAMP_HIT) * 1000));
@@ -368,6 +375,9 @@ const FLY = 0.75, HOLD = 2.4, DROP = 0.6;   // s (held long enough to read its t
 const showAt = new THREE.Vector3(), camFwd = new THREE.Vector3(), camRight = new THREE.Vector3();
 // the tag tied to a prize as it's held up: its number, its name, its line (catalog.ts)
 const tagEl = document.getElementById('rt-tag')!, bookEl = document.getElementById('rt-book')!;
+// start over: the page again, from the stall (the collection is this visit's only, so it's empty again; the opening,
+// seen already in this tab, is skipped)
+summaryEl.querySelector('.rt-restart')?.addEventListener('click', () => location.reload());
 const bookHead = bookEl.querySelector('.rt-row b')!, bookGrid = bookEl.querySelector(':scope > div')!, statsEl = document.getElementById('rt-stats')!;
 const tagAt = new THREE.Vector3();
 let tagOf: (typeof won)[number] | null = null;
@@ -539,6 +549,13 @@ const finishIntro = (): void => {
     const m = q.get('pay');
     if (m) window.setTimeout(() => (m === 'cash' ? cashEl : tapEl).click(), 400);
     if (q.has('receipt')) window.setTimeout(summary, 400);
+    // ?complete: the receipt as it is with the whole collection found (the last few as won this round)
+    if (q.has('complete')) {
+      for (const e of CATALOG) find(e.kind);
+      roundWins = CATALOG.slice(-3).map((e) => e.kind);
+      roundThrown = 64;
+      window.setTimeout(summary, 400);
+    }
   }
 };
 // before all that, the film-like opening on black (opening.ts), with the street already playing if the browser
@@ -565,7 +582,7 @@ wake();
 // the typed opening only the first time in a tab: opened again there (a reload), straight to the lights coming on
 let seen = false;
 try { seen = sessionStorage.getItem('rt-opening') === 'seen'; } catch { /* no storage: show it */ }
-void playOpening($('rt-cine'), { ready: () => loading.ready(), soundOn, key, glitch, hover, seen }).then(() => {
+void playOpening($('rt-cine'), { ready: () => loading.ready(), soundOn, key, glitch, hover, press, seen }).then(() => {
   entered = true;
   // the drawings for the collection on the receipt, made in the background once the walk in is over
   window.setTimeout(() => void thumbs(CATALOG.map((e) => e.kind)), (INTRO + 2) * 1000);
@@ -647,9 +664,12 @@ renderer.setAnimationLoop(() => {
   termEl.style.transform = `translate(${Math.round(tx)}px, ${Math.round(ty)}px) translate(-50%, 0)`;
 
   const idle = (performance.now() - lastAction) / 1000;
-  if (!idleSaid && flying.length === 0 && idle > (rings > 0 ? 12 : 9)) {
-    idleSaid = true;
-    emit('idle', { seconds: Math.round(idle), rings });
+  // every 10 s of nothing, she says something about it (a different line each time, at random)
+  // (not before the opening is over, nor while the receipt is up)
+  const canNag = introDone && !summaryEl.classList.contains('is-on');
+  if (canNag && flying.length === 0 && idle > 10 * (idleSaid + 1)) {
+    idleSaid++;
+    emit('idle', { seconds: Math.round(idle), rings, paid: roundsPaid > 0 });
   }
   world.update(clock.elapsedTime, dt);
   figureModel?.update(dt);

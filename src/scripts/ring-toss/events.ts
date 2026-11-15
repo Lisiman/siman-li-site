@@ -12,7 +12,7 @@ export interface GameEvents {
   win: { prize: Prize; streak: number };
   streak: { count: number };
   owner: { count: number };
-  idle: { seconds: number; rings: number };
+  idle: { seconds: number; rings: number; paid: boolean };
   empty: { wins: number };   // prizes won this round
   /** a new round paid for, and the places left empty filled: how many, how many of them never seen before, and
    *  whether every prize has now been found */

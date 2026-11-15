@@ -55,12 +55,23 @@ const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean }[] = [
       <div class="rt-stats" id="rt-stats"></div>
       <!-- the chop's ink: it didn't quite take everywhere (used by each chop in the collection) -->
       <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="rt-chop-ink" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.9" result="holes"/><feComposite in="SourceGraphic" in2="holes" operator="in"/></filter></svg>
-      <div class="rt-book" id="rt-book" aria-label="Your collection"><p class="rt-row"><span>Collection</span><i></i><b></b></p><div></div></div>
+      <div class="rt-book" id="rt-book" aria-label="Your collection"><p class="rt-row"><span>Collection</span><i></i><b></b></p><div></div>
+        <!-- all 18 found: the whole stall's been cleaned out, and it says so, across the lot -->
+        <svg class="rt-soldout" viewBox="0 0 300 92" aria-hidden="true"><g filter="url(#rt-chop-ink)"><rect x="5" y="5" width="290" height="82" rx="10"/><rect x="13" y="13" width="274" height="66" rx="5" class="thin"/><text x="150" y="44">SOLD OUT</text><text x="150" y="68" class="zh">售  罄</text></g></svg>
+      </div>
       <hr class="rt-cut" />
       <p class="rt-summary-foot">Cash, card, tap. One more ring?</p>
       <div class="rt-summary-pay">
         <button type="button" data-pay="cash">Cash</button>
         <button type="button" data-pay="tap">Tap</button>
+      </div>
+      <!-- …and when the collection is complete, instead: the stall is closed; start over, or see more of Siman's work -->
+      <div class="rt-summary-done">
+        <p class="rt-summary-foot">You cleaned out Lucky 88.<br />The owner's back on LinkedIn.</p>
+        <div class="rt-summary-pay">
+          <button type="button" class="rt-restart">Start over</button>
+          <a class="rt-more" href="https://www.siman.li">More by Siman →</a>
+        </div>
       </div>
       <pre class="rt-summary-sign"><b>Hiring a creative engineer?
 siman.li</b></pre>
@@ -85,13 +96,19 @@ siman.li</b></pre>
           <button class="rt-cine-cta rt-cine-skip is-on" type="button"><span class="rt-cine-cta-label">Skip intro</span><span class="rt-cine-cta-arrow" aria-hidden="true">→</span></button>
           <button class="rt-cine-cta rt-cine-go" type="button"><span class="rt-cine-cta-label">Step right up</span><span class="rt-cine-cta-arrow" aria-hidden="true">→</span></button>
         </div>
+        <!-- until the browser lets the sound play: one click anywhere does it (opening.ts hides this once it's on) -->
+        <p class="rt-cine-sound" aria-hidden="true"><span class="rt-cine-sound-mouse">Click anywhere for sound</span><span class="rt-cine-sound-touch">Tap anywhere for sound</span></p>
       </div>
+      <!-- the stall loading behind it, as one more line of the terminal, at the foot (loading.ts) -->
+      <p class="rt-status" aria-hidden="true"><b>›</b> opening the stall</p>
     </div>
-    <!-- while it loads: a line of till paper with the real progress (loading.ts) -->
+    <!-- while it loads, when the opening isn't shown (seen already in this tab): the opening's terminal, its command
+         and the real progress under it (loading.ts) -->
     <div class="rt-load" id="rt-load" role="status">
-      <pre>LUCKY 88 · RING TOSS
-
-opening the stall</pre>
+      <div class="rt-load-in">
+        <p class="rt-load-cmd">$ lucky88@chinatown:~$ ./open --stall ring-toss</p>
+        <p class="rt-status"><b>›</b> opening the stall</p>
+      </div>
     </div>
   </div>
 </Base>
@@ -149,7 +166,7 @@ opening the stall</pre>
   /* the owner's terminal, beside his head (main.ts moves it); each line types itself out */
   /* her lines, in the opening's terminal: black glass, a hairline edge, the typewriter caps, a blue prompt, the block
      cursor, and the same faint scanlines */
-  .rt-term { position: absolute; left: 0; top: 0; max-width: min(300px, 60vw); padding: 12px 16px 13px; background: #000000d9; border: 1px solid #f3ead833; border-radius: 2px; box-shadow: 0 8px 30px #000a; opacity: 0; transition: opacity .2s; pointer-events: none; will-change: transform; overflow: hidden; }
+  .rt-term { position: absolute; left: 0; top: 0; max-width: min(300px, 60vw); padding: 12px 16px 13px; background: #000000a3; border: 1px solid #f3ead833; border-radius: 8px; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); box-shadow: 0 8px 30px #000a; opacity: 0; transition: opacity .2s; pointer-events: none; will-change: transform; overflow: hidden; }
   .rt-term::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, #f3ead80a 0 1px, #0000 1px 2px, #0000004d 2px 3px, #0000 3px 4px); }
   .rt-term.is-on { opacity: 1; }
   .rt-term pre { margin: 0; font: 400 13px/1.45 'Courier Prime', var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #f3ead8e6; text-shadow: 0 0 6px #f3ead833; white-space: pre-wrap; }
@@ -202,6 +219,26 @@ opening the stall</pre>
   .rt-item span em { font-style: normal; color: #1d1b1788; margin-right: 6px; }
   .rt-item b.is-new { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: #635bff; }
   .rt-stats + svg + .rt-book, .rt-stats + .rt-book { margin-top: 18px; }
+  /* the collection complete: SOLD OUT stamped across the grid, the way out instead of the way to pay again */
+  .rt-book { position: relative; }
+  .rt-soldout { position: absolute; left: 50%; top: 58%; width: 74%; translate: -50% -50%; rotate: -8deg; overflow: visible; pointer-events: none; mix-blend-mode: multiply; opacity: 0; }
+  .rt-soldout rect { fill: none; stroke: #d42a20; stroke-width: 6; }
+  .rt-soldout rect.thin { stroke-width: 2; }
+  .rt-soldout text { fill: #d42a20; font: 700 34px 'Courier Prime', var(--mono); letter-spacing: .18em; text-anchor: middle; }
+  .rt-soldout text.zh { font: 900 20px 'Songti TC', 'Songti SC', 'Noto Serif TC', serif; letter-spacing: .3em; }
+  .rt-summary.is-complete.is-on .rt-soldout { animation: rt-chop .5s 2.1s cubic-bezier(.5,0,.4,1) forwards; }
+  /* (under it, the 18 little chops step back, so SOLD OUT reads) */
+  .rt-summary.is-complete .rt-chop { opacity: .3 !important; animation: none !important; }
+  .rt-summary.is-complete .rt-soldout { width: 82%; }
+  .rt-soldout text { paint-order: stroke; stroke: #f6f1e4; stroke-width: 6px; }
+  .rt-summary-done { display: none; }
+  .rt-summary.is-complete .rt-summary-done { display: block; }
+  .rt-summary.is-complete > .rt-summary-foot, .rt-summary.is-complete > .rt-summary-pay { display: none; }
+  .rt-summary-done .rt-summary-foot { line-height: 1.7; }
+  .rt-summary-done .rt-summary-pay > * { flex: 1; display: block; text-align: center; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; text-decoration: none; transition: background-color .25s, color .25s, translate .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .rt-summary-done .rt-summary-pay > *:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; }
+  .rt-summary-done .rt-more { background: #635bff; border-color: #635bff; color: #fff; }
+  .rt-summary-done .rt-more:hover { background: #7a73ff; border-color: #7a73ff; color: #fff; box-shadow: 0 4px 16px #635bff66; }
   .rt-book > div { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px 6px; margin-top: 12px; }
   .rt-summary-foot { margin: 0; font: 12px/1.6 var(--mono); text-align: center; color: #1d1b17cc; }
   .rt-summary-sign { margin-top: 22px !important; text-align: center; }
@@ -255,8 +292,16 @@ opening the stall</pre>
   .rt-summary:focus { outline: none; }
   .rt-summary button:focus-visible { outline: 1px dashed #1d1b1799; outline-offset: 3px; }
   /* the loading line, on black, until everything is in */
-  .rt-load { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: #05070d; transition: opacity .6s; }
-  .rt-load pre { margin: 0; font: 13px/1.7 var(--mono); color: #f3ead8; letter-spacing: .04em; white-space: pre; text-align: center; }
+  /* the loading: in the opening's own look (black, scanlines, its type): the command, and the progress as a line of
+     the terminal. In the opening it sits at the foot of the screen */
+  .rt-load { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: #000; transition: opacity .6s; }
+  .rt-load::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, #f3ead80a 0 1px, #0000 1px 2px, #0000004d 2px 3px, #0000 3px 4px); }
+  .rt-load-in { font: 400 14px/1.2 'Courier Prime', var(--mono); text-align: center; }
+  .rt-load-cmd { margin: 0 0 1.2em; letter-spacing: .02em; color: #f3ead866; }
+  .rt-status { margin: 0; font: 400 12px/1.2 'Courier Prime', var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #f3ead880; white-space: pre; text-shadow: 0 0 6px #f3ead822; transition: opacity .8s; }
+  .rt-status b { font-weight: 400; color: #8b85ff; text-shadow: 0 0 8px #635bff66; }
+  .rt-cine > .rt-status { position: absolute; left: 0; right: 0; bottom: 28px; text-align: center; font-size: 11px; color: #f3ead859; }
+  .rt-cine > .rt-status.is-done { opacity: 0; transition-delay: 1.2s; }
   .rt-load.is-done { opacity: 0; pointer-events: none; }
   /* the opening: one screen of lines, typed out (opening.ts) on a typewriter face, on the night's own near-black
      (not pure black: the street it opens onto is navy), with film grain and a vignette */
@@ -305,6 +350,11 @@ opening the stall</pre>
   .rt-cine-cta { position: relative; display: inline-flex; align-items: center; gap: .7em; padding: 8px 4px; font: 700 14px/1 'Courier Prime', var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--cine-blue-lt); background: none; border: 0; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .4s ease, color .25s, text-shadow .25s, letter-spacing .35s cubic-bezier(.2,.8,.2,1); }
   .rt-cine-ctas { display: grid; justify-items: center; margin-top: 2.8em; }
   .rt-cine-ctas > * { grid-area: 1 / 1; }   /* the two in the same spot */
+  .rt-cine-sound { margin: 1.4em 0 0; font-size: 10px; letter-spacing: .18em; color: var(--cine-blue-lt); text-shadow: 0 0 8px #635bff55; transition: opacity .6s; animation: rt-breathe 2.6s ease-in-out infinite; }
+  .rt-cine-sound.is-off { opacity: 0; animation: none; }
+  .rt-cine-sound-touch { display: none; }
+  @media (pointer: coarse) { .rt-cine-sound-mouse { display: none; } .rt-cine-sound-touch { display: inline; } }
+  @keyframes rt-breathe { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
   .rt-cine-cta.is-on { opacity: 1; pointer-events: auto; }
   .rt-cine-cta::before, .rt-cine-cta::after { position: absolute; top: 50%; translate: 0 -50%; color: var(--cine-blue); opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1); }
   .rt-cine-cta::before { content: '['; left: -1.2em; transform: translateX(8px); }

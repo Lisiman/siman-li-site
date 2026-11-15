@@ -14,30 +14,42 @@ function doing(url: string): string {
 }
 
 /** Watch the loading; call before anything starts to load. ready() is true once it is all in (or time is up). */
+/** a bar of n cells, as a terminal draws one */
+const bar = (k: number, n = 16): string => '\u25A0'.repeat(Math.round(k * n)) + '\u25A1'.repeat(n - Math.round(k * n));
+
 export function watchLoading(el: HTMLElement): { ready(): boolean } {
-  const text = el.querySelector('pre')!;
+  // every place the progress is shown: the loading screen, and the foot of the opening
+  const lines = [...document.querySelectorAll<HTMLElement>('.rt-status')];
   let loaded = 0, total = 0, done = false, what = 'hanging the banner';
+  const write = (html: string): void => { for (const l of lines) l.innerHTML = html; };
   const show = (): void => {
-    const pct = total ? Math.round((loaded / total) * 100) : 0;
-    text.textContent = `LUCKY 88 · RING TOSS\n\n${what} · ${pct}%`;
+    if (finishing) return;
+    const k = total ? loaded / total : 0;
+    write(`<b>\u203A</b> ${what}  ${bar(k)}  ${String(Math.round(k * 100)).padStart(3)}%`);
   };
   let finishing = false;
   const finish = (): void => {
     if (finishing) return;
     finishing = true;
-    text.textContent = 'LUCKY 88 · RING TOSS\n\nopen · 100%';
+    write(`<b>\u203A</b> stall ready  ${bar(1)}  100%`);
+    for (const l of lines) l.classList.add('is-done');
     window.setTimeout(() => el.classList.add('is-done'), 300);
     window.setTimeout(() => { done = true; }, 500);
     window.setTimeout(() => el.remove(), 1000);
   };
   const m = THREE.DefaultLoadingManager;
-  m.onStart = (url, l, t) => { what = doing(url); loaded = l; total = t; show(); };
-  m.onProgress = (url, l, t) => { what = doing(url); loaded = l; total = t; show(); };
-  m.onLoad = () => { loaded = total; show(); window.setTimeout(finish, 250); };
+  // all in, for now: but the models start loading a moment after the first textures, so all-in once isn't all-in.
+  // Done only when nothing new has started for a little while
+  let settle = 0;
+  const more = (url: string, l: number, t: number): void => { clearTimeout(settle); what = doing(url); loaded = l; total = t; show(); };
+  m.onStart = more;
+  m.onProgress = more;
+  m.onLoad = () => { loaded = total; show(); clearTimeout(settle); settle = window.setTimeout(finish, 700); };
   m.onError = (url) => console.warn('did not load', url);
   show();
   window.setTimeout(finish, LIMIT);
-  // nothing to load at all (all of it failed to start): don't wait
-  requestAnimationFrame(() => requestAnimationFrame(() => { if (total === 0) finish(); }));
+  // nothing to load at all (all of it failed to start): don't wait. (It used to look after two frames, before the
+  // models had begun to load: it called it done at once, at 0%)
+  window.setTimeout(() => { if (total === 0) finish(); }, 1500);
   return { ready: () => done };
 }

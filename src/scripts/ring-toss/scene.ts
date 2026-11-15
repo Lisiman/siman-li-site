@@ -21,6 +21,26 @@ function texture(c: HTMLCanvasElement): THREE.CanvasTexture {
   t.anisotropy = 8;
   return t;
 }
+/** a picture made soft, as if seen out of focus far behind the stall: drawn small (1/k of its size) and stretched back
+ *  up by the GPU, which blurs it (works in every browser, where a canvas blur filter doesn't) */
+function soft(src: HTMLCanvasElement | HTMLImageElement, k: number): THREE.CanvasTexture {
+  const w = Math.max(8, Math.round(src.width / k)), h = Math.max(8, Math.round(src.height / k));
+  const [c, g] = canvas(w, h);
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(src, 0, 0, w, h);
+  const t = texture(c);
+  t.generateMipmaps = false;
+  t.minFilter = THREE.LinearFilter;
+  return t;
+}
+/** a sign picture, made soft (soft), into this material once it's loaded (hidden till then) */
+function softPicture(url: string, k: number, mat: THREE.MeshBasicMaterial): void {
+  mat.visible = false;
+  new THREE.ImageLoader().load(url, (img) => { mat.map = soft(img, k); mat.visible = true; mat.needsUpdate = true; });
+}
+/** the signs and shopfronts down the street: bigger than they were, softer, dimmer and in the night's haze, so they
+ *  read as far off behind the stall, and the stall stands out */
+const BACK_SIGN = { size: 1.37, blur: 7, dim: 0.62 };   // big, but well out of focus and dim: hard to read, far off
 /** a flat light: brighter than white, so the bloom catches it, and not darkened by the tone mapping */
 function glowing(map: THREE.Texture, strength: number): THREE.MeshBasicMaterial {
   const m = new THREE.MeshBasicMaterial({ map, transparent: true, toneMapped: false, depthWrite: false, fog: false });
@@ -115,7 +135,9 @@ function buildSign(scene: THREE.Scene): { neon: THREE.MeshBasicMaterial; more: T
     const len = from.distanceTo(to);
     const tie = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, len, 5), cord);
     tie.position.copy(from).add(to).multiplyScalar(0.5);
-    tie.rotation.z = Math.PI / 2;
+    // along the line from the corner to the post, so it meets the cloth at its corner (laid flat, its middle a little
+    // higher than the corner, it stopped short of the cloth with a gap under it)
+    tie.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), to.clone().sub(from).normalize());
     scene.add(tie);
   }
 
@@ -154,7 +176,7 @@ function buildSign(scene: THREE.Scene): { neon: THREE.MeshBasicMaterial; more: T
 /** TAP & PLAY 88, as an old Chinatown theatre sign: a dark-red panel edged in green neon, topped by a little
  *  pagoda roof in green neon with a spire, the words in red neon and a lucky 88 in gold */
 function buildHanzi(scene: THREE.Scene): { mat: THREE.MeshBasicMaterial; light: THREE.PointLight } {
-  const W = 420, H = 1360, top = 250, bottom = H - 70;
+  const W = 420, H = 1260, top = 250, bottom = H - 70;   // (shorter than it was, 1360: less empty panel under the 88)
   const K = 2;   // drawn at twice the size, so the tubes stay crisp
   const [c, g] = canvas(W * K, H * K);
   g.scale(K, K);
@@ -175,10 +197,7 @@ function buildHanzi(scene: THREE.Scene): { mat: THREE.MeshBasicMaterial; light: 
     g.strokeStyle = core(col); g.lineWidth = width * 0.38;
     if (text) draw(); else { g.beginPath(); draw(); g.stroke(); }
   };
-  // the spire
-  g.strokeStyle = '#8a8f99'; g.lineWidth = 6;
-  g.beginPath(); g.moveTo(W / 2, 8); g.lineTo(W / 2, 112); g.stroke();
-  g.fillStyle = '#8a8f99'; g.beginPath(); g.arc(W / 2, 12, 10, 0, Math.PI * 2); g.fill();
+  // (no spire: the grey rod and ball on top read as a stray white line)
   // the panel: near black, a little green in it
   g.fillStyle = '#0a140e';
   g.beginPath(); g.roundRect(40, top, W - 80, bottom - top, 64); g.fill();
@@ -202,11 +221,12 @@ function buildHanzi(scene: THREE.Scene): { mat: THREE.MeshBasicMaterial; light: 
     g.font = `500 ${size}px ${FACE}`;
     tube(() => g.strokeText(t, W / 2, y), red, 8, true);
   };
-  word('TAP', top + 168, 156);
-  word('&', top + 330, 140);
-  word('PLAY', top + 490, 156);
+  // (a tenth smaller than they were, and the three a little lower, toward the 88)
+  word('TAP', top + 200, 140);
+  word('&', top + 346, 126);
+  word('PLAY', top + 492, 140);
   // 88: each eight two rings, crossed, each ring left open where the other passes over it, like bent tube
-  const Y8 = top + 790;
+  const Y8 = top + 735;   // (up, nearer PLAY)
   const ring = (x: number, y: number, r: number, gapAt: number): void => {
     tube(() => { g.arc(x, y, r, gapAt + 0.32, gapAt + Math.PI * 2 - 0.32); }, gold, 9);
   };
@@ -214,17 +234,18 @@ function buildHanzi(scene: THREE.Scene): { mat: THREE.MeshBasicMaterial; light: 
     ring(cx + 8, Y8 - 48, 42, Math.PI * 0.62);    // the top ring, open toward the bottom one
     ring(cx - 4, Y8 + 46, 52, -Math.PI * 0.42);   // the bottom ring, open toward the top one
   }
-  tube(() => {   // sparks: three off each top corner, two off the bottom left
+  tube(() => {   // sparks: three off each top corner, two off each bottom corner
     const ray = (x: number, y: number, a: number, l: number): void => { g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); };
     ray(W / 2 - 132, Y8 - 104, -2.2, 28); ray(W / 2 - 146, Y8 - 74, -2.75, 26); ray(W / 2 - 112, Y8 - 126, -1.75, 24);
     ray(W / 2 + 132, Y8 - 104, -0.94, 28); ray(W / 2 + 146, Y8 - 74, -0.39, 26); ray(W / 2 + 112, Y8 - 126, -1.39, 24);
     ray(W / 2 - 134, Y8 + 112, 2.4, 26); ray(W / 2 - 118, Y8 + 132, 2.0, 22);
+    ray(W / 2 + 134, Y8 + 112, Math.PI - 2.4, 26); ray(W / 2 + 118, Y8 + 132, Math.PI - 2.0, 22);
   }, gold, 6);
-  tube(() => { g.moveTo(W - 108, top + 92); g.lineTo(W - 96, top + 72); g.moveTo(W - 100, top + 110); g.lineTo(W - 80, top + 100); }, gold, 5);   // a glint by TAP
   const mat = glowing(texture(c), 1.9);   // bright enough to bloom; the tinted cores keep the colours from washing out
   mat.alphaTest = 0.05;
   mat.depthWrite = true;
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.5 * H / W), mat);
+  const SW = 0.425;   // (15% smaller than it was, 0.5)
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(SW, SW * H / W), mat);
   sign.position.set(1.72, 1.5, -2.25);
   scene.add(sign);
   const glow = new THREE.PointLight(0xff5040, 3, 3, 2);   // one light for the sign (red, from the characters)
@@ -273,14 +294,25 @@ function buildStall(scene: THREE.Scene): void {
     sign.position.set(0, 2.19, -1.34);   // its arch a little under the top of the view (2.4 m up, here)
     sign.renderOrder = 2;
     scene.add(sign);
-    // the picture's two straps stop at its top edge: they go on up, past the top of the view, to the frame
+    // hung from the tent: the picture's two copper straps go on up, just to the top of the awning's valance, where
+    // they're bolted to a dark iron bar across the front of the tent's frame (so it reads as fixed to the tent, not
+    // floating; the straps used to run on up out of view, and with the taller tent they were two long poles)
     const top = sign.position.y + W / ASPECT / 2;
+    const BAR_Y = 2.585;   // the valance's top (2.42 + 0.15), where the canopy starts
     const copper = new THREE.MeshBasicMaterial({ color: 0x8a3216, toneMapped: false, fog: false });   // the picture's own copper, lit as it is, so they match
+    const iron = new THREE.MeshStandardMaterial({ color: 0x1c1512, roughness: 0.5, metalness: 0.7 });
     for (const u of [0.2257, 0.7812]) {   // where the straps are, across the picture (measured off it)
-      const strap = new THREE.Mesh(new THREE.PlaneGeometry(W * 33 / 1932, 0.6), copper);   // as wide as the picture's: 33 px
-      strap.position.set((u - 0.5) * W, top + 0.3 - 0.002, -1.3405);
+      const len = BAR_Y - top + 0.004;
+      const strap = new THREE.Mesh(new THREE.PlaneGeometry(W * 33 / 1932, len), copper);   // as wide as the picture's: 33 px
+      strap.position.set((u - 0.5) * W, top + len / 2 - 0.002, -1.3405);
       scene.add(strap);
+      const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.01, 12).rotateX(Math.PI / 2), iron);   // where it's bolted on
+      bolt.position.set((u - 0.5) * W, BAR_Y - 0.004, -1.335);
+      scene.add(bolt);
     }
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.75, 0.022, 0.03), iron);
+    bar.position.set(0, BAR_Y, -1.36);
+    scene.add(bar);
     const halo = new THREE.PointLight(0xff8a3a, 0.7, 2.0, 2);   // its light on the awning and banner
     halo.position.set(0, 2.3, -1.15);
     scene.add(halo);
@@ -311,12 +343,16 @@ function buildStall(scene: THREE.Scene): void {
     const valance = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 0.3), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.5, roughness: 0.8, side: THREE.DoubleSide }));
     valance.position.set(0, 2.42, -1.42);
     scene.add(valance);
-    // the canopy itself, sloping back up from the valance
+    // the canopy itself, rising back from the top of the valance like a tent's roof: high and deep enough that on a
+    // squarer screen (an iPad's, a small window), whose view reaches higher, the top is all tent, not night sky. (It
+    // was a short flat sheet, floating above the valance with a gap of sky under it)
     const [cc, cg] = canvas(1024, 32);
     for (let i = 0; i < stripes; i++) { cg.fillStyle = i % 2 ? '#d9cdb2' : '#9c1c17'; cg.fillRect((i * 1024) / stripes, 0, 1024 / stripes + 1, 32); }
-    const canopy = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 1.4), new THREE.MeshStandardMaterial({ map: texture(cc), roughness: 0.85, side: THREE.DoubleSide }));
-    canopy.rotation.x = Math.PI / 2 - 0.32;
-    canopy.position.set(0, 2.77, -2.08);
+    const front = new THREE.Vector3(0, 2.57, -1.42), back = new THREE.Vector3(0, 4.1, -3.4);   // the valance's top; up at the back
+    const run = back.clone().sub(front);
+    const canopy = new THREE.Mesh(new THREE.PlaneGeometry(4.3, run.length()), new THREE.MeshStandardMaterial({ map: texture(cc), roughness: 0.85, side: THREE.DoubleSide }));
+    canopy.rotation.x = Math.atan2(run.z, run.y);   // its length along the run
+    canopy.position.copy(front).add(back).multiplyScalar(0.5);
     scene.add(canopy);
   }
 
@@ -554,9 +590,9 @@ function buildFronts(scene: THREE.Scene, side: -1 | 1): void {
     for (const m of [3.8, 6.2]) for (const du of [0.5, 1.7]) pane(u0 + du, m, 0.8, 1.35, rand());
   }
   for (const [x, y, w, h] of lit) eg.drawImage(c, x, y, w, h, x, y, w, h);
-  const map = texture(c);
+  const map = soft(c, 2.5);   // the shopfronts soft too: far off, out of focus
   const front = new THREE.Mesh(new THREE.PlaneGeometry(L, H), new THREE.MeshStandardMaterial({
-    map, bumpMap: map, bumpScale: 1.2, emissive: 0xffffff, emissiveMap: texture(ec), emissiveIntensity: 0.06, roughness: 0.85, color: 0x404040,   // the street stays dim, so the stall reads first
+    map, bumpMap: map, bumpScale: 1.2, emissive: 0xffffff, emissiveMap: soft(ec, 2.5), emissiveIntensity: 0.06, roughness: 0.85, color: 0x404040,   // the street stays dim, so the stall reads first
   }));
   front.rotation.y = -side * Math.PI / 2;
   front.position.set(side * 4.2, H / 2, -2.5 - L / 2);
@@ -639,31 +675,32 @@ function buildFronts(scene: THREE.Scene, side: -1 | 1): void {
   for (let i = 0; i < 2; i++) {
     // on the right, the nearest is a picture too: three paper lanterns, 點心屋, on an iron bracket
     if (side > 0 && i === 0) {
-      const w = 0.34, aspect = 932 / 302;   // further back down the street than it was, so a little bigger to hold its size
-      const map = new THREE.TextureLoader().load('/play/no-cash-only/sign-dimsum.webp');
-      map.colorSpace = THREE.SRGBColorSpace;
-      map.anisotropy = 8;
-      const mat = glowing(map, 0.62);   // dimmer than the left's, and in the night's haze: background, not a sign to read
+      const w = 0.34 * BACK_SIGN.size, aspect = 932 / 302;   // further back down the street than it was, so a little bigger to hold its size
+      const mat = glowing(null as unknown as THREE.Texture, 0.62 * BACK_SIGN.dim);   // dimmer than the left's, and in the night's haze: background, not a sign to read
+      softPicture('/play/no-cash-only/sign-dimsum.webp', BACK_SIGN.blur, mat);
       Object.assign(mat, { alphaTest: 0.05, depthWrite: true, fog: true });
       const pic = new THREE.Mesh(new THREE.PlaneGeometry(w, w * aspect), mat);
-      pic.position.set(2.95, 1.6, -4.6);
+      pic.position.set(3.45, 1.6, -4.6);   // (out to the right, clear of the TAP & PLAY neon and the stall's post)
       scene.add(pic);
       continue;
     }
     // on the left, both signs are pictures (_source/signs/side-signs.png, the black keyed out): 李記麵屋 on a
     // bulb-lit frame nearest, and 思曼麵包房 in green and gold behind the owner
     if (side < 0) {
-      const [file, w, aspect] = i === 0 ? ['sign-li', 0.42, 940 / 360] : ['sign-siman', 0.4, 889 / 315];
-      const map = new THREE.TextureLoader().load(`/play/no-cash-only/${file}.webp`);
-      map.colorSpace = THREE.SRGBColorSpace;
-      map.anisotropy = 8;
-      const mat = glowing(map, 1.05);
-      Object.assign(mat, { alphaTest: 0.05, depthWrite: true });
+      const [file, w0, aspect] = i === 0 ? ['sign-li', 0.42, 940 / 360] : ['sign-siman', 0.4, 889 / 315];
+      const w = w0 * BACK_SIGN.size;
+      const mat = glowing(null as unknown as THREE.Texture, 1.05 * BACK_SIGN.dim);
+      softPicture(`/play/no-cash-only/${file}.webp`, BACK_SIGN.blur, mat);
+      Object.assign(mat, { alphaTest: 0.05, depthWrite: true, fog: true });
       const pic = new THREE.Mesh(new THREE.PlaneGeometry(w, w * aspect), mat);
-      pic.position.set(i === 0 ? -3.6 : -3.7, i === 0 ? 1.6 : 1.55, i === 0 ? -5.2 : -8.6);
+      // (李記: a little out to the left, clear of the stall's post, and a little lower, under the green eave)
+      pic.position.set(i === 0 ? -3.75 : -3.7, i === 0 ? 1.3 : 1.55, i === 0 ? -5.2 : -8.6);
       scene.add(pic);
       continue;
     }
+    // (the far one on the right, 金福餅家, is left out: its crest, a pink triangle, peeped out from behind the TAP & PLAY
+    // neon's roof)
+    if (side > 0 && i === 1) continue;
     const shop = SHOPS[(side < 0 ? 0 : 2) + i];
     // like the shop signs on Yaowarat Road: one lit box to each character, stacked, a crest on top
     const n = [...shop.zh].length, box = 150, gap = 10, crest = 110;
@@ -687,8 +724,9 @@ function buildFronts(scene: THREE.Scene, side: -1 | 1): void {
     sg.font = `700 22px ${SIGN_FONT}`;
     sg.fillStyle = '#f6ecd6';
     sg.fillText(shop.en, 100, crest + n * (box + gap) + 28);
-    const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.36 * sc.height / sc.width), glowing(texture(sc), 1.15));
-    Object.assign(sign.material, { alphaTest: 0.05, depthWrite: true });
+    const sw = 0.36 * BACK_SIGN.size;
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(sw, sw * sc.height / sc.width), glowing(soft(sc, BACK_SIGN.blur * 0.6), 1.15 * BACK_SIGN.dim));
+    Object.assign(sign.material, { alphaTest: 0.05, depthWrite: true, fog: true });
     sign.position.set(side * (3.75 - i * 0.05), 1.55 - i * 0.1, -5.2 - i * 3.4);
     scene.add(sign);
   }

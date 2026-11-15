@@ -1,6 +1,6 @@
 // The opening, before the game: black, and all the lines on one screen, typed out quickly one after another, like
 // the title on the home page ("Hi, I'm Siman, a Creative Technologist_"), over the noise of the street (sound.ts).
-// The lines are in the page (no-cash-only.astro). Skip intro goes straight in. Then the button that lets you in. Behind it the stall goes on loading, so by the time you step up it's all there.
+// The lines are in the page (play.astro). Skip intro goes straight in. Then the button that lets you in. Behind it the stall goes on loading, so by the time you step up it's all there.
 
 const TYPE = 45;      // ms a letter, on average: a person typing fast, so never even (see gapAfter)
 const LINE = 250;     // ms between lines
@@ -25,7 +25,7 @@ function gapAfter(c: string, next: string | undefined): number {
  * Play the opening in `el`. Resolves when the player has pressed the button (and the stall has loaded), once the
  * black has faded away. (The sound has its own switch, top right: main.ts.)
  */
-export function playOpening(el: HTMLElement, o: { ready(): boolean; soundOn(): boolean; key?(kind: KeyKind): void; glitch?(): void; hover?(): void; seen?: boolean }): Promise<void> {
+export function playOpening(el: HTMLElement, o: { ready(): boolean; soundOn(): boolean; key?(kind: KeyKind): void; glitch?(): void; hover?(): void; press?(): void; seen?: boolean }): Promise<void> {
   // seen already in this tab: no opening (the loading line shows meanwhile), only, once the stall is in, the lights
   // coming on
   if (o.seen) {
@@ -42,11 +42,19 @@ export function playOpening(el: HTMLElement, o: { ready(): boolean; soundOn(): b
   let skip = reduce, jump = false;
   // Skip intro: straight in (the rest of the lines at once, then the way in, without Step right up). A click
   // anywhere else only turns the sound on
-  skipEl.addEventListener('click', () => { skip = true; jump = true; skipEl.disabled = true; });
+  skipEl.addEventListener('click', () => { o.press?.(); skip = true; jump = true; skipEl.disabled = true; });
   decodeOnHover(skipEl, o.hover);
+  // 'Click anywhere for sound', under the button, until the sound is on (at once, if the browser allows it)
+  const soundHint = el.querySelector<HTMLElement>('.rt-cine-sound');
+  const watchSound = (): void => {
+    if (!soundHint || !el.isConnected) return;
+    if (o.soundOn()) { soundHint.classList.add('is-off'); return; }
+    requestAnimationFrame(watchSound);
+  };
+  watchSound();
 
 
-  // every line is in the page already (no-cash-only.astro), its untyped part invisible, so nothing moves while it types
+  // every line is in the page already (play.astro), its untyped part invisible, so nothing moves while it types
   const cursor = document.createElement('span');
   cursor.className = 'rt-cine-cursor';
   cursor.textContent = '\u2588';   // a terminal's block cursor
@@ -97,7 +105,7 @@ export function playOpening(el: HTMLElement, o: { ready(): boolean; soundOn(): b
     cta.classList.add('is-on');
     decodeOnHover(cta, o.hover);
     cta.focus({ preventScroll: true });
-    cta.addEventListener('click', () => enter(cta), { once: true });
+    cta.addEventListener('click', () => { o.press?.(); enter(cta); }, { once: true });
   }));
 }
 

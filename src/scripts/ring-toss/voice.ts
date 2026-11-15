@@ -52,7 +52,7 @@ export function wakeVoice(): void {
   if (woken) return;
   woken = true;
   // the lines likely in the first minute now; the rest a little later, so they don't hold up the prizes loading
-  const SOON = ['open', 'payCash', 'payTap', 'first', 'miss', 'win', 'near'];
+  const SOON = ['open', 'payCash', 'payTap', 'miss', 'win', 'near'];
   const soon = [...FILES.values()].filter((u) => SOON.some((p) => u.includes(`/${p}-`)));
   for (const url of soon) clip(url);
   window.setTimeout(() => { for (const url of FILES.values()) clip(url); }, 20000);

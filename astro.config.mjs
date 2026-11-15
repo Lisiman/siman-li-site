@@ -9,5 +9,6 @@ export default defineConfig({
     '/work/dark-mode': '/work/browser-history',
     '/work/browser-history-2021': '/work/browser-history',
     '/work/browser-history-2020': '/work/browser-history',
+    '/no-cash-only': '/play',   // the ring toss, first put up here
   },
 });

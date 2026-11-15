@@ -44,7 +44,7 @@ export interface Pay {
 }
 
 const BLURPLE = 0x635bff;
-const TIN_AT = new THREE.Vector3(-0.48, 0, 0.12);   // y: on the counter (in toward the middle)
+const TIN_AT = new THREE.Vector3(-0.72, 0, 0.1);   // as far left of where you stand (x -0.12) as the reader is right of it, so the two (and their labels) sit evenly either side of the middle   // y: on the counter (in toward the middle)
 const TIN = 1.15;   // drawn at a real tin's size, shown this much bigger, so it reads from where you stand (less than the reader now)
 
 /** the tin's paper label: CASH ONLY, with the ONLY crossed out in marker (like the banner over the stall) */
@@ -150,10 +150,12 @@ export function setupPay(o: PayOptions): Pay {
     return new THREE.CanvasTexture(c);
   })();
   type Spot = { light: THREE.SpotLight; shaft: THREE.MeshBasicMaterial; cone: THREE.Mesh; motes: THREE.Points; moteMat: THREE.PointsMaterial; on: THREE.Vector3; top: THREE.Vector3 };
+  /** the one lamp both beams come from: high over the middle, between the tin and the reader (set below) */
+  const lamp = new THREE.Vector3();
   const spot = (color: number, on: THREE.Vector3): Spot => {
     const H = 2.4, ANGLE = 0.13;   // the lamp this far above the thing (out of sight above the top of the view), a little in front; narrow, so the pool of light is the same size
     const light = new THREE.SpotLight(color, 0, 4.5, ANGLE, 0.55, 1.4);
-    light.position.set(0, on.y + H, on.z + 0.25);   // both from one point, high over the middle of the counter: two beams out of one lamp, a V
+    light.position.copy(lamp).setY(on.y + H);   // both from one point, high over the middle between them: two beams out of one lamp, an even V
     light.target.position.copy(on);
     o.scene.add(light, light.target);
     const shaft = new THREE.MeshBasicMaterial({ color, map: shaftTex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
@@ -198,6 +200,11 @@ export function setupPay(o: PayOptions): Pay {
   o.reader.updateWorldMatrix(true, false);
   o.reader.getWorldPosition(readerAt);
   // both warm, the same family of light: the old bulb a deep yellow; the reader's a cleaner, whiter warm, and stronger
+  // aimed alike: at the same height and depth on each, so the V is even (the reader's middle was higher and further
+  // forward than the tin's top), from a lamp straight over the midpoint between them
+  readerAt.y = tinTop.y;
+  tinTop.z = readerAt.z = (tinTop.z + readerAt.z) / 2;
+  lamp.set((tinTop.x + readerAt.x) / 2, 0, readerAt.z + 0.25);
   const cashSpot = spot(0xffa040, tinTop), tapSpot = spot(0xffdcaa, readerAt);
   const SPOT = 16, TAP_MORE = 1.08;
   let staged = 0, flickerUntil = 0, dip = 1;
@@ -299,10 +306,13 @@ export function setupPay(o: PayOptions): Pay {
   };
 
   // the labels float over the two things while you can pay
+  // each label on the counter in front of its own thing, like a price card set before it (over them, they sat among
+  // the prizes on the bottom step), both at the same depth: with the tin and the reader placed evenly either side of
+  // you, the two come out level and evenly either side of the middle
   const at = new THREE.Vector3();
   const place = (b: HTMLElement, p: THREE.Vector3, show: boolean): void => {
     at.copy(p).project(o.camera);
-    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round((1 - at.y) / 2 * innerHeight)}px) translate(-50%, -100%)`;
+    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round((1 - at.y) / 2 * innerHeight)}px) translate(-50%, 0)`;
     b.classList.toggle('is-on', show);
     b.tabIndex = show ? 0 : -1;
   };
@@ -313,8 +323,8 @@ export function setupPay(o: PayOptions): Pay {
     summary,
     update() {
       const show = o.canPay() && !busy;
-      place(o.cashButton, slot.clone().setY(o.counterTop + 0.11 * TIN + 0.09), show);
-      o.reader.getWorldPosition(readerTop).setY(o.counterTop + 0.2);
+      o.reader.getWorldPosition(readerTop).setY(o.counterTop).setZ(0.2);   // on the counter, just in front of it
+      place(o.cashButton, slot.clone().setY(readerTop.y).setZ(readerTop.z), show);
       place(o.tapButton, readerTop, show);
       // a glow on whichever you're pointing at, coming up and going down over about a fifth of a second
       const now = performance.now(), dtMs = Math.min(100, now - lastT), ease = 1 - Math.exp(-dtMs / 70);
@@ -339,7 +349,8 @@ export function setupPay(o: PayOptions): Pay {
       const since = (now - chosenAt) / 1000;
       const g = !chosen ? 0 : since < 0.25 ? since / 0.25 : since < 1.1 ? 1 : Math.max(0, 1 - (since - 1.1) / 1.4);
       if (chosen && g === 0 && since > 1) chosen = null;
-      const gc = chosen === 'cash' ? g : 0, gt = chosen === 'tap' ? g : 0;
+      // (tap's moment at 82%: at full it was too strong, the reader's light already being the stronger; 70% too faint)
+      const gc = chosen === 'cash' ? g : 0, gt = chosen === 'tap' ? g * 0.82 : 0;
       const oldNow = old + (1 - old) * gc;   // the old bulb holds steady in its moment
       cashSpot.light.intensity = SPOT * Math.max(staged * oldNow * (1 + 0.35 * cashK), 3.2 * gc);
       tapSpot.light.intensity = SPOT * TAP_MORE * Math.max(staged * fresh * (1 + 0.35 * tapK), 2.6 * gt);
@@ -377,7 +388,7 @@ export function setupPay(o: PayOptions): Pay {
             'ODDS ...... QUESTIONABLE',
             '',
             'No refunds. Some regrets.',
-          ], 6);
+          ], 2);   // up for 2 s, then it slides away by itself
         }
         if (t > 0.7) { flow = null; busy = false; ripple.visible = false; }
       } else {

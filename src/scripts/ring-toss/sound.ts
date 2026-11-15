@@ -127,9 +127,26 @@ export function hover(): void {
   if (!ctx || !out || ctx.state !== 'running') return;
   if (ctx.currentTime - hoverAt < 0.25) return;   // not again for a pointer brushing in and out
   hoverAt = ctx.currentTime;
-  for (let i = 0; i < 7; i++) tone(2200 + Math.random() * 1600, i * 0.05, 0.018, 'square', 0.012);
-  tone(1320, 0.36, 0.22, 'sine', 0.035);
-  tone(1980, 0.37, 0.16, 'sine', 0.015);
+  for (let i = 0; i < 7; i++) tone(2200 + Math.random() * 1600, i * 0.05, 0.018, 'square', 0.105);   // (louder, three times over: it was hard to hear)
+  tone(1320, 0.36, 0.22, 'sine', 0.33);
+  tone(1980, 0.37, 0.16, 'sine', 0.15);
+}
+
+/** a button in the opening pressed (Step right up, Skip intro): the return key struck, firmly, and the terminal's
+ *  answer, two quick rising notes, "accepted", over a soft low thunk. That click is often the first, which wakes the
+ *  sound: it waits for that rather than be lost */
+export function press(): void {
+  if (!ctx || !out) return;
+  const go = (): void => {
+    lastKeyAt = -1;
+    key('enter');
+    tone(110, 0, 0.22, 'sine', 0.9, 0.5);
+    tone(880, 0.05, 0.07, 'square', 0.18);
+    tone(1320, 0.11, 0.2, 'sine', 0.42);
+    tone(1980, 0.12, 0.16, 'sine', 0.15);
+    tone(2640, 0.13, 0.14, 'sine', 0.075);
+  };
+  if (ctx.state === 'running') go(); else void ctx.resume().then(go).catch(() => {});
 }
 
 /** a moment of grace (a way to pay, chosen): a soft, bright major chord that swells in and hangs, like a choir's
@@ -234,10 +251,11 @@ export function glitch(): void {
   bp.frequency.value = 1600;
   bp.Q.value = 0.5;
   const g = c.createGain();
-  g.gain.value = 0.045;
+  g.gain.value = 0.27;   // (louder: going in should be felt)
   src.connect(bp).connect(g).connect(o);
   src.start();
-  tone(2600, 0.45, 0.8, 'sine', 0.015, 0.5);             // the screen, going off
+  tone(2600, 0.45, 0.8, 'sine', 0.09, 0.5);              // the screen, going off
+  tone(70, 0.4, 0.9, 'sine', 0.66, 1.6);                 // and a low swell under it, rising, into the street
 }
 
 /** a rubber chop coming down hard on a receipt on a wooden counter: a low thump, a dry slap of paper, and a little
@@ -252,7 +270,7 @@ export function stamp(n = 0): void {
   thump.frequency.exponentialRampToValueAtTime(52, t0 + 0.12);
   const tg = c.createGain();
   tg.gain.setValueAtTime(0.0001, t0);
-  tg.gain.exponentialRampToValueAtTime(0.5, t0 + 0.005);
+  tg.gain.exponentialRampToValueAtTime(1.0, t0 + 0.005);   // (louder: three times, near the top)
   tg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
   thump.connect(tg).connect(o);
   thump.start(t0);
@@ -267,7 +285,7 @@ export function stamp(n = 0): void {
   bp.frequency.value = 1400 * lift;
   bp.Q.value = 0.7;
   const sg = c.createGain();
-  sg.gain.value = 0.35;
+  sg.gain.value = 1.05;
   slap.connect(bp).connect(sg).connect(o);
   slap.start(t0);
   // the wood: a short hollow knock
@@ -276,7 +294,7 @@ export function stamp(n = 0): void {
   knock.frequency.setValueAtTime(420 * lift, t0);
   const kg = c.createGain();
   kg.gain.setValueAtTime(0.0001, t0);
-  kg.gain.exponentialRampToValueAtTime(0.12, t0 + 0.003);
+  kg.gain.exponentialRampToValueAtTime(0.36, t0 + 0.003);
   kg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
   knock.connect(kg).connect(o);
   knock.start(t0);
