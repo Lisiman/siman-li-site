@@ -427,6 +427,9 @@ export function buzz(len: number): void {
 }
 
 /** she has started (true) or finished (false) saying a line */
+/** the audio context, once there is one and it's running (the owner's voice plays through it: voice.ts) */
+export function audioContext(): AudioContext | null { return ctx; }
+
 export function duck(on: boolean): void {
   if (!ctx || !market) return;
   const t = ctx.currentTime;
