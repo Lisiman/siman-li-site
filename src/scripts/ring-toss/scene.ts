@@ -295,12 +295,12 @@ function buildStall(scene: THREE.Scene): void {
     sign.renderOrder = 2;
     scene.add(sign);
     // hung from the tent: the picture's two copper straps go on up, just to the top of the awning's valance, where
-    // they're bolted to a dark iron bar across the front of the tent's frame (so it reads as fixed to the tent, not
+    // they're bolted to a thin bar across the front of the tent's frame, painted red like the rest of it (so it reads as fixed to the tent, not
     // floating; the straps used to run on up out of view, and with the taller tent they were two long poles)
     const top = sign.position.y + W / ASPECT / 2;
     const BAR_Y = 2.585;   // the valance's top (2.42 + 0.15), where the canopy starts
     const copper = new THREE.MeshBasicMaterial({ color: 0x8a3216, toneMapped: false, fog: false });   // the picture's own copper, lit as it is, so they match
-    const iron = new THREE.MeshStandardMaterial({ color: 0x1c1512, roughness: 0.5, metalness: 0.7 });
+    const iron = new THREE.MeshStandardMaterial({ color: 0x7a2018, roughness: 0.55, metalness: 0.4 });   // the frame's red-painted steel (black stood out)
     for (const u of [0.2257, 0.7812]) {   // where the straps are, across the picture (measured off it)
       const len = BAR_Y - top + 0.004;
       const strap = new THREE.Mesh(new THREE.PlaneGeometry(W * 33 / 1932, len), copper);   // as wide as the picture's: 33 px
@@ -310,7 +310,7 @@ function buildStall(scene: THREE.Scene): void {
       bolt.position.set((u - 0.5) * W, BAR_Y - 0.004, -1.335);
       scene.add(bolt);
     }
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.75, 0.022, 0.03), iron);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(W * 0.62, 0.014, 0.02), iron);
     bar.position.set(0, BAR_Y, -1.36);
     scene.add(bar);
     const halo = new THREE.PointLight(0xff8a3a, 0.7, 2.0, 2);   // its light on the awning and banner
