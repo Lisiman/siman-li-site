@@ -513,6 +513,9 @@ function resize(): void {
   // widens to keep as much from side to side as 16:10 shows (the neon sign on the right and the bag stay in)
   const WIDE = 1.6;
   camera.fov = w / h < WIDE ? 2 * THREE.MathUtils.radToDeg(Math.atan(Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * WIDE / (w / h))) : FOV;
+  // a phone held sideways is far wider than a laptop (about 2.6 : 1): it took in the street on both sides, the stall
+  // small in the middle. Closer in there, the stall filling more of it
+  if (w / h > 2.1) camera.fov = FOV * 0.9;   // (0.8 cut off the sign above and the tin and the reader below)
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);

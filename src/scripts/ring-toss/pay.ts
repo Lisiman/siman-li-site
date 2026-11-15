@@ -312,9 +312,10 @@ export function setupPay(o: PayOptions): Pay {
   const at = new THREE.Vector3();
   const place = (b: HTMLElement, p: THREE.Vector3, show: boolean): void => {
     at.copy(p).project(o.camera);
-    // (kept on screen: on a phone held sideways the counter's front runs off the bottom, and the label with it)
-    const y = Math.min((1 - at.y) / 2 * innerHeight, innerHeight - b.offsetHeight - 10);
-    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round(y)}px) translate(-50%, 0)`;
+    // (on a phone held sideways the counter's front is off the bottom of the screen: there the label goes over it)
+    const over = innerHeight < 520;
+    const y = (1 - at.y) / 2 * innerHeight;
+    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round(y)}px) translate(-50%, ${over ? '-100%' : '0'})`;
     b.classList.toggle('is-on', show);
     b.tabIndex = show ? 0 : -1;
   };
@@ -325,7 +326,9 @@ export function setupPay(o: PayOptions): Pay {
     summary,
     update() {
       const show = o.canPay() && !busy;
-      o.reader.getWorldPosition(readerTop).setY(o.counterTop).setZ(0.2);   // on the counter, just in front of it
+      o.reader.getWorldPosition(readerTop);
+      if (innerHeight < 520) readerTop.setY(o.counterTop + 0.16);   // just over the reader's top
+      else readerTop.setY(o.counterTop).setZ(0.2);   // on the counter, just in front of it
       place(o.cashButton, slot.clone().setY(readerTop.y).setZ(readerTop.z), show);
       place(o.tapButton, readerTop, show);
       // a glow on whichever you're pointing at, coming up and going down over about a fifth of a second
