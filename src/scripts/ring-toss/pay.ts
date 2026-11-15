@@ -44,6 +44,8 @@ export interface Pay {
 }
 
 const BLURPLE = 0x635bff;
+/** no dust in the beams on a phone or a tablet: on a smaller screen it read as smoke */
+const NO_DUST = matchMedia('(pointer: coarse)').matches || innerHeight < 520;
 const TIN_AT = new THREE.Vector3(-0.72, 0, 0.1);   // as far left of where you stand (x -0.12) as the reader is right of it, so the two (and their labels) sit evenly either side of the middle   // y: on the counter (in toward the middle)
 const TIN = 1.15;   // drawn at a real tin's size, shown this much bigger, so it reads from where you stand (less than the reader now)
 
@@ -178,7 +180,7 @@ export function setupPay(o: PayOptions): Pay {
    *  bulb too: it holds, for once), motes rise in it, a soft chord; then it all settles away. k: 0 … 1 … 0 */
   const grace = (sp: Spot, k: number, sec: number): void => {
     sp.cone.scale.set(1 + 0.9 * k, 1, 1 + 0.9 * k);
-    sp.moteMat.opacity = innerHeight < 520 ? 0 : 0.9 * k;   // (no dust on a phone: so small a screen, it showed as a smudge of smoke)
+    sp.moteMat.opacity = NO_DUST ? 0 : 0.9 * k;   // (no dust on a phone: so small a screen, it showed as a smudge of smoke)
     const pos = sp.motes.geometry.attributes.position as THREE.BufferAttribute;
     const col = sp.motes.geometry.attributes.color as THREE.BufferAttribute;
     (sp.motes.userData.phase as number[][]).forEach(([u, a, r, pace, ph], i) => {

@@ -40,6 +40,7 @@ function softPicture(url: string, k: number, mat: THREE.MeshBasicMaterial): void
 }
 /** the signs and shopfronts down the street: bigger than they were, softer, dimmer and in the night's haze, so they
  *  read as far off behind the stall, and the stall stands out */
+const TOUCH = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 const BACK_SIGN = { size: 1.37, blur: 7, dim: 0.62 };   // big, but well out of focus and dim: hard to read, far off
 /** a flat light: brighter than white, so the bloom catches it, and not darkened by the tone mapping */
 function glowing(map: THREE.Texture, strength: number): THREE.MeshBasicMaterial {
@@ -915,7 +916,7 @@ export function buildWorld(scene: THREE.Scene, renderer: THREE.WebGLRenderer): W
         const k = (t * 0.12 + s.userData.phase) % 1;
         s.position.set(-2.6 + Math.sin(k * 6 + s.userData.phase * 9) * 0.15, k * 2.2, -3.2 + Math.cos(k * 4) * 0.1);
         s.scale.setScalar(0.3 + k * 1.1);
-        s.material.opacity = innerHeight < 520 ? 0 : Math.sin(k * Math.PI) * 0.22;   // (none on a phone: there it read as smoke)
+        s.material.opacity = TOUCH || innerHeight < 520 ? 0 : Math.sin(k * Math.PI) * 0.22;   // (none on a phone or tablet: there it read as smoke)
       }
     },
   };

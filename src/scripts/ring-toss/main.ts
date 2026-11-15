@@ -20,7 +20,7 @@ import { wakeVoice, muteVoice } from './voice';
 import { buildWorld, LIGHT_UP, BULB_SWITCHES } from './scene';
 import { makePost } from './post';
 import { loadOwner, type OwnerFigure } from './owner';
-import { loadPrizeModels, loadDecor } from './models';
+import { loadPrizeModels, loadDecor, preloadPrizes } from './models';
 import { watchLoading } from './loading';
 import { makeStudio } from './studio';
 
@@ -437,7 +437,7 @@ function dropIn(dt: number): void {
     const d = drops[i];
     d.t += dt;
     const g = d.group;
-    if (d.t < 0) { g.visible = false; continue; }
+    if (d.t < 0 || !g.userData.ready) { g.visible = false; d.t = Math.min(d.t, 0); continue; }   // (not till its model and textures are in)
     g.visible = true;
     const sy = g.userData.sy ??= g.scale.y, sx = g.userData.sx ??= g.scale.x;
     if (d.t < DROP_FALL) {
@@ -596,6 +596,8 @@ void playOpening($('rt-cine'), { ready: () => loading.ready(), soundOn, key, gli
   entered = true;
   // the drawings for the collection on the receipt, made in the background once the walk in is over
   window.setTimeout(() => void thumbs(CATALOG.map((e) => e.kind)), (INTRO + 2) * 1000);
+  // and every prize's model, in the background, so those put out later come in at once
+  window.setTimeout(preloadPrizes, (INTRO + 4) * 1000);
   streetLevel(0.25, 0.4);   // hushed while the stall is dark
   try { sessionStorage.setItem('rt-opening', 'seen'); } catch { /* fine */ }
 });

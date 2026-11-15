@@ -82,28 +82,55 @@ export function loadDecor(scene: THREE.Scene): void {
   }
 }
 
-export function loadPrizeModels(slots: Slot[]): void {
-  for (const [kind, m] of Object.entries(MODELS) as [Kind, Model][]) {
-    const mine = slots.filter((s) => s.prize?.kind === kind && s.group);
-    if (!mine.length) continue;
-    loader.load(BASE + m.file + '.glb', (gltf) => {
-      const material = look(m.file);
+/** each prize's model, ready to show: loaded, and its textures with it (a model shown before its textures were in came
+ *  up black for a moment). Fetched once; every later use is a copy of the same */
+const ready = new Map<Kind, Promise<THREE.Object3D>>();
+function prepared(kind: Kind): Promise<THREE.Object3D> | null {
+  const m = MODELS[kind];
+  if (!m) return null;
+  let p = ready.get(kind);
+  if (!p) {
+    p = (async () => {
+      const load = (f: string, color = false): Promise<THREE.Texture> => textures.loadAsync(BASE + f).then((t) => { if (color) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; });
+      const [gltf, map, normalMap, roughnessMap, metalnessMap] = await Promise.all([
+        loader.loadAsync(BASE + m.file + '.glb'), load(m.file + '-base.webp', true), load(m.file + '-normal.webp'), load(m.file + '-rough.webp'), load(m.file + '-metal.webp'),
+      ]);
+      const material = studioLit(new THREE.MeshStandardMaterial({ map, normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap, metalnessMap, roughness: 0.75, metalness: 0.2 }), 0.6);
       if (m.tone) material.color.setScalar(m.tone);
-      const source = gltf.scene;
-      source.traverse((o) => {
+      gltf.scene.traverse((o) => {
         if ((o as THREE.Mesh).isMesh) {
           (o as THREE.Mesh).material = material;
           o.castShadow = true;   // they cast on the steps; small curved things shadowing themselves only look blotchy
         }
       });
-      for (const s of mine) {
-        if (!s.group || !s.prize) continue;   // won meanwhile
-        const model = source.clone();
-        model.scale.setScalar(s.prize.height);
-        model.rotation.y = m.turn;
-        s.group.clear();
-        s.group.add(model);
-      }
-    }, undefined, (e) => console.warn(`prize model ${m.file} did not load; the greybox stays`, e));
+      return gltf.scene;
+    })();
+    p.catch((e) => console.warn(`prize model ${m.file} did not load; the greybox stays`, e));
+    ready.set(kind, p);
   }
+  return p;
+}
+
+/** put each slot's model in, once it's ready (its group marked ready then: main.ts waits for that to drop a new one in) */
+export function loadPrizeModels(slots: Slot[]): void {
+  for (const s of slots) {
+    const kind = s.prize?.kind, group = s.group;
+    if (!kind || !group) continue;
+    const p = prepared(kind);
+    if (!p) { group.userData.ready = true; continue; }
+    void p.then((source) => {
+      if (s.group !== group || !s.prize) return;   // won meanwhile
+      const model = source.clone();
+      model.scale.setScalar(s.prize.height);
+      model.rotation.y = MODELS[kind]!.turn;
+      group.clear();
+      group.add(model);
+      group.userData.ready = true;
+    }).catch(() => { group.userData.ready = true; });
+  }
+}
+
+/** fetch every prize's model now, in the background, so one put out later comes in at once */
+export function preloadPrizes(): void {
+  for (const k of Object.keys(MODELS) as Kind[]) void prepared(k)?.catch(() => {});
 }
