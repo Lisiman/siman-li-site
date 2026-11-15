@@ -37,8 +37,7 @@ export const MODELS: Partial<Record<Kind, Model>> = {
 
 /** the owner's own things, not prizes: on and by his stand (stall.ts has it at x -1.5, front at z -1.5, top STAND_TOP) */
 const DECOR: { file: string; height: number; at: [number, number, number]; rot: [number, number, number] }[] = [
-  // his skateboard, stood on its tail and leaning on the front of his stand: wheels to the stand, deck to you
-  { file: 'skateboard', height: 0.2, at: [-1.32, 0.33, -1.47], rot: [-0.18, Math.PI / 2, Math.PI / 2] },
+  // (her skateboard, leaning on the front of her stand, is out: it crowded the cash tin)
   // her pink tumbler, at her right hand (your left as you face her), handle out to that side
   { file: 'tumbler', height: 0.24, at: [-1.76, STAND_TOP, -1.6], rot: [0, Math.PI - 0.4, 0] },
 ];
