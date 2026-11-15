@@ -28,6 +28,8 @@
 .d-intro .d-lede { display: block; grid-row: 1; grid-column: 1 / span 6; }   /* PROJECT INFO, then MY ROLE below it: the left half, under the title */
 .d-intro .d-lede p { color: var(--mu); }   /* the body in grey, the headings in ink */
 .d-intro .d-lede section + section { margin-top: 32px; }
+.d-lede a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); transition: color .3s ease; }   /* a link in the text: a faint underline, white on hover (like the homepage's) */
+.d-lede a:hover, .d-lede a:focus-visible { color: var(--ink); text-decoration-color: currentColor; }
 .d-intro .d-meta { grid-row: 1; grid-column: 8 / span 5; grid-template-columns: 1fr; gap: 12px; }
 .d-intro .d-meta div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); column-gap: var(--pad); align-items: baseline; }
 .d-intro .d-meta dt { margin: 0; }

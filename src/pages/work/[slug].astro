@@ -16,9 +16,20 @@ const { d } = Astro.props as { d: Detail };
 const dev = import.meta.env.DEV;
 const draft = (t: string): boolean => t.startsWith('DRAFT');
 const clean = (t: string): string => t.replace(/^DRAFT\s*—\s*/, '');
+// a link in the text, written [words](https://…): the words as a link; elsewhere (the share description) just the words
+// (and a title, written *in italics*: in italics)
+const LINK = /\[([^\]]+)\]\((https?:[^)\s]+)\)|\*([^*]+)\*/g;
+const plain = (t: string): string => t.replace(LINK, (_, a, _h, i) => a ?? i);
+const linked = (t: string): (string | { text: string; href?: string })[] => {
+  const out: (string | { text: string; href?: string })[] = [];
+  let at = 0;
+  for (const m of t.matchAll(LINK)) { out.push(t.slice(at, m.index)); out.push(m[1] ? { text: m[1], href: m[2] } : { text: m[3] }); at = m.index! + m[0].length; }
+  out.push(t.slice(at));
+  return out;
+};
 const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
 ---
-<Base title={`Siman Li — ${d.title}`} image={`/og/${d.slug}.jpg`} description={clean(Array.isArray(d.lede) ? (typeof d.lede[0] === 'string' ? d.lede[0] : d.lede[0].text) : d.lede)} dark>
+<Base title={`Siman Li — ${d.title}`} image={`/og/${d.slug}.jpg`} description={plain(clean(Array.isArray(d.lede) ? (typeof d.lede[0] === 'string' ? d.lede[0] : d.lede[0].text) : d.lede))} dark>
   <header class="d-rail" id="d-rail">
     <a class="d-name" href="/">SIMAN LI</a>
     <nav aria-label="Main"><a href="/#web">Work</a><a href="/#art">Art</a><a href="/#about">About</a></nav>
@@ -38,7 +49,7 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
       )}
       <div class="d-lede">{(Array.isArray(d.lede) ? d.lede : [d.lede]).map((p) => typeof p === 'string'
         ? <p class={draft(p) ? 'is-draft' : ''}>{clean(p)}</p>
-        : <section><h2>{p.heading}</h2>{p.text.split('\n\n').map((t) => <p class={draft(t) ? 'is-draft' : ''}>{clean(t)}</p>)}</section>)}</div>
+        : <section><h2>{p.heading}</h2>{p.text.split('\n\n').map((t) => <p class={draft(t) ? 'is-draft' : ''}>{linked(clean(t)).map((x) => typeof x === 'string' ? x : x.href ? <a href={x.href} target="_blank" rel="noopener">{x.text}</a> : <em>{x.text}</em>)}</p>)}</section>)}</div>
       <dl class="d-meta">
         <div><dt>Role</dt><dd>{d.meta.role}</dd></div>
         {d.meta.client && <div><dt>Client</dt><dd>{d.meta.client}</dd></div>}

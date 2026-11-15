@@ -47,6 +47,7 @@ export interface Detail {
 import { WEB, ART, type Work } from './projects';
 
 const W = '/work';
+const SD = '/art/su-dongpo-poem-on-hand';   // Su Dongpo: Poem on Hand
 
 export const DETAILS: Detail[] = [
   {
@@ -462,11 +463,16 @@ const HEROES: Record<string, DetailMedia & { hidden?: boolean }> = {
   'the-crossings': { kind: 'image', src: '/art/the-crossings/hero.webp', w: 2000, h: 1125, alt: 'The Crossings, in blue light' },
   'sea-and-mulberry-field': { kind: 'image', src: '/art/sea-and-mulberry-field/hero.webp', w: 2000, h: 1125, alt: 'Sea and Mulberry Field: a round window of light in a dark room' },
   'quick-hand-gallery': { kind: 'image', src: '/art/quick-hand-gallery/hero.webp', w: 2000, h: 1070, alt: 'The Quick Hand Gallery, its entrance' },
+  'su-dongpo-poem-on-hand': { kind: 'video', src: '/art/su-dongpo-poem-on-hand/1-overview.mp4', poster: '/art/su-dongpo-poem-on-hand/1-overview.jpg', w: 1920, h: 1280, alt: 'The room: the hand on the wall, the reader on its stand below' },   // the room first (the homepage keeps the visitor film)
   'drifter': { kind: 'image', src: '/art/drifter/hero.webp', w: 1920, h: 1080, alt: 'Drifter: a doll’s face in the sand', hidden: true },   // shown as the film's still instead
 };
 
 // the introduction for a page that is not written yet (replaces the DRAFT lines)
 const LEDES: Record<string, Detail['lede']> = {
+  'su-dongpo-poem-on-hand': [
+    { heading: 'Project info', text: '*Su Dongpo: Poem on Hand* is an interactive installation created for *Knowing the Mandate of Heaven (知天命)*, part of *Chengmai: More Than Dongpo (澄迈·不止东坡)* in Hainan, China, commissioned by [Raiden INST](https://raideninst.com/).\n\nVisitors place a hand on a reader, where their palm lines are translated into a four-line poem inspired by Su Dongpo. Each poem is unique to the hand and appears, line by line, on a giant sculptural hand.' },
+    { heading: 'About the work', text: 'The series title, *Knowing the Mandate of Heaven*, comes from Confucius, who said that at fifty, he understood the mandate of heaven.\n\nExiled to Hainan late in his life, Su Dongpo eventually sailed home from Chengmai, writing:\n\n“Nine times near death in the southern wilds, I have no regrets; this journey was the most wondrous of my life.”\n\n九死南荒吾不恨，兹游奇绝冠平生。\n\nNine hundred years later, his poetry becomes the starting point for a new encounter. Drawing on his imagery of moons, rivers, and wine, I used AI to create a library of verses in his style. The palm is read in four sections, and each draws one line; together they form a poem that has never existed before.\n\nThe work revisits *Fortune on Hand* (2016), returning ten years later to the same idea: reading the lines of a palm as poetry.' },
+  ],
   'windloom': [
     { heading: 'Project info', text: 'Windloom is an interactive installation and a NIME — a new interface for musical expression — made from two objects that held my grandmother’s days: the wind box that fed the kitchen fire, and the loom she worked late into the night. She lived almost her whole life in a village in Hebei, in northern China.' },
     { heading: 'About the work', text: 'Mornings there began with a rooster’s crow and the wind box heaving — her, cooking. Nights ended with the loom, singing in rhythm under her hands. She had lived through the three years of famine, when even tree bark was food. Feeding the fire and working the loom were the labor of survival, carried on by hand through hard years, and both had a music of their own. Long after she was gone, I rebuilt these two sounds as one instrument. Pull the bellows, touch the threads, weave: through physical computing and Max/MSP, each gesture wakes another layer of her story.' },
@@ -494,6 +500,11 @@ const LEDES: Record<string, Detail['lede']> = {
 
 // facts for a page that is not written yet: the year (replaces DRAFT), the tools ("Built with")…
 const META: Record<string, Partial<Detail['meta']>> = {
+  'su-dongpo-poem-on-hand': {
+    year: '2026', stack: 'TouchDesigner, OpenCV, Arduino',
+    // the coverage is of the park's opening, not of this work by name: so it's linked from the exhibition, not listed as press
+    exhibitions: [{ label: 'Chengmai: More Than Dongpo 澄迈·不止东坡, Chengmai, Hainan, 2026', href: 'https://hainan.ifeng.com/c/8v6AA0qldZt' }],
+  },
   'windloom': {
     year: '2017', stack: 'Woodworking and fabrication, 3D modeling (Rhino), Max/MSP, Arduino',
     // from the résumé (newest first)
@@ -559,6 +570,26 @@ const META: Record<string, Partial<Detail['meta']>> = {
 
 // the pictures and film for a page that is not written yet
 const MEDIA: Record<string, Pick<Detail, 'gallery' | 'film' | 'making' | 'onBlack' | 'introFigure' | 'memorial'>> = {
+  // Su Dongpo: Poem on Hand — its pictures go in public/art/su-dongpo-poem-on-hand/ (as .webp), then each one here,
+  // a row at a time: two side by side, or one alone. e.g.
+  //   [{ kind: 'image', src: '/art/su-dongpo-poem-on-hand/01.webp', w: 1600, h: 900, alt: '…', ratio: '16 / 9' },
+  //    { kind: 'image', src: '/art/su-dongpo-poem-on-hand/02.webp', w: 1600, h: 900, alt: '…', ratio: '16 / 9' }],
+  // and a film, if there is one: film: { heading: '', vimeo: '<id>', title: '…', poster: '/art/su-dongpo-poem-on-hand/film.webp' },
+  'su-dongpo-poem-on-hand': {
+    gallery: {
+      heading: '',
+      // the films after the room at the top (1-overview, the hero), two to a row: the reader, and a visitor laying her hand
+      // on it; the hand on the wall reading hers, and a poem coming up on it (_source/su-dongpo-poem-on-hand: 2-5; 1920px,
+      // silent, 15 fps as shot, the blacks taken down toward the page's; 2-hand a little darker). Then the park it stands in,
+      // at night: Su Dongpo Park, Chengmai (_source: chengmai_sudongpo1, 2; the second turned upright): side by side, the
+      // same width, both cropped square (the tall one kept to its tower and the crowd under it)
+      rows: [
+        [{ kind: 'video', src: `${SD}/2-hand.mp4`, poster: `${SD}/2-hand.jpg`, w: 1920, h: 1280, alt: 'The reader: a palm to lay your hand on' }, { kind: 'video', src: `${SD}/3-nfc-tap.mp4`, poster: `${SD}/3-nfc-tap.jpg`, w: 1920, h: 1280, alt: 'A visitor walks up and lays her hand on the reader' }],
+        [{ kind: 'video', src: `${SD}/4-closeup.mp4`, poster: `${SD}/4-closeup.jpg`, w: 1920, h: 1280, alt: 'The hand on the wall reads hers: a ring of light, then a burst' }, { kind: 'video', src: `${SD}/5-poem1.mp4`, poster: `${SD}/5-poem1.jpg`, w: 1920, h: 1280, alt: 'A poem of Su Dongpo comes up on the hand' }],
+        [{ kind: 'image', src: `${SD}/park-1.webp`, w: 2400, h: 1598, ratio: '1 / 1', alt: 'Su Dongpo Park in Chengmai at night, from above: its halls and tower lit', caption: 'Su Dongpo Park, Chengmai, at night' }, { kind: 'image', src: `${SD}/park-2.webp`, w: 1800, h: 2400, ratio: '1 / 1', pos: '50% 35%', alt: 'The Tongchao Pavilion lit at night, a crowd below', caption: 'Tongchao Pavilion (通潮阁) on its opening night' }],
+      ],
+    },
+  },
   'windloom': {
     // the end of the page: my grandmother, whose loom and wind box the work is made from
     memorial: { kind: 'image', src: '/art/windloom/grandmother.jpg', w: 960, h: 1280, alt: 'My grandmother, Fengling Zhao, as a young woman',

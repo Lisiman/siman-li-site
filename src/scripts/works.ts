@@ -101,15 +101,22 @@ if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
   videos.forEach((v) => io.observe(v));
 }
 
+// an Images card whose film tells a story from its first frame (data-from-start): hovering it starts it over
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.querySelectorAll<HTMLVideoElement>('.works .ph video[data-from-start]').forEach((v) => {
+  v.closest('.card')?.addEventListener('mouseenter', () => { v.currentTime = 0; void v.play().catch(() => {}); });
+});
+
 export {};
 
 // Index hover: the preview video only loads and plays while its line is hovered (or focused), then pauses
 document.querySelectorAll<HTMLAnchorElement>('.ix').forEach((row) => {
   const v = row.querySelector<HTMLVideoElement>('.ixp video');
   if (!v) return;
-  // the first hover starts it from the beginning; after that each hover picks up where the last one paused
+  // the first hover starts it from the beginning; after that each hover picks up where the last one paused (or, for one
+  // that tells a story from its first frame, data-from-start, starts it over every time)
   let started = false;
-  const play = (): void => { if (!started) { started = true; v.currentTime = 0; } void v.play().catch(() => {}); };
+  const again = v.hasAttribute('data-from-start');
+  const play = (): void => { if (!started || again) { started = true; v.currentTime = 0; } void v.play().catch(() => {}); };
   const stop = (): void => { v.pause(); };
   row.addEventListener('mouseenter', play); row.addEventListener('focus', play);
   row.addEventListener('mouseleave', stop); row.addEventListener('blur', stop);

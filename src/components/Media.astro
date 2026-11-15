@@ -9,7 +9,7 @@ interface Props {
 const { m, alt = '' } = Astro.props;
 ---
 {m.kind === 'video' ? (
-  <video autoplay muted loop playsinline preload="metadata" poster={m.poster} width={m.w} height={m.h} aria-label={alt}>
+  <video autoplay muted loop playsinline preload="metadata" data-from-start={m.fromStart ? '' : undefined} poster={m.poster} width={m.w} height={m.h} aria-label={alt}>
     <source src={m.video} type="video/mp4" />
   </video>
 ) : (
