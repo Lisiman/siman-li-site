@@ -178,7 +178,7 @@ export function setupPay(o: PayOptions): Pay {
    *  bulb too: it holds, for once), motes rise in it, a soft chord; then it all settles away. k: 0 … 1 … 0 */
   const grace = (sp: Spot, k: number, sec: number): void => {
     sp.cone.scale.set(1 + 0.9 * k, 1, 1 + 0.9 * k);
-    sp.moteMat.opacity = 0.9 * k;
+    sp.moteMat.opacity = innerHeight < 520 ? 0 : 0.9 * k;   // (no dust on a phone: so small a screen, it showed as a smudge of smoke)
     const pos = sp.motes.geometry.attributes.position as THREE.BufferAttribute;
     const col = sp.motes.geometry.attributes.color as THREE.BufferAttribute;
     (sp.motes.userData.phase as number[][]).forEach(([u, a, r, pace, ph], i) => {
@@ -312,7 +312,9 @@ export function setupPay(o: PayOptions): Pay {
   const at = new THREE.Vector3();
   const place = (b: HTMLElement, p: THREE.Vector3, show: boolean): void => {
     at.copy(p).project(o.camera);
-    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round((1 - at.y) / 2 * innerHeight)}px) translate(-50%, 0)`;
+    // (kept on screen: on a phone held sideways the counter's front runs off the bottom, and the label with it)
+    const y = Math.min((1 - at.y) / 2 * innerHeight, innerHeight - b.offsetHeight - 10);
+    b.style.transform = `translate(${Math.round((at.x + 1) / 2 * innerWidth)}px, ${Math.round(y)}px) translate(-50%, 0)`;
     b.classList.toggle('is-on', show);
     b.tabIndex = show ? 0 : -1;
   };
