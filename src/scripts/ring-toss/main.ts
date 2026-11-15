@@ -27,6 +27,7 @@ import { makeStudio } from './studio';
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T;
 const canvas = $<HTMLCanvasElement>('rt-canvas');
 const hintEl = $('rt-hint'), powerEl = $('rt-power');
+const bulbs = [...powerEl.querySelectorAll('i')];
 const cashEl = $<HTMLButtonElement>('rt-pay-cash'), tapEl = $<HTMLButtonElement>('rt-pay-tap'), receiptEl = $('rt-receipt');
 const summaryEl = $('rt-summary'), veilEl = $('rt-veil');
 const termEl = $('rt-term'), termText = $('rt-term-text'), spokenEl = $('rt-spoken');
@@ -310,8 +311,12 @@ pointerInput(canvas, {
   toss,
   aim(aim) { aimNow = aim; },   // the ring in your hand moves and turns the way it will go
   charge(power) {
+    charging = power !== null && ready ? power : null;
     powerEl.classList.toggle('is-on', power !== null && ready);
-    if (power !== null) powerEl.style.setProperty('--p', power.toFixed(3));
+    if (power !== null) {
+      const lit = Math.round(power * bulbs.length);
+      bulbs.forEach((b, i) => b.classList.toggle('is-lit', i < lit));
+    }
   },
 });
 
@@ -449,6 +454,8 @@ function dropIn(dt: number): void {
     }
   }
 }
+
+let charging: number | null = null;   // (the power while you hold to throw)
 
 function carry(dt: number): void {
   dropIn(dt);

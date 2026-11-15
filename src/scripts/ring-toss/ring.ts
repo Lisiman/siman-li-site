@@ -33,6 +33,16 @@ export const HAND = new THREE.Vector3(0, 0.92, 0.45);   // over the front of the
  *  start is where it does */
 export const HAND_SWAY = 0.45;
 
+/** where a toss leaves the hand, and how fast which way (the ring's own start, and the aiming guide's: main.ts) */
+export function launch(toss: Toss, pos: THREE.Vector3, vel: THREE.Vector3): void {
+  const speed = SPEED[0] + toss.power * (SPEED[1] - SPEED[0]);
+  const yaw = toss.aim * MAX_YAW;
+  pos.copy(HAND);
+  pos.x += toss.aim * HAND_SWAY;
+  vel.set(Math.sin(yaw) * Math.cos(ANGLE) * speed, Math.sin(ANGLE) * speed, -Math.cos(yaw) * Math.cos(ANGLE) * speed);
+}
+export const GRAVITY = G;
+
 /** the highest the stage comes anywhere under the ring: under its middle and four points round its rim, so the
  *  rim never sinks into a step */
 function floorUnder(x: number, z: number): number {
@@ -87,11 +97,7 @@ export class Ring {
       this.mesh.castShadow = true;
       scene.add(this.mesh);
     }
-    const speed = SPEED[0] + toss.power * (SPEED[1] - SPEED[0]);
-    const yaw = toss.aim * MAX_YAW;
-    this.pos.copy(HAND);
-    this.pos.x += toss.aim * HAND_SWAY;
-    this.vel.set(Math.sin(yaw) * Math.cos(ANGLE) * speed, Math.sin(ANGLE) * speed, -Math.cos(yaw) * Math.cos(ANGLE) * speed);
+    launch(toss, this.pos, this.vel);
     this.wobble = 0.08 + Math.random() * 0.08;
     this.place();
   }

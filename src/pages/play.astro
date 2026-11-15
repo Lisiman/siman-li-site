@@ -78,7 +78,8 @@ const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean; long?: boolea
 siman.li</b></pre>
       <button class="rt-summary-close" type="button">Close</button>
     </div>
-    <div class="rt-power" id="rt-power" aria-hidden="true"><i></i></div>
+    <!-- how hard: a string of bulbs like the stall's, lit from the bottom up (main.ts) -->
+    <div class="rt-power" id="rt-power" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="rt-term" id="rt-term" aria-hidden="true"><pre id="rt-term-text"></pre></div>
     <p class="rt-spoken" id="rt-spoken" aria-live="polite"></p>
     {dev && <ol class="rt-log" id="rt-log"></ol>}
@@ -177,8 +178,11 @@ siman.li</b></pre>
   @keyframes rt-caret { 50% { opacity: 0; } }
   .rt-spoken { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   /* the power, swinging while you hold */
-  .rt-power { position: absolute; left: calc(50% + 120px); bottom: 14%; width: 8px; height: 120px; border: 1px solid #f3ead8aa; opacity: 0; transition: opacity .15s; pointer-events: none; }
-  .rt-power i { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--p, 0) * 100%); background: #f3ead8; }
+  /* the power: a slim column of small flat neon tubes, all one warm white (the stall bulbs'): an unlit tube a faint outline, a
+     lit one its colour with a bright core and a soft glow */
+  .rt-power { position: absolute; left: calc(50% + 120px); bottom: 14%; display: flex; flex-direction: column-reverse; gap: 5px; opacity: 0; transition: opacity .15s; pointer-events: none; }
+  .rt-power i { --c: #ffe2b8; width: 5px; height: 5px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--c) 25%, transparent); transition: background .06s, box-shadow .06s, border-color .06s; }
+  .rt-power i.is-lit { border-color: var(--c); background: color-mix(in srgb, var(--c) 50%, #fff); box-shadow: 0 0 3px var(--c), 0 0 7px color-mix(in srgb, var(--c) 70%, transparent); }
   .rt-power.is-on { opacity: 1; }
   /* the labels over the cash tin and the card reader */
   /* the labels, in the opening's type: a terminal tag in brackets, no box. They don't move: pointing at one only
@@ -286,9 +290,10 @@ siman.li</b></pre>
   @media (prefers-reduced-motion: reduce) { .rt-tag.is-on { animation: none; } }
   .rt-summary-pay { display: flex; gap: 10px; margin-top: 14px; }
   .rt-summary-pay button { flex: 1; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; transition: background-color .25s, color .25s, border-color .25s, box-shadow .25s, translate .25s cubic-bezier(.2,.8,.2,1); }
-  .rt-summary-pay button:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; }
+  /* both answer alike, over the same quarter second: filled darker, lifted a pixel, a soft shadow under */
+  .rt-summary-pay button:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; box-shadow: 0 4px 16px #1d1b1733; }
   .rt-summary-pay button[data-pay="tap"] { background: #635bff; border-color: #635bff; color: #fff; }
-  .rt-summary-pay button[data-pay="tap"]:hover { background: #7a73ff; border-color: #7a73ff; box-shadow: 0 4px 16px #635bff66; }
+  .rt-summary-pay button[data-pay="tap"]:hover { background: #4a42e8; border-color: #4a42e8; color: #fff; box-shadow: 0 4px 16px #635bff55; }
   .rt-summary-close { display: block; margin: 14px auto 0; font: 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; background: none; border: 0; color: #1d1b1799; }
   .rt-summary:focus { outline: none; }
   .rt-summary button:focus-visible { outline: 1px dashed #1d1b1799; outline-offset: 3px; }
