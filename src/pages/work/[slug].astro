@@ -165,7 +165,7 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
         )}
         {d.meta.press && (
         <div class="d-press-row">
-        <h2>As seen on</h2>
+        <h2>{d.meta.pressHeading ?? 'As seen on'}</h2>
         <ul>{d.meta.press.filter((r, i, all) => all.findIndex((x) => x.label === r.label) === i).map((r) => (   // each publication once, by name only (a link when there is one)
           <li>{r.href ? <a href={r.href} target="_blank" rel="noopener">{r.label}</a> : <span title={r.title}>{r.label}</span>}</li>
         ))}</ul>
@@ -174,14 +174,14 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
       </section>
     )}
 
+    <!-- the last word on the page, before the way on: a dedication -->
     {d.memorial && (
-      <!-- the last word on the page, before the way on: a dedication -->
       <figure class="d-memorial">
         <div class="d-memorial-pic">
           <img src={d.memorial.src} alt={d.memorial.alt ?? ''} width={d.memorial.w} height={d.memorial.h} loading="lazy" decoding="async" />
           <Wreath />
         </div>
-        <!-- a little lotus lamp under her picture, its flame flickering (Lotus.astro) -->
+        {/* a little lotus lamp under her picture, its flame flickering (Lotus.astro) */}
         <Lotus />
         <figcaption>
           <span class="d-memorial-for">{d.memorial.lines.slice(0, 2).map((l) => <span>{l}</span>)}</span>

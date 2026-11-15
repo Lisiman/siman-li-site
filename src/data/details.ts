@@ -15,7 +15,7 @@ export interface Detail {
   titleItalic?: string;
   /** the introduction: a paragraph or two — what it is, then what you did */
   lede: string | (string | { heading: string; text: string })[];
-  meta: { role: string; /** the people you made it with, each a row: e.g. Design, PM */ credits?: { role: string; name: string; href?: string }[]; client?: string; year: string; stack?: string; team?: string; recognition?: { label: string; href?: string }[]; press?: { label: string; title?: string; href?: string }[]; /** where it was shown, newest first, at the foot of the page */ exhibitions?: { label: string; href?: string }[]; /** more to watch, linked out from the facts (e.g. a talk about the work, a making-of) */ watch?: { label: string; href: string }[]; live?: { label: string; href: string } };
+  meta: { role: string; /** the people you made it with, each a row: e.g. Design, PM */ credits?: { role: string; name: string; href?: string }[]; client?: string; year: string; stack?: string; team?: string; recognition?: { label: string; href?: string }[]; press?: { label: string; title?: string; href?: string }[]; /** the press list's heading, if not 'As seen on' (e.g. coverage of the exhibition, not of the work) */ pressHeading?: string; /** where it was shown, newest first, at the foot of the page */ exhibitions?: { label: string; href?: string }[]; /** more to watch, linked out from the facts (e.g. a talk about the work, a making-of) */ watch?: { label: string; href: string }[]; live?: { label: string; href: string } };
   /** the main screen recording, shown in a browser frame */
   hero: DetailMedia & { url: string; /** a small label over it, e.g. a year */ label?: string; /** false: a plain picture, not in a browser window */ frame?: boolean; /** true: after the pictures, not first */ last?: boolean; /** true: not shown on the page (e.g. used as the film's still instead) */ hidden?: boolean };
   /** a few paragraphs: the context, and what you did */
@@ -502,8 +502,14 @@ const LEDES: Record<string, Detail['lede']> = {
 const META: Record<string, Partial<Detail['meta']>> = {
   'su-dongpo-poem-on-hand': {
     year: '2026', stack: 'TouchDesigner, OpenCV, Arduino',
-    // the coverage is of the park's opening, not of this work by name: so it's linked from the exhibition, not listed as press
-    exhibitions: [{ label: 'Chengmai: More Than Dongpo 澄迈·不止东坡, Chengmai, Hainan, 2026', href: 'https://hainan.ifeng.com/c/8v6AA0qldZt' }],
+    exhibitions: [{ label: 'Chengmai: More Than Dongpo 澄迈·不止东坡, Chengmai, Hainan, 2026' }],
+    // coverage of the exhibition (the park and its Tongchao Pavilion opening), not of this work by name: so headed
+    pressHeading: 'Exhibition press',
+    press: [
+      { label: 'ifeng Hainan', title: '澄迈·不止东坡｜通潮阁9月29日正式运营', href: 'https://hainan.ifeng.com/c/8v6AA0qldZt' },
+      { label: 'People’s Daily Online, Hainan', href: 'http://hi.people.com.cn/n2/2026/0929/c231190-41711284.html' },
+      { label: 'CNR, via Sohu', title: '海南澄迈：通潮阁9月29日正式运营', href: 'https://www.sohu.com/a/1055440480_362042' },
+    ],
   },
   'windloom': {
     year: '2017', stack: 'Woodworking and fabrication, 3D modeling (Rhino), Max/MSP, Arduino',
