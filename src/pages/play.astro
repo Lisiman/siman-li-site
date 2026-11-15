@@ -375,14 +375,14 @@ siman.li</b></pre>
   /* (last, so it wins over the rules above) */
   /* a phone on its side: little height, so the boxes over the stall come down in size */
   @media (max-height: 520px) {
-    /* the opening: smaller and tighter, with the button held at the foot of the screen, so it's always there to press */
-    .rt-cine { padding: 14px 16px 64px; }
+    /* the opening: the short version (below), the button right under it */
+    .rt-cine { padding: 14px 16px; }
     .rt-cine-in { width: min(620px, 100%); font-size: 13px; line-height: 1.2; }
     .rt-cine-group + .rt-cine-group { margin-top: 1em; }
     .rt-cine-group.is-long { display: none; }   /* the short version: where, the hook, and the welcome */
-    .rt-cine-ctas { position: fixed; left: 0; right: 0; bottom: 14px; margin: 0; }
+    .rt-cine-ctas { margin-top: 1.8em; }   /* right under the lines (now there are few), not at the foot of the screen */
     .rt-cine-cta { font-size: 13px; }
-    .rt-cine-sound { position: fixed; left: 0; right: 0; bottom: 2px; margin: 0; font-size: 9px; }
+    .rt-cine-sound { margin-top: .9em; font-size: 9px; }
     .rt-cine > .rt-status { display: none; }
     .rt-term { max-width: 230px; padding: 8px 11px 9px; }
     .rt-term pre { font-size: 11px; }
