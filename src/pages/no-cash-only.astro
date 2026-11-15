@@ -1,0 +1,341 @@
+---
+// No [more] Cash Only: a ring toss on a Chinatown street at night. A game, full screen. The code is in src/scripts/ring-toss/.
+import Base from '../layouts/Base.astro';
+import '@fontsource/courier-prime/400.css';
+import '@fontsource/courier-prime/700.css';
+const dev = import.meta.env.DEV;
+// the opening's lines (opening.ts types them), in groups with a gap between; the dateline and the welcome brighter.
+// They are in the page from the start, untyped and invisible, so the screen is laid out before the first letter and
+// nothing below them (Skip intro) moves.
+const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean }[] = [
+  { lines: ['lucky88@chinatown:~$ ./open --stall ring-toss'], cmd: true },   // a terminal: the command that starts it all
+  { lines: ['Chinatown, New York City · 2026'], bright: true },
+  { lines: ['In a neighborhood where cash is still king…'] },
+  { lines: ['A Design Engineer, between jobs,', 'decided to try something new.'] },
+  { lines: ['A little business.', 'A modern twist.', 'Just a tap away.'] },
+  { lines: ['Could this be the start of something new for this neighborhood?'] },
+  { lines: ['Same old luck. New ways to pay.'] },
+  { lines: ['Welcome to Lucky 88.'], bright: true },
+];
+---
+<Base title="No [more] Cash Only — a ring toss by Siman Li" description="Lucky 88, a ring toss stall on a New York Chinatown street at night. Pay cash or tap, throw ten rings, collect all 18 prizes." image="/og-no-cash-only.jpg" dark>
+  <div class="rt">
+    <!-- a phone or tablet held upright: the stall is a wide thing, so it asks you to turn it -->
+    <div class="rt-rotate" aria-live="polite">
+      <div class="rt-rotate-in">
+        <svg class="rt-rotate-phone" viewBox="0 0 40 64" aria-hidden="true"><rect x="2" y="2" width="36" height="60" rx="6"/><path d="M15 55h10"/></svg>
+        <p class="rt-rotate-touch"><span>›</span> Turn your phone sideways</p>
+        <p class="rt-rotate-mouse"><span>›</span> Make the window wider</p>
+        <p class="rt-rotate-sub">Lucky 88 is played in landscape.</p>
+      </div>
+    </div>
+    <canvas id="rt-canvas" aria-label="The ring toss stall. Throw rings at the prizes."></canvas>
+    <!-- the sound, on or off: top right, over the opening and the game alike (main.ts) -->
+    <button class="rt-sound" id="rt-sound" type="button" aria-pressed="false" aria-label="Sound">
+      <span class="rt-sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="rt-sound-label">Sound<b>off</b></span>
+    </button>
+    <div class="rt-top">
+      <a class="rt-home" href="/">SIMAN LI</a>
+    </div>
+    <p class="rt-hint" id="rt-hint"></p>
+    <!-- the two ways to pay, over the cash tin and the card reader (pay.ts places them) -->
+    <button class="rt-pay" id="rt-pay-cash" type="button" tabindex="-1">Cash</button>
+    <button class="rt-pay rt-pay--tap" id="rt-pay-tap" type="button" tabindex="-1">Tap</button>
+    <!-- the tag on a prize you've won, as it's held up (main.ts, catalog.ts) -->
+    <div class="rt-tag" id="rt-tag" aria-live="polite"><span class="rt-tag-no"></span><span class="rt-tag-new" hidden>New</span><b></b><span class="rt-tag-line"></span></div>
+    <div class="rt-receipt" id="rt-receipt" role="status" title="Click to put it away"><pre></pre></div>
+    <!-- the end of a round: the receipt prints in the middle, over the blurred stall -->
+    <div class="rt-veil" id="rt-veil"></div>
+    <div class="rt-summary" id="rt-summary" role="dialog" aria-label="Your receipt">
+      <img class="rt-summary-logo" src="/play/no-cash-only/logo-black.png" alt="Lucky 88 · Ring toss · Est. 2026" width="938" height="321" />
+      <p class="rt-summary-title">Today's damage</p>
+      <hr class="rt-cut" />
+      <pre></pre>
+      <div class="rt-stats" id="rt-stats"></div>
+      <!-- the chop's ink: it didn't quite take everywhere (used by each chop in the collection) -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="rt-chop-ink" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="5" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.9" result="holes"/><feComposite in="SourceGraphic" in2="holes" operator="in"/></filter></svg>
+      <div class="rt-book" id="rt-book" aria-label="Your collection"><p class="rt-row"><span>Collection</span><i></i><b></b></p><div></div></div>
+      <hr class="rt-cut" />
+      <p class="rt-summary-foot">Cash, card, tap. One more ring?</p>
+      <div class="rt-summary-pay">
+        <button type="button" data-pay="cash">Cash</button>
+        <button type="button" data-pay="tap">Tap</button>
+      </div>
+      <pre class="rt-summary-sign"><b>Hiring a creative engineer?
+siman.li</b></pre>
+      <button class="rt-summary-close" type="button">Close</button>
+    </div>
+    <div class="rt-power" id="rt-power" aria-hidden="true"><i></i></div>
+    <div class="rt-term" id="rt-term" aria-hidden="true"><pre id="rt-term-text"></pre></div>
+    <p class="rt-spoken" id="rt-spoken" aria-live="polite"></p>
+    {dev && <ol class="rt-log" id="rt-log"></ol>}
+    <!-- the opening, on black, like a film (opening.ts); the stall loads behind it -->
+    <div class="rt-cine" id="rt-cine">
+      <div class="rt-cine-in">
+        <div class="rt-cine-text">
+          {OPENING.map((g) => (
+            <div class:list={['rt-cine-group', { 'is-bright': g.bright, 'is-cmd': g.cmd }]}>
+              {g.lines.map((l) => <p><span></span><span class="rt-cine-rest">{l}</span></p>)}
+            </div>
+          ))}
+        </div>
+        <!-- one place for the button: Skip intro while it types, then Step right up -->
+        <div class="rt-cine-ctas">
+          <button class="rt-cine-cta rt-cine-skip is-on" type="button"><span class="rt-cine-cta-label">Skip intro</span><span class="rt-cine-cta-arrow" aria-hidden="true">→</span></button>
+          <button class="rt-cine-cta rt-cine-go" type="button"><span class="rt-cine-cta-label">Step right up</span><span class="rt-cine-cta-arrow" aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </div>
+    <!-- while it loads: a line of till paper with the real progress (loading.ts) -->
+    <div class="rt-load" id="rt-load" role="status">
+      <pre>LUCKY 88 · RING TOSS
+
+opening the stall</pre>
+    </div>
+  </div>
+</Base>
+
+<style is:global>
+  .rt { position: fixed; inset: 0; overflow: hidden; background: #0b1020; color: #f3ead8; font-family: var(--mono); }
+  /* the game's own pointer: a cream arrow outlined in the stall's dark red, the size of an ordinary one; over anything
+     you can click (a button, or the cash tin and card reader: pay.ts sets .is-point on the canvas), a shade brighter */
+  .rt, .rt * { cursor: url('/play/no-cash-only/cursor.svg') 1 1, auto; }
+  .rt :is(a, button, .rt-receipt), .rt :is(a, button, .rt-receipt) *, .rt canvas.is-point { cursor: url('/play/no-cash-only/cursor-point.svg') 9 1, pointer; }
+  /* in the opening, the system's own cursor (the arrow, and the hand over a button) */
+  .rt .rt-cine, .rt .rt-cine * { cursor: auto; }
+  .rt .rt-cine button, .rt .rt-cine button * { cursor: pointer; }
+  /* upright (a phone or tablet held so, or a browser window taller than it's wide): turn it, or widen it (in the
+     opening's look: black, scanlines, the terminal's type). Upright, the camera shows the street below the counter */
+  .rt-rotate-mouse { display: none; }
+  @media (pointer: fine) { .rt-rotate-touch { display: none; } .rt-rotate-mouse { display: block; } .rt-rotate-phone { display: none !important; } }
+  .rt-rotate { display: none; }
+  @media (orientation: portrait) {
+    .rt-rotate { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 24px; background: #000; color: #f3ead8; text-align: center; font: 13px/1.5 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .rt-rotate::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, #f3ead80a 0 1px, #0000 1px 2px, #0000004d 2px 3px, #0000 3px 4px); }
+    .rt-rotate p { margin: 0; }
+    .rt-rotate p span { color: #8b85ff; margin-right: .5em; }
+    .rt-rotate-sub { margin-top: 8px !important; font-size: 11px; color: #f3ead880; text-transform: none; letter-spacing: .06em; }
+    .rt-rotate-phone { width: 34px; margin: 0 auto 22px; display: block; overflow: visible; animation: rt-turn 2.4s cubic-bezier(.6,0,.3,1) infinite; }
+    .rt-rotate-phone rect, .rt-rotate-phone path { fill: none; stroke: #f3ead8; stroke-width: 2.5; stroke-linecap: round; }
+    @keyframes rt-turn { 0%, 25% { rotate: 0deg; } 55%, 85% { rotate: -90deg; } 100% { rotate: 0deg; } }
+  }
+  .rt canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .rt-top { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; gap: 16px; align-items: center; font-size: 14px; letter-spacing: .08em; pointer-events: none; }
+  .rt-top > * { pointer-events: auto; }
+  /* the sound switch: four little level bars, like a meter on a mixing desk, that dance while it plays and lie flat
+     when it doesn't; and the word, in the type of the rest. Above everything, the opening too */
+  .rt-sound { position: absolute; z-index: 40; top: 10px; right: 8px; display: flex; align-items: baseline; gap: 9px; padding: 6px 8px; font: 12px/1 'Courier Prime', var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #f3ead899; background: none; border: 0; cursor: pointer; transition: color .25s; }
+  .rt-sound:hover { color: #f3ead8; }
+  .rt-sound:focus-visible { outline: 1px solid #f3ead8; outline-offset: 2px; }
+  /* the words end exactly 16px from the right, as SIMAN LI starts 16px from the left: the padding (8px) is outside
+     that line, and the spacing after the last letter is taken back. ON and OFF plain, not bold */
+  .rt-sound-label { margin-right: -.14em; }
+  .rt-sound-label b { margin-left: .61em; font-weight: 400; }
+  /* the bars stand on the text's baseline and reach its cap height, so they line up with the capitals */
+  .rt-sound-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: .62em; }
+  .rt-sound-bars i { width: 2px; height: 100%; background: currentColor; transform-origin: bottom; transform: scaleY(.15); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+  .rt-sound.is-on .rt-sound-bars i { animation: rt-level 1s ease-in-out infinite alternate; }
+  .rt-sound.is-on .rt-sound-bars i:nth-child(2) { animation-duration: .7s; animation-delay: -.3s; }
+  .rt-sound.is-on .rt-sound-bars i:nth-child(3) { animation-duration: .85s; animation-delay: -.6s; }
+  .rt-sound.is-on .rt-sound-bars i:nth-child(4) { animation-duration: .6s; animation-delay: -.2s; }
+  @keyframes rt-level { 0% { transform: scaleY(.25); } 50% { transform: scaleY(1); } 100% { transform: scaleY(.45); } }
+  .rt-sound:hover .rt-sound-bars i { transform: scaleY(.4); }
+  @media (prefers-reduced-motion: reduce) { .rt-sound.is-on .rt-sound-bars i { animation: none; transform: scaleY(.7); } }
+  .rt-home { color: inherit; text-decoration: none; margin-right: auto; }
+  .rt-hint { position: absolute; left: 16px; right: 16px; text-align: center; margin: 0; pointer-events: none; opacity: 0; transition: opacity .3s; }
+  .rt-hint { bottom: 7%; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+  .rt-hint.is-on { opacity: 1; }
+  /* the owner's terminal, beside his head (main.ts moves it); each line types itself out */
+  /* her lines, in the opening's terminal: black glass, a hairline edge, the typewriter caps, a blue prompt, the block
+     cursor, and the same faint scanlines */
+  .rt-term { position: absolute; left: 0; top: 0; max-width: min(300px, 60vw); padding: 12px 16px 13px; background: #000000d9; border: 1px solid #f3ead833; border-radius: 2px; box-shadow: 0 8px 30px #000a; opacity: 0; transition: opacity .2s; pointer-events: none; will-change: transform; overflow: hidden; }
+  .rt-term::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, #f3ead80a 0 1px, #0000 1px 2px, #0000004d 2px 3px, #0000 3px 4px); }
+  .rt-term.is-on { opacity: 1; }
+  .rt-term pre { margin: 0; font: 400 13px/1.45 'Courier Prime', var(--mono); letter-spacing: .08em; text-transform: uppercase; color: #f3ead8e6; text-shadow: 0 0 6px #f3ead833; white-space: pre-wrap; }
+  .rt-term pre::before { content: '\203A'; display: inline-block; width: 1.3em; color: #8b85ff; font-weight: 700; text-shadow: 0 0 8px #635bff99; }
+  .rt-term pre::after { content: '\2588'; margin-left: 2px; color: #f3ead8; text-shadow: 0 0 8px #f3ead888; animation: rt-caret 1s steps(1) infinite; }
+  .rt-term.is-typing pre::after { animation: none; }
+  @keyframes rt-caret { 50% { opacity: 0; } }
+  .rt-spoken { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  /* the power, swinging while you hold */
+  .rt-power { position: absolute; left: calc(50% + 120px); bottom: 14%; width: 8px; height: 120px; border: 1px solid #f3ead8aa; opacity: 0; transition: opacity .15s; pointer-events: none; }
+  .rt-power i { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--p, 0) * 100%); background: #f3ead8; }
+  .rt-power.is-on { opacity: 1; }
+  /* the labels over the cash tin and the card reader */
+  /* the labels, in the opening's type: a terminal tag in brackets, no box. They don't move: pointing at one only
+     brightens it (and its spotlight comes up, pay.ts) */
+  .rt-pay { position: absolute; left: 0; top: 0; font: 700 13px/1 'Courier Prime', var(--mono); letter-spacing: .18em; text-transform: uppercase; color: #f3ead8b3; background: #000000a6; border: 1px solid #f3ead833; border-radius: 2px; padding: 8px 11px; opacity: 0; pointer-events: none; transition: opacity .25s, color .25s, border-color .25s, text-shadow .25s; }
+  .rt-pay::before { content: '[ '; } .rt-pay::after { content: ' ]'; }
+  .rt-pay--tap { color: #8b85ffd9; }
+  .rt-pay.is-on { opacity: 1; pointer-events: auto; }   /* (they stay still: no bobbing) */
+  /* pointing at the label, or at its thing in the stall: it grows a little and glows */
+  .rt-pay:is(:hover, .is-hover) { color: #f3ead8; border-color: #f3ead899; text-shadow: 0 0 8px #f3ead866; }
+  .rt-pay--tap:is(:hover, .is-hover) { color: #fff; border-color: #8b85ff; text-shadow: 0 0 6px #635bff, 0 0 16px #635bffaa; }
+  .rt-pay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  /* a till receipt, sliding up from the bottom right */
+  .rt-receipt { position: absolute; right: 24px; bottom: 0; width: min(300px, calc(100vw - 48px)); padding: 18px 18px 26px; background: #f6f1e4; color: #1d1b17; box-shadow: 0 10px 40px #0009; transform: translateY(105%); transition: transform .6s cubic-bezier(.2,.8,.2,1); cursor: pointer;
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+            mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x; }
+  .rt-receipt.is-on { transform: translateY(-16px); }
+  .rt-receipt pre { margin: 0; font: 12px/1.6 var(--mono); white-space: pre-wrap; }
+  /* the end of a round */
+  .rt-veil { position: absolute; inset: 0; z-index: 10; background: #0a0f1e59; -webkit-backdrop-filter: blur(10px) saturate(.8); backdrop-filter: blur(10px) saturate(.8); opacity: 0; pointer-events: none; transition: opacity .5s; }
+  .rt-veil.is-on { opacity: 1; pointer-events: auto; }
+  .rt-summary { position: absolute; z-index: 11; left: 50%; top: 50%; width: min(340px, calc(100vw - 32px)); max-height: calc(100% - 32px); overflow-y: auto; scrollbar-width: none; padding: 26px 24px 30px; background: #f6f1e4; color: #1d1b17; box-shadow: 0 24px 80px #000b; transform: translate(-50%, -46%); opacity: 0; pointer-events: none; transition: opacity .3s, transform .5s cubic-bezier(.2,.8,.2,1);
+    -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+            mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat, conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x; }
+  .rt-summary.is-on { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%); animation: rt-print 1.1s steps(14) both; }
+  @keyframes rt-print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }   /* line by line, like a till printing */
+  .rt-summary pre { margin: 0; font: 13px/1.65 var(--mono); white-space: pre-wrap; }
+  /* the collection: a grid of numbers, the ones you've found inked in, this round's new ones in the blue */
+  /* laid out like a till receipt: a centred head, dashed tear lines between the parts, each line its label and its
+     figure with a dotted leader between, the collection a grid of drawings, the sign-off centred at the foot */
+  .rt-summary > pre:empty { display: none; }
+  .rt-summary-logo { display: block; width: 64%; height: auto; margin: 2px auto 14px; }
+  .rt-summary-title { margin: 0; font: 11px/1.4 var(--mono); letter-spacing: .24em; text-transform: uppercase; text-align: center; color: #1d1b17aa; }
+  .rt-cut { margin: 16px 0; border: 0; border-top: 1px dashed #1d1b1766; }
+  .rt-row { display: flex; align-items: baseline; gap: 8px; margin: 0; font: 13px/1.75 var(--mono); text-transform: uppercase; letter-spacing: .04em; }
+  .rt-row i { flex: 1; min-width: 12px; border-bottom: 2px dotted #1d1b1755; translate: 0 -.3em; }
+  .rt-row b { font-weight: 400; font-variant-numeric: tabular-nums; }
+  .rt-item { padding-left: 14px; font-size: 12px; text-transform: none; color: #1d1b17cc; }
+  .rt-item span em { font-style: normal; color: #1d1b1788; margin-right: 6px; }
+  .rt-item b.is-new { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: #635bff; }
+  .rt-stats + svg + .rt-book, .rt-stats + .rt-book { margin-top: 18px; }
+  .rt-book > div { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px 6px; margin-top: 12px; }
+  .rt-summary-foot { margin: 0; font: 12px/1.6 var(--mono); text-align: center; color: #1d1b17cc; }
+  .rt-summary-sign { margin-top: 22px !important; text-align: center; }
+  .rt-summary-sign b { font-weight: 400; }
+  /* each cell: its number, and under it a line drawing of the prize (thumbs.ts) in the cell's ink: faint and dashed
+     until you've found it, inked once you have, in the blue if it's new this round */
+  /* each: the drawing (thumbs.ts) in ink, its number under it; all alike, the ones you've ringed circled in red */
+  .rt-book i { --ink: #1d1b17; display: grid; justify-items: center; gap: 4px; font: 9px/1 'Courier Prime', var(--mono); font-style: normal; letter-spacing: .08em; color: #1d1b17; }
+  .rt-book i b { width: 100%; aspect-ratio: 1; background: var(--ink); -webkit-mask: var(--pic) center / 88% no-repeat; mask: var(--pic) center / 88% no-repeat; }
+  .rt-book i b:not([style]) { background: none; }
+  /* ringed: a red chop, 中 (a hit, as when an arrow finds its mark), stamped over it, light enough to see the drawing
+     through, a little crooked, the ink not quite even. This round's come down one by one as the receipt comes out */
+  .rt-book i { position: relative; }
+  .rt-chop { position: absolute; left: 50%; top: 42%; width: 64%; aspect-ratio: 1; translate: -50% -50%; rotate: var(--tilt); overflow: visible; pointer-events: none; mix-blend-mode: multiply; opacity: .78; }
+  /* round, and its 中 drawn in one even line, the same as the ring round it */
+  .rt-chop circle, .rt-chop path { fill: none; stroke: #d42a20; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
+  /* this round's: held up high, then slammed down (a squash as it lands), the drawing under it knocked, and a ring of
+     ink pushed out round it; the thump with it (main.ts) */
+  .rt-book i.is-ringed .rt-chop { opacity: 0; }
+  .rt-summary.is-on .rt-book i.is-ringed .rt-chop { animation: rt-chop .42s var(--at) cubic-bezier(.5,0,.4,1) forwards; }
+  @keyframes rt-chop {
+    0%   { opacity: 0; scale: 2.4; filter: drop-shadow(0 10px 6px #0003); }
+    40%  { opacity: .5; scale: 1.08; filter: drop-shadow(0 4px 3px #0002); }
+    50%  { opacity: .95; scale: .9; filter: none; }
+    70%  { scale: 1.04; }
+    100% { opacity: .78; scale: 1; }
+  }
+  .rt-book i.is-ringed::after { content: ''; position: absolute; left: 50%; top: 42%; width: 64%; aspect-ratio: 1; translate: -50% -50%; border: 2px solid #d42a20; border-radius: 50%; opacity: 0; pointer-events: none; }
+  .rt-summary.is-on .rt-book i.is-ringed::after { animation: rt-chop-ring .5s calc(var(--at) + .21s) ease-out; }
+  @keyframes rt-chop-ring { 0% { opacity: .6; scale: 1; } 100% { opacity: 0; scale: 1.7; } }
+  .rt-summary.is-on .rt-book i.is-ringed b { animation: rt-chop-knock .22s calc(var(--at) + .21s) ease-out; }
+  @keyframes rt-chop-knock { 0% { translate: 0 0; } 30% { translate: 0 2px; scale: .94; } 100% { translate: 0 0; scale: 1; } }
+  @media (prefers-reduced-motion: reduce) { .rt-summary.is-on .rt-book i.is-ringed .rt-chop { animation: none; opacity: .78; } .rt-summary.is-on .rt-book i.is-ringed::after, .rt-summary.is-on .rt-book i.is-ringed b { animation: none; } }
+  /* the tag: a paper swing tag on a string, tied to the prize as it's held up; swings in, and drops away with it */
+  .rt-tag { position: absolute; z-index: 9; left: 0; top: 0; width: 196px; padding: 10px 12px 11px 26px; background: #f6f1e4; color: #1d1b17; font: 11px/1.4 'Courier Prime', var(--mono); box-shadow: 0 8px 24px #0008; clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 10px); transform-origin: 13px 50%; opacity: 0; pointer-events: none; rotate: -4deg; translate: 0 -50%; transition: opacity .25s; }
+  .rt-tag::before { content: ''; position: absolute; left: 9px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: #1d1b17; box-shadow: inset 0 0 0 1.5px #8a6a3a; }   /* the hole, the string through it */
+  .rt-tag.is-on { opacity: 1; animation: rt-swing 1.1s cubic-bezier(.3,1.6,.5,1) both; }
+  @keyframes rt-swing { 0% { rotate: -40deg; scale: .7; } 100% { rotate: -4deg; scale: 1; } }
+  .rt-tag-no { display: inline-block; letter-spacing: .12em; color: #1d1b1799; }
+  .rt-tag-new { display: inline-block; margin-left: 8px; padding: 1px 5px; font-weight: 700; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #fff; background: #635bff; }
+  .rt-tag-new[hidden] { display: none; }
+  .rt-tag b { display: block; margin: 3px 0 4px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+  .rt-tag-line { display: block; color: #1d1b17cc; }
+  @media (prefers-reduced-motion: reduce) { .rt-tag.is-on { animation: none; } }
+  .rt-summary-pay { display: flex; gap: 10px; margin-top: 14px; }
+  .rt-summary-pay button { flex: 1; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; transition: background-color .25s, color .25s, border-color .25s, box-shadow .25s, translate .25s cubic-bezier(.2,.8,.2,1); }
+  .rt-summary-pay button:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; }
+  .rt-summary-pay button[data-pay="tap"] { background: #635bff; border-color: #635bff; color: #fff; }
+  .rt-summary-pay button[data-pay="tap"]:hover { background: #7a73ff; border-color: #7a73ff; box-shadow: 0 4px 16px #635bff66; }
+  .rt-summary-close { display: block; margin: 14px auto 0; font: 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; background: none; border: 0; color: #1d1b1799; }
+  .rt-summary:focus { outline: none; }
+  .rt-summary button:focus-visible { outline: 1px dashed #1d1b1799; outline-offset: 3px; }
+  /* the loading line, on black, until everything is in */
+  .rt-load { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: #05070d; transition: opacity .6s; }
+  .rt-load pre { margin: 0; font: 13px/1.7 var(--mono); color: #f3ead8; letter-spacing: .04em; white-space: pre; text-align: center; }
+  .rt-load.is-done { opacity: 0; pointer-events: none; }
+  /* the opening: one screen of lines, typed out (opening.ts) on a typewriter face, on the night's own near-black
+     (not pure black: the street it opens onto is navy), with film grain and a vignette */
+  .rt-cine { --cine-ink: #f3ead8; --cine-blue: #635bff; --cine-blue-lt: #8b85ff; position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px 16px; overflow: hidden; background: #000; }   /* pure black, a screen switched on: the grain and the scanlines are its texture */
+  .rt-cine::before { content: ''; position: absolute; inset: -50%; pointer-events: none; opacity: .09; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); animation: rt-grain .5s steps(4) infinite; }
+  @keyframes rt-grain { 0% { transform: translate(0, 0); } 25% { transform: translate(-3%, 2%); } 50% { transform: translate(2%, -3%); } 75% { transform: translate(-2%, -1%); } 100% { transform: translate(1%, 3%); } }
+  /* going in: a soft glitch (the lines shimmer apart into red and cyan, a slight tear or two), and the screen
+     dissolves into the street, blurring and brightening a little as it goes */
+  .rt-cine.is-glitch .rt-cine-in { animation: rt-glitch .7s ease-in-out both; }
+  @keyframes rt-glitch {
+    0%   { transform: none; text-shadow: none; filter: none; }
+    20%  { transform: translateX(-2px); text-shadow: -1.5px 0 #ff2a6d99, 1.5px 0 #05d9e899; }
+    35%  { transform: translateX(3px) skewX(-3deg); clip-path: inset(0 0 46% 0); text-shadow: 2px 0 #ff2a6d99, -2px 0 #05d9e899; }
+    45%  { transform: none; clip-path: none; text-shadow: -3px 0 #ff2a6d88, 3px 0 #05d9e888; }
+    65%  { transform: translateX(-2px); clip-path: inset(52% 0 0 0); text-shadow: 4px 0 #ff2a6d77, -4px 0 #05d9e877; }
+    75%  { transform: none; clip-path: none; }
+    100% { transform: none; text-shadow: -5px 0 #ff2a6d55, 5px 0 #05d9e855; filter: blur(2px); opacity: .5; }
+  }
+  .rt-cine.is-off { pointer-events: none; animation: rt-dissolve 1.1s ease forwards; }
+  @keyframes rt-dissolve {
+    0%   { opacity: 1; filter: none; }
+    100% { opacity: 0; filter: blur(6px) brightness(1.6); }
+  }
+  .rt-cine-in { position: relative; width: min(500px, 100%); font: 400 14px/1.2 'Courier Prime', var(--mono); letter-spacing: .08em; text-transform: uppercase; text-align: center; color: #f3ead8a6; text-shadow: 0 0 6px #f3ead833; }
+  .rt-cine-group + .rt-cine-group { margin-top: 1.2em; }   /* one blank line */
+  .rt-cine-group.is-bright { color: var(--cine-ink); font-weight: 700; }
+  .rt-cine-text p { margin: 0; }
+  /* each line a terminal line: a prompt in blurple, shown as the line starts typing */
+  .rt-cine-text p::before { content: '\203A'; display: inline-block; width: 1.3em; text-align: left; color: var(--cine-blue-lt); font-weight: 700; visibility: hidden; text-shadow: 0 0 8px #635bff99; }
+  .rt-cine-text p.is-started::before { visibility: visible; }
+  .rt-cine-group.is-cmd { text-transform: none; letter-spacing: .02em; color: #f3ead866; }
+  .rt-cine-group.is-cmd p::before { content: '$'; color: #f3ead866; text-shadow: none; }
+  /* the screen: faint scanlines over it all */
+  /* the screen's lines: on black, dark lines don't show, so these are faintly lit, with darker gaps that cut through
+     the type */
+  .rt-cine::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, #f3ead80a 0 1px, #0000 1px 2px, #0000004d 2px 3px, #0000 3px 4px);
+    animation: rt-scan-crawl 1.6s linear infinite, rt-scan-flicker 4.3s steps(1) infinite; }
+  /* the scanlines are alive: they creep down slowly (one 4px period at a time, so seamless), and their strength
+     wavers now and then, like an old screen's */
+  @keyframes rt-scan-crawl { from { background-position: 0 0; } to { background-position: 0 4px; } }
+  @keyframes rt-scan-flicker { 0% { opacity: 1; } 11% { opacity: .82; } 13% { opacity: 1; } 37% { opacity: .9; } 39% { opacity: 1.0; } 58% { opacity: .75; } 59% { opacity: .95; } 61% { opacity: 1; } 84% { opacity: .88; } 86% { opacity: 1; } }
+  .rt-cine-rest { visibility: hidden; }
+  .rt-cine-cursor { display: inline-block; width: 0; overflow: visible; color: var(--cine-ink); font-weight: 400; text-shadow: 0 0 8px #f3ead888; animation: rt-caret 1s steps(1) infinite; }
+  /* Step right up: just bold type in blurple; on hover it decodes itself (opening.ts), lights up, and a scan line runs under it */
+  .rt-cine-cta { position: relative; display: inline-flex; align-items: center; gap: .7em; padding: 8px 4px; font: 700 14px/1 'Courier Prime', var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--cine-blue-lt); background: none; border: 0; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .4s ease, color .25s, text-shadow .25s, letter-spacing .35s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-ctas { display: grid; justify-items: center; margin-top: 2.8em; }
+  .rt-cine-ctas > * { grid-area: 1 / 1; }   /* the two in the same spot */
+  .rt-cine-cta.is-on { opacity: 1; pointer-events: auto; }
+  .rt-cine-cta::before, .rt-cine-cta::after { position: absolute; top: 50%; translate: 0 -50%; color: var(--cine-blue); opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-cta::before { content: '['; left: -1.2em; transform: translateX(8px); }
+  .rt-cine-cta::after { content: ']'; right: -1.2em; transform: translateX(-8px); }
+  .rt-cine-cta-label { position: relative; }
+  .rt-cine-cta-label::after { content: ''; position: absolute; left: 0; right: -.2em; bottom: -9px; height: 1px; background: linear-gradient(90deg, transparent, var(--cine-blue) 30%, #fff 50%, var(--cine-blue) 70%, transparent); background-size: 200% 100%; box-shadow: 0 0 8px var(--cine-blue); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-cta-arrow { display: inline-block; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-cta:is(:hover, :focus-visible) { color: #fff; letter-spacing: .26em; text-shadow: 0 0 6px var(--cine-blue), 0 0 18px #635bffaa, 0 0 36px #635bff66; outline: none; }
+  .rt-cine-cta:is(:hover, :focus-visible)::before, .rt-cine-cta:is(:hover, :focus-visible)::after { opacity: 1; transform: none; text-shadow: 0 0 8px var(--cine-blue); }
+  .rt-cine-cta:is(:hover, :focus-visible) .rt-cine-cta-label::after { transform: scaleX(1); animation: rt-scan 1.4s linear infinite; }
+  .rt-cine-cta:is(:hover, :focus-visible) .rt-cine-cta-arrow { transform: translateX(5px); animation: rt-nudge .9s ease-in-out infinite; }
+  @keyframes rt-scan { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  @keyframes rt-nudge { 50% { transform: translateX(9px); } }
+  .rt-cine-cta:disabled { cursor: progress; }
+  @media (prefers-reduced-motion: reduce) { .rt-cine::before, .rt-cine::after, .rt-cine-cta *, .rt-cine.is-glitch .rt-cine-in { animation: none !important; } .rt-cine.is-off { animation: none; opacity: 0; transition: opacity .6s; } }
+  .rt-log { position: absolute; left: 16px; top: 52px; margin: 0; padding: 0; list-style: none; font-size: 11px; line-height: 1.5; opacity: .7; pointer-events: none; max-width: min(520px, 90vw); }
+  /* (last, so it wins over the rules above) */
+  /* a phone on its side: little height, so the boxes over the stall come down in size */
+  @media (max-height: 520px) {
+    .rt-term { max-width: 230px; padding: 8px 11px 9px; }
+    .rt-term pre { font-size: 11px; }
+    .rt-receipt { zoom: .7; }
+    .rt-summary { zoom: .78; width: min(460px, calc(100vw - 32px)); padding: 16px 22px 20px; }
+    .rt-summary-logo { width: 38%; margin-bottom: 6px; }
+    .rt-cut { margin: 10px 0; }
+    .rt-book > div { grid-template-columns: repeat(9, 1fr); gap: 6px 6px; margin-top: 8px; }
+    .rt-summary-pay { margin-top: 10px; }
+    .rt-summary-sign { margin-top: 12px !important; }
+    .rt-tag { zoom: .85; }
+    .rt-hint { font-size: 11px; bottom: 5%; }
+  }
+</style>
+
+<script>import '../scripts/ring-toss/main.ts';</script>
