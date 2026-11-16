@@ -82,6 +82,7 @@ let figureModel: OwnerFigure | null = null;
 const talk = startTalking(termEl, termText, spokenEl, () => figureModel?.talking());
 figureModel = loadOwner(scene, owner, figure, camera);
 if (import.meta.env.DEV) (window as unknown as { __rt: Record<string, unknown> }).__rt.figure = figureModel;   // dev: __rt.figure.greet()
+if (import.meta.env.DEV) (window as unknown as { __rt: Record<string, unknown> }).__rt.hit = (): void => emit('owner', { count: 1 });   // dev: as if a ring hit her
 
 // the counter you stand at, and what's on it: the rings you've paid for, piled near your right hand (low in the
 // view, below the prizes), and the card reader (and the cash tin: pay.ts). (Her pink tumbler, on her own stand, is in models.ts.)

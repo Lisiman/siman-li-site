@@ -37,10 +37,16 @@ const ACTS = {
   win:    { rank: 3, clips: ['cheering', 'clapping'] },
   streak: { rank: 3, clips: ['excited', 'victory'] },
   mine:   { rank: 3.5, clips: ['annoyed-head-shake'] },
-  // (not 'reaction': both hands thrust forward, 15 cm through her laptop, too far to pull back cleanly)
-  ouch:   { rank: 4, clips: ['hit-reaction'] },
+  // and every hit knocks her head (BONK) as well. (Not 'reaction', fists up and doubled over: 15 cm through her
+  // laptop; nor Mixamo's 'Zombie Reaction Hit', 7 cm. The head hits clear it by 5 cm or more: 'head-hit-1' ducks
+  // low, behind it.)
+  ouch:   { rank: 4, clips: ['hit-reaction', 'head-hit', 'head-hit-1', 'medium-hit-to-head'] },
 } as const;
 type Act = keyof typeof ACTS;
+/** clips that reach forward into her laptop, made smaller (soften(): 1 as they are), just enough that her hands
+ *  stop short of its screen (by 1.4 cm or more, every clip measured frame by frame in node). Bending the arm back
+ *  out of the way instead (IK, tried) took the elbow 68° for 4 cm, and the arm looked broken. */
+const SOFTER: Record<string, number> = { 'dismissing-gesture': 0.6, bored: 0.5, rapping: 0.6, talking: 0.75 };
 /** the long clips, cut short (s), and the very short one played a few times over */
 const HOLD: Record<string, number> = {
   'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, rapping: 5, 'looking-around': 5, laughing: 3.5,
@@ -59,11 +65,9 @@ const SWING: Record<string, { sweep: number; from: number; to: number }> = {
  *  where she looks elsewhere on purpose (around, at her phone, down in a bow, away from a ring in the face) */
 const LOOK = { weight: 0.85, max: 0.7, away: 0.25 };
 const LOOKS_AWAY: Act[] = ['fidget', 'bow', 'ouch', 'laugh'];
-/** her hands stay behind her laptop's screen: a clip that reaches forward (shooing you off, talking with her
- *  hands) would put them through it. Half the lid's width and height (m), how far behind it the bones keep (the
- *  hand's own thickness), and a margin past its edges over which the push fades out, so a hand that slides off the
- *  side isn't let go all at once. */
-const SCREEN = { w: 0.18, h: 0.12, gap: 0.035, fade: 0.06 };
+/** the knock when a ring hits her: her head ducks (rad) and tips to one side, then springs back, settling within
+ *  `time` (s); the neck takes part of it, so it bends rather than pivots */
+const BONK = { time: 0.75, dip: 0.3, tilt: 0.2, neck: 0.4 };
 /** a different stance every so often while nothing's happening (s) */
 const SHIFT = [7, 13];
 
@@ -80,13 +84,30 @@ export interface OwnerFigure {
 /** clips not in owner.glb, each a file of its own beside it, loaded once she's there: made from the Mixamo FBX in
  *  _source/owner/anims/ (same skeleton, same units: the tracks go straight on), cut to length and kept as plain
  *  numbers (times once, then each track's values) */
-const EXTRA = ['telling-a-secret'];
+const EXTRA = ['telling-a-secret', 'head-hit', 'head-hit-1', 'medium-hit-to-head'];
 async function extraClip(name: string): Promise<THREE.AnimationClip> {
   const d = await (await fetch(`${BASE}${name}.json`)).json() as { name: string; duration: number; times: number[]; tracks: { n: string; v: number[] }[] };
   const tracks = d.tracks.map((t) => (t.n.endsWith('.quaternion')
     ? new THREE.QuaternionKeyframeTrack(t.n, d.times, t.v)
     : new THREE.VectorKeyframeTrack(t.n, d.times, t.v)));
   return new THREE.AnimationClip(d.name, d.duration, tracks);
+}
+
+/** a clip's moves made smaller: every pose taken part of the way from its first one (k: 0 none, 1 all of it), so
+ *  it starts and ends where it did, just less */
+function soften(clip: THREE.AnimationClip, k: number, name: string): THREE.AnimationClip {
+  const q0 = new THREE.Quaternion(), q = new THREE.Quaternion();
+  const tracks = clip.tracks.map((t) => {
+    const v = t.values.slice(), n = t.getValueSize();
+    if (t instanceof THREE.QuaternionKeyframeTrack) {
+      q0.fromArray(v, 0);
+      for (let i = 4; i < v.length; i += 4) q.copy(q0).slerp(q.fromArray(v, i), k).toArray(v, i);
+      return new THREE.QuaternionKeyframeTrack(t.name, t.times, v);
+    }
+    for (let i = n; i < v.length; i++) v[i] = v[i % n] + (v[i] - v[i % n]) * k;
+    return new THREE.VectorKeyframeTrack(t.name, t.times, v);
+  });
+  return new THREE.AnimationClip(name, clip.duration, tracks);
 }
 
 export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.Object3D, eye?: THREE.Object3D): OwnerFigure {
@@ -102,56 +123,10 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
   let look = 0;   // how much she's looking at you now (eases toward the act's weight)
   const qHead = new THREE.Quaternion(), qParent = new THREE.Quaternion(), qTurn = new THREE.Quaternion();
   const fwd = new THREE.Vector3(), toEye = new THREE.Vector3(), eyeAt = new THREE.Vector3();
+  let neckBone: THREE.Object3D | null = null;
+  const bonk = { t: BONK.time, side: 1, size: 1 };
+  const qBonk = new THREE.Quaternion(), eBonk = new THREE.Euler();
   let swing: { action: THREE.AnimationAction; phase: number; sweep: number; from: number; to: number } | null = null;
-  const arms: { arm: THREE.Object3D; fore: THREE.Object3D; hand: THREE.Object3D; bones: THREE.Object3D[] }[] = [];
-  const lidInv = new THREE.Matrix4(), push = new THREE.Vector3(), p = new THREE.Vector3();
-  const S = new THREE.Vector3(), E = new THREE.Vector3(), W = new THREE.Vector3(), T = new THREE.Vector3();
-  const u = new THREE.Vector3(), v = new THREE.Vector3(), axis = new THREE.Vector3();
-  const qBy = new THREE.Quaternion(), qBone = new THREE.Quaternion(), qUp = new THREE.Quaternion();
-  /** a bone turned by a rotation given in world space */
-  const turn = (b: THREE.Object3D, by: THREE.Quaternion): void => {
-    b.getWorldQuaternion(qBone);
-    b.parent!.getWorldQuaternion(qUp);
-    b.quaternion.copy(qUp.invert().multiply(by.multiply(qBone)));
-    b.updateMatrixWorld(true);
-  };
-  /** after the clip: a hand that would come through the screen is moved back behind it, by bending the elbow and
-   *  swinging the arm at the shoulder (two bones, solved exactly). Turning the shoulder alone isn't enough: she
-   *  reaches straight at it, and only a bent elbow brings the hand back toward her. */
-  const keepBehind = (): void => {
-    const lid = owner.screen;
-    if (!lid || !arms.length) return;
-    lid.updateWorldMatrix(true, false);
-    lidInv.copy(lid.matrixWorld).invert();
-    push.set(0, 0, 1).transformDirection(lid.matrixWorld);   // out of the screen, toward you
-    for (const { arm, fore, hand, bones } of arms) {
-      arm.updateWorldMatrix(true, true);
-      let into = 0;
-      for (const b of bones) {
-        p.setFromMatrixPosition(b.matrixWorld).applyMatrix4(lidInv);
-        const edge = Math.min(SCREEN.w + SCREEN.fade - Math.abs(p.x), SCREEN.h + SCREEN.fade - Math.abs(p.y));
-        if (edge > 0) into = Math.max(into, (p.z + SCREEN.gap) * Math.min(1, edge / SCREEN.fade));
-      }
-      if (into <= 0) continue;
-      S.setFromMatrixPosition(arm.matrixWorld);
-      E.setFromMatrixPosition(fore.matrixWorld);
-      W.setFromMatrixPosition(hand.matrixWorld);
-      T.copy(W).addScaledVector(push, -into);
-      const a = S.distanceTo(E), b = E.distanceTo(W);
-      const d = THREE.MathUtils.clamp(S.distanceTo(T), Math.abs(a - b) + 1e-4, a + b - 1e-4);
-      // the elbow, opened or closed so the hand is that far from the shoulder (the law of cosines)
-      u.subVectors(S, E).normalize();
-      v.subVectors(W, E).normalize();
-      const now = Math.acos(THREE.MathUtils.clamp(u.dot(v), -1, 1));
-      const want = Math.acos(THREE.MathUtils.clamp((a * a + b * b - d * d) / (2 * a * b), -1, 1));
-      axis.crossVectors(u, v);
-      if (axis.lengthSq() < 1e-8) axis.crossVectors(u, push);
-      turn(fore, qBy.setFromAxisAngle(axis.normalize(), want - now));
-      // then the arm, swung at the shoulder to put the hand there
-      W.setFromMatrixPosition(hand.matrixWorld);
-      turn(arm, qBy.setFromUnitVectors(u.subVectors(W, S).normalize(), v.subVectors(T, S).normalize()));
-    }
-  };
 
   /** one of the act's clips that has loaded, not the same as last time if there's a choice */
   const choose = (act: Act): THREE.AnimationAction | null => {
@@ -222,24 +197,15 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
         m.frustumCulled = false;   // the skinned bounds don't follow the animation
       }
       if ((o as THREE.Bone).isBone && /Head$/.test(o.name)) head = o;
+      if ((o as THREE.Bone).isBone && /Neck$/.test(o.name)) neckBone = o;
     });
-    for (const side of ['Left', 'Right']) {
-      let arm: THREE.Object3D | undefined, fore: THREE.Object3D | undefined, hand: THREE.Object3D | undefined;
-      root.traverse((o) => {
-        if (!(o as THREE.Bone).isBone) return;
-        if (o.name.endsWith(side + 'Arm')) arm = o;
-        else if (o.name.endsWith(side + 'ForeArm')) fore = o;
-        else if (o.name.endsWith(side + 'Hand')) hand = o;
-      });
-      if (!arm || !fore || !hand) continue;
-      const bones: THREE.Object3D[] = [fore];   // the forearm, the hand and every finger joint
-      hand.traverse((o) => { if ((o as THREE.Bone).isBone) bones.push(o); });
-      arms.push({ arm, fore, hand, bones });
-    }
     // start him idling, then measure him in that pose: the clips move the hips well away from where the bind pose
     // has them, so only the animated skeleton says where his feet really are
     mixer = new THREE.AnimationMixer(root);
-    for (const clip of gltf.animations) actions.set(clip.name, mixer.clipAction(clip));
+    for (const clip of gltf.animations) {
+      const k = SOFTER[clip.name];
+      actions.set(clip.name, mixer.clipAction(k ? soften(clip, k, clip.name) : clip));
+    }
     for (const name of EXTRA) void extraClip(name).then((c) => { if (mixer) actions.set(c.name, mixer.clipAction(c)); }).catch(() => { /* not loaded: she just talks */ });
     play('idle');
     mixer.update(0);
@@ -267,7 +233,12 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
     placeholder.visible = false;
   }, undefined, (e) => console.warn('owner model did not load; the greybox stays', e));
 
-  on('owner', () => act('ouch'));
+  on('owner', () => {
+    bonk.t = 0;
+    bonk.side = Math.random() < 0.5 ? -1 : 1;
+    bonk.size = 0.75 + Math.random() * 0.5;
+    act('ouch');
+  });
   on('win', ({ prize, streak }) => act(prize.kind === 'controller' ? 'mine' : streak >= 3 ? 'streak' : 'win'));
   on('coin', ({ method }) => act(method === 'tap' ? 'thanks' : 'pay'));
   on('miss', ({ streak }) => { if (streak >= 3 && streak % 3 === 0) act('laugh'); else if (Math.random() < 0.4) act('nod'); });
@@ -283,8 +254,6 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
         swing.action.time = swing.from + (swing.to - swing.from) * (1 - Math.cos(swing.phase)) / 2;
       }
       mixer.update(dt);
-      keepBehind();
-      keepBehind();   // twice: the first pass moves the hand, and the fingers with it, a little short
       if (head) head.scale.setScalar(HEAD_SCALE);   // after the clips, in case they set it
       // and her head turned toward you: the clip's pose, then the turn from where her face points to where your eyes
       // are, part of the way and no further than LOOK.max (her face is the head bone's +Z)
@@ -302,6 +271,18 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
         qTurn.slerp(new THREE.Quaternion(), 1 - k);
         head.parent.getWorldQuaternion(qParent);
         head.quaternion.copy(qParent.invert().multiply(qTurn.multiply(qHead)));
+      }
+      // the knock, over everything else: a quick duck, then a few smaller and smaller springs back
+      if (head && bonk.t < BONK.time) {
+        bonk.t += dt;
+        const t = bonk.t;
+        const f = Math.min(1, t / 0.05) * Math.exp(-6 * t) * Math.cos(13 * t) * bonk.size;
+        // (the bones' +X is across her: a turn about it drops her face; about +Z, along her face, tips her head over)
+        const at = (b: THREE.Object3D, k: number): void => {
+          b.quaternion.multiply(qBonk.setFromEuler(eBonk.set(BONK.dip * f * k, 0, bonk.side * BONK.tilt * f * k)));
+        };
+        if (neckBone) at(neckBone, BONK.neck);
+        at(head, neckBone ? 1 - BONK.neck : 1);
       }
       if (back > 0 && (back -= dt) <= 0) play('idle');
       else if (current === 'idle' && (shift -= dt) <= 0) play('idle');   // another stance
