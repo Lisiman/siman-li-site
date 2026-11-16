@@ -24,6 +24,8 @@ const ACTS = {
   idle:   { rank: 0, clips: ['happy-idle', 'idle', 'happy-idle-1'] },
   // (not 'yawn': its hand over her mouth went into her face)
   fidget: { rank: 0.5, clips: ['looking-around', 'texting-while-standing', 'bored', 'rapping'] },
+  // dancing by herself while no one's throwing (Mixamo; all clear of the laptop by 5 cm or more)
+  dance:  { rank: 0.5, clips: ['silly-dancing', 'silly-dancing-1', 'running-man'] },
   talk:   { rank: 1, clips: ['talking', 'talking-1', 'happy-hand-gesture'] },
   secret: { rank: 2, clips: ['telling-a-secret'] },   // offering you the ad: leaning in, as if no one else should hear
   nod:    { rank: 1.5, clips: ['sarcastic-head-nod', 'thoughtful-head-nod', 'lengthy-head-nod'] },
@@ -50,7 +52,7 @@ const SOFTER: Record<string, number> = { 'dismissing-gesture': 0.6, bored: 0.5, 
 /** the long clips, cut short (s), and the very short one played a few times over */
 const HOLD: Record<string, number> = {
   'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, rapping: 5, 'looking-around': 5, laughing: 3.5,
-  excited: 3, victory: 3.5, agreeing: 3, disappointed: 3, thankful: 3,
+  excited: 3, victory: 3.5, 'running-man': 8, agreeing: 3, disappointed: 3, thankful: 3,
 };
 const REPEAT: Record<string, number> = { waving: 5 };
 /** swung like a pendulum, not played: the wave is half a second cut from a longer clip, so at its own pace it's
@@ -79,12 +81,14 @@ export interface OwnerFigure {
   greet(): void;
   /** she offers you the ad (main.ts): telling you a secret */
   secret(): void;
+  /** dev: she dances now */
+  dance(): void;
 }
 
 /** clips not in owner.glb, each a file of its own beside it, loaded once she's there: made from the Mixamo FBX in
  *  _source/owner/anims/ (same skeleton, same units: the tracks go straight on), cut to length and kept as plain
  *  numbers (times once, then each track's values) */
-const EXTRA = ['telling-a-secret', 'head-hit', 'head-hit-1', 'medium-hit-to-head'];
+const EXTRA = ['telling-a-secret', 'head-hit', 'head-hit-1', 'medium-hit-to-head', 'silly-dancing', 'silly-dancing-1', 'running-man'];
 async function extraClip(name: string): Promise<THREE.AnimationClip> {
   const d = await (await fetch(`${BASE}${name}.json`)).json() as { name: string; duration: number; times: number[]; tracks: { n: string; v: number[] }[] };
   const tracks = d.tracks.map((t) => (t.n.endsWith('.quaternion')
@@ -243,7 +247,9 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
   on('coin', ({ method }) => act(method === 'tap' ? 'thanks' : 'pay'));
   on('miss', ({ streak }) => { if (streak >= 3 && streak % 3 === 0) act('laugh'); else if (Math.random() < 0.4) act('nod'); });
   on('near', () => act('near'));
-  on('idle', ({ rings }) => act(rings > 0 || Math.random() < 0.6 ? 'fidget' : 'shoo'));
+  /** of the moments she has nothing to do, how many she dances through */
+  const DANCES = 0.35;
+  on('idle', ({ rings }) => act(Math.random() < DANCES ? 'dance' : rings > 0 || Math.random() < 0.6 ? 'fidget' : 'shoo'));
   on('empty', () => act('bow'));
 
   return {
@@ -298,5 +304,6 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
     talking() { act('talk'); },
     greet() { act('wave'); },
     secret() { act('secret'); },
+    dance() { play('dance'); },
   };
 }
