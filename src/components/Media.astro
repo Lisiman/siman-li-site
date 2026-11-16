@@ -1,5 +1,6 @@
 ---
-// An image, or a silent looping video standing in for a GIF (much lighter).
+// An image, or a silent looping video standing in for a GIF (much lighter). No autoplay: with it the browser fetches every
+// film on the page at once, before any script runs; works.ts loads and plays each only as it nears the screen.
 import type { Media } from '../data/projects';
 
 interface Props {
@@ -9,7 +10,7 @@ interface Props {
 const { m, alt = '' } = Astro.props;
 ---
 {m.kind === 'video' ? (
-  <video autoplay muted loop playsinline preload="metadata" data-from-start={m.fromStart ? '' : undefined} poster={m.poster} width={m.w} height={m.h} aria-label={alt}>
+  <video muted loop playsinline preload="none" data-from-start={m.fromStart ? '' : undefined} poster={m.poster} width={m.w} height={m.h} aria-label={alt}>
     <source src={m.video} type="video/mp4" />
   </video>
 ) : (

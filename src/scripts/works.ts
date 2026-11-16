@@ -89,11 +89,14 @@ buttons.forEach((b) => b.addEventListener('click', () => {
   addEventListener('wheel', stop, { once: true, passive: true }); addEventListener('touchmove', stop, { once: true, passive: true }); addEventListener('keydown', stop, { once: true });   // (the reader scrolls: let go)
 }));
 
-// looping videos: pause while off screen, stay still for reduced motion
+// looping videos (preload="none", no autoplay: see Media.astro): each loads and plays only as it nears the screen,
+// pauses while off it, and stays a still poster for reduced motion
 const videos = document.querySelectorAll<HTMLVideoElement>('.works .ph video');   // the Images cards only; the Index previews play on hover (below)
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
   videos.forEach((v) => { v.removeAttribute('autoplay'); v.pause(); });
-} else if ('IntersectionObserver' in window) {
+} else if (!('IntersectionObserver' in window)) {
+  videos.forEach((v) => { void v.play().catch(() => undefined); });
+} else {
   const io = new IntersectionObserver((entries) => entries.forEach((e) => {
     const v = e.target as HTMLVideoElement;
     if (e.isIntersecting) v.play().catch(() => undefined); else v.pause();

@@ -1,0 +1,29 @@
+# Cache rules for the static files Cloudflare serves. Pages themselves keep the default (always revalidated, so a push
+# shows at once); rules match by extension, since /work/*, /art/*, /play/* hold pages as well as files.
+
+# Astro's build output: every file name carries a hash of its content, so it never changes under the same name
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# fonts: not hashed (a re-cut subset may keep its name), so a week like the pictures
+/fonts/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# pictures and films: a week in the browser, then revalidated (a file replaced at the same path shows within the week,
+# or at once after a hard reload)
+/*.mp4
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.webm
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.jpg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.png
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.webp
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.mp3
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+/*.m4a
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
