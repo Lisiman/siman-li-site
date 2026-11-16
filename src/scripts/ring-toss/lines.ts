@@ -23,7 +23,8 @@ export type Pool =
   | 'restockNew'  // …and some of it you've never seen before
   | 'complete'    // you've found every prize there is
   | 'closing'     // three left to find: she wants to go home, so the rings get bigger
-  | 'lastOne';    // one left to find
+  | 'lastOne'     // one left to find
+  | 'adOffer';    // five misses in a row: she offers the ad (main.ts asks, in her terminal)
 
 export const LINES: Record<Pool, string[]> = {
   open: ['Hey, hey! Welcome to Lucky 88!', "Oh, look who's here! Feeling lucky?", "Come on and play! Don't be shy.", 'Ten rings, five bucks. What a deal, right?', 'Five bucks for ten chances at glory!'],
@@ -58,13 +59,14 @@ export const LINES: Record<Pool, string[]> = {
     "Three left?! Here. Big ring. Please. I'm begging you.",
   ],
   lastOne: ['Last one. Get it so I can close up.'],
+  adOffer: ["Psst… wanna cheat a little? Watch a 5-sec ad, your next 5 rings are lucky. Don't tell anyone."],
   end: ["Congratulations. You own Lucky 88 now.", "Not bad! Wanna go again?", "That's a wrap! Come back soon!", "Well... at least you had fun. Right?", "You know what? I admire your consistency.", "Look at all those prizes! Show-off."],
   empty: ['Out of rings. Lucky you, I sell more.', 'Ten more? I give you a good price.'],
 };
 
 /** the pools Siman has recorded: line i of each is public/play/no-cash-only/voice/<pool>-<i+1>.mp3 (made from
  *  _source/voice/), so keep these lists in the order of the files. The rest are shown, not said. */
-export const VOICED: Pool[] = ['open', 'payCash', 'payTap', 'miss', 'missStreak', 'near', 'win', 'streak', 'jackpot', 'end', 'owner', 'mine', 'restock', 'restockNew', 'complete', 'clink', 'payBoth', 'idle', 'empty', 'closing', 'lastOne'];
+export const VOICED: Pool[] = ['open', 'payCash', 'payTap', 'miss', 'missStreak', 'near', 'win', 'streak', 'jackpot', 'end', 'owner', 'mine', 'restock', 'restockNew', 'complete', 'clink', 'payBoth', 'idle', 'empty', 'closing', 'lastOne', 'adOffer'];
 /** which of the 'end' lines, by how the round went: prizes won */
 export const END = { great: [0, 5], ok: [1, 2], bad: [3, 4] } as const;
 export const endMood = (wins: number): keyof typeof END => (wins >= 3 ? 'great' : wins >= 1 ? 'ok' : 'bad');

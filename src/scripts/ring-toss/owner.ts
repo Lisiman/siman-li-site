@@ -24,6 +24,7 @@ const ACTS = {
   idle:   { rank: 0, clips: ['happy-idle', 'idle', 'happy-idle-1'] },
   fidget: { rank: 0.5, clips: ['looking-around', 'texting-while-standing', 'bored', 'yawn', 'rapping'] },
   talk:   { rank: 1, clips: ['talking', 'talking-1', 'happy-hand-gesture'] },
+  secret: { rank: 2, clips: ['telling-a-secret'] },   // offering you the ad: leaning in, as if no one else should hear
   nod:    { rank: 1.5, clips: ['sarcastic-head-nod', 'thoughtful-head-nod', 'lengthy-head-nod'] },
   near:   { rank: 1.5, clips: ['shrugging', 'disappointed'] },
   wave:   { rank: 2, clips: ['waving'] },
@@ -40,7 +41,7 @@ const ACTS = {
 type Act = keyof typeof ACTS;
 /** the long clips, cut short (s), and the very short one played a few times over */
 const HOLD: Record<string, number> = {
-  'talking-1': 4.5, 'texting-while-standing': 7, bored: 6, yawn: 4.5, rapping: 5, 'looking-around': 5, laughing: 3.5,
+  'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, yawn: 4.5, rapping: 5, 'looking-around': 5, laughing: 3.5,
   excited: 3, victory: 3.5, agreeing: 3, disappointed: 3, thankful: 3,
 };
 const REPEAT: Record<string, number> = { waving: 5 };
@@ -65,6 +66,20 @@ export interface OwnerFigure {
   talking(): void;
   /** the opening: she waves you over */
   greet(): void;
+  /** she offers you the ad (main.ts): telling you a secret */
+  secret(): void;
+}
+
+/** clips not in owner.glb, each a file of its own beside it, loaded once she's there: made from the Mixamo FBX in
+ *  _source/owner/anims/ (same skeleton, same units: the tracks go straight on), cut to length and kept as plain
+ *  numbers (times once, then each track's values) */
+const EXTRA = ['telling-a-secret'];
+async function extraClip(name: string): Promise<THREE.AnimationClip> {
+  const d = await (await fetch(`${BASE}${name}.json`)).json() as { name: string; duration: number; times: number[]; tracks: { n: string; v: number[] }[] };
+  const tracks = d.tracks.map((t) => (t.n.endsWith('.quaternion')
+    ? new THREE.QuaternionKeyframeTrack(t.n, d.times, t.v)
+    : new THREE.VectorKeyframeTrack(t.n, d.times, t.v)));
+  return new THREE.AnimationClip(d.name, d.duration, tracks);
 }
 
 export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.Object3D, eye?: THREE.Object3D): OwnerFigure {
@@ -156,6 +171,7 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
     // has them, so only the animated skeleton says where his feet really are
     mixer = new THREE.AnimationMixer(root);
     for (const clip of gltf.animations) actions.set(clip.name, mixer.clipAction(clip));
+    for (const name of EXTRA) void extraClip(name).then((c) => { if (mixer) actions.set(c.name, mixer.clipAction(c)); }).catch(() => { /* not loaded: she just talks */ });
     play('idle');
     mixer.update(0);
     // the right size, feet on the ground, where the greybox stood. Measured on the skeleton (the head, the toes,
@@ -229,5 +245,6 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
     },
     talking() { act('talk'); },
     greet() { act('wave'); },
+    secret() { act('secret'); },
   };
 }

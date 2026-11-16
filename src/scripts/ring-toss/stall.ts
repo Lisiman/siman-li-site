@@ -215,9 +215,11 @@ export function buildOwner(scene: THREE.Scene): { owner: Owner; table: Slot; fig
 }
 
 export interface Talk {
-  say(text: string, rank?: number): void;
+  /** hold: nothing cuts in till it's been said in full (meanwhile only the latest line waits: said after, it's about
+   *  what has just happened, not what happened before) */
+  say(text: string, rank?: number, hold?: boolean): void;
   /** one line from a pool (not the one it said last) */
-  line(pool: Pool, rank?: number): void;
+  line(pool: Pool, rank?: number, hold?: boolean): void;
   /** what his terminal shows between lines (your odds, or a nudge to buy); null to show nothing */
   status(text: string | null): void;
 }
@@ -229,6 +231,9 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
   let shownAt = 0, shownRank = 0, timer = 0, typing = 0;
   let current: string | null = null;
   const last = new Map<Pool, string>();
+  /** a line being said that nothing may cut into (say's hold), and what's waiting for it to be over */
+  let holding = false;
+  let waiting: { t: string; rank: number } | null = null;
 
   const show = (t: string | null): void => {
     term.classList.toggle('is-on', !!t);
@@ -245,15 +250,20 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
       if (i >= t.length) { clearInterval(typing); term.classList.remove('is-typing'); }
     }, 24);
   };
-  const say = (t: string, rank = 1): void => {
+  const say = (t: string, rank = 1, hold = false): void => {
+    if (holding) { waiting = { t, rank }; return; }
     const now = performance.now();
     if (rank < shownRank && now - shownAt < 1800) return;
+    holding = hold;
     shownAt = now;
     shownRank = rank;
     spoken.textContent = t;
     onLine?.();
     type(t);
-    const done = (): void => { shownRank = 0; clearInterval(typing); term.classList.remove('is-typing'); show(current); };
+    const done = (): void => {
+      shownRank = 0; clearInterval(typing); term.classList.remove('is-typing'); show(current);
+      if (hold) { holding = false; const w = waiting; waiting = null; if (w) say(w.t, w.rank); }
+    };
     clearTimeout(timer);
     timer = window.setTimeout(done, 2600 + t.length * 45);
     // when it's recorded, the words stay up as long as she's saying them, and a little after
@@ -264,13 +274,13 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
     current = t;
     if (shownRank === 0) show(t);
   };
-  const pick = (pool: Pool, rank = 1, chance = 1, only?: readonly number[]): void => {
-    if (Math.random() > chance) return;
+  const pick = (pool: Pool, rank = 1, chance = 1, only?: readonly number[], hold = false): void => {
+    if (!holding && Math.random() > chance) return;   // (while a held line's said, every one: the last of them is the one said after)
     const lines = only ? only.map((i) => LINES[pool][i]) : LINES[pool];
     const options = lines.length > 1 ? lines.filter((l) => l !== last.get(pool)) : lines;
     const line = options[Math.floor(Math.random() * options.length)];
     last.set(pool, line);
-    say(line, rank);
+    say(line, rank, hold);
   };
 
   on('coin', ({ method, both }) => pick(both ? 'payBoth' : method === 'cash' ? 'payCash' : 'payTap', 2));
@@ -299,5 +309,5 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
     const a = ASK.find((q) => q.id === id)?.a;
     if (a) say(a[Math.floor(Math.random() * a.length)], 5);
   });
-  return { say, status, line: (pool, rank = 1) => pick(pool, rank) };
+  return { say, status, line: (pool, rank = 1, hold = false) => pick(pool, rank, 1, undefined, hold) };
 }

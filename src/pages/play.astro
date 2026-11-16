@@ -78,24 +78,18 @@ const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean; long?: boolea
 siman.li</b></pre>
       <button class="rt-summary-close" type="button">Close</button>
     </div>
-    <!-- five misses in a row: an ad, as in a phone game, for luckier rings. The ad is Siman, for hire (ad.ts) -->
-    <div class="rt-ad" id="rt-ad" data-state="off" role="dialog" aria-modal="true" aria-label="Watch an ad for lucky rings">
+    <!-- the ad, once you've said yes to it (her terminal asks: main.ts): Siman, for hire (ad.ts) -->
+    <div class="rt-ad" id="rt-ad" data-state="off" role="dialog" aria-modal="true" aria-label="Ad">
       <div class="rt-ad-card">
-        <div class="rt-ad-offer">
-          <p class="rt-ad-kicker">Sponsored</p>
-          <p class="rt-ad-title">Down on your luck?</p>
-          <p class="rt-ad-body">Watch one short ad and your next <b>5 rings</b> are lucky: bigger, gold, about <b>3×</b> the odds.</p>
-          <div class="rt-ad-thumb"><img src="/play/no-cash-only/ad-poster.jpg" alt="" width="860" height="482" loading="lazy" /><span aria-hidden="true">▶</span></div>
-          <div class="rt-ad-btns">
-            <button type="button" class="rt-ad-watch">Watch ad ▶</button>
-            <button type="button" class="rt-ad-no">No thanks</button>
-          </div>
-        </div>
         <div class="rt-ad-film">
-          <div class="rt-ad-bar"><span class="rt-ad-tag">Ad</span><span class="rt-ad-count" aria-live="off"></span><button type="button" class="rt-ad-x" aria-label="Close">×</button></div>
-          <video class="rt-ad-video" src="/play/no-cash-only/ad.mp4" poster="/play/no-cash-only/ad-poster.jpg" playsinline preload="none"></video>
+          <div class="rt-ad-bar"><span class="rt-ad-tag">Ad</span><span class="rt-ad-label">Shameless self-promotion</span><span class="rt-ad-count" aria-live="off"></span><button type="button" class="rt-ad-x" aria-label="Close">×</button></div>
+          <div class="rt-ad-screen">
+            <video class="rt-ad-video" src="/play/no-cash-only/ad.mp4" poster="/play/no-cash-only/ad-poster.jpg" playsinline preload="none"></video>
+            <!-- once it's over: her head and hands keep going, the titles all up, round and round (silent) -->
+            <video class="rt-ad-video rt-ad-loop" src="/play/no-cash-only/ad-loop.mp4" playsinline muted loop preload="none" aria-hidden="true"></video>
+          </div>
           <div class="rt-ad-btns rt-ad-after">
-            <a class="rt-ad-hire" href="https://www.linkedin.com/in/siman-li-965b73130/" target="_blank" rel="noopener">Hire Siman →</a>
+            <a class="rt-ad-hire" href="https://www.linkedin.com/in/siman-li-965b73130/" target="_blank" rel="noopener">LinkedIn ↗</a>
             <button type="button" class="rt-ad-claim">Claim 5 lucky rings ✓</button>
           </div>
         </div>
@@ -103,7 +97,14 @@ siman.li</b></pre>
     </div>
     <!-- how hard: a string of bulbs like the stall's, lit from the bottom up (main.ts) -->
     <div class="rt-power" id="rt-power" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="rt-term" id="rt-term" aria-hidden="true"><pre id="rt-term-text"></pre></div>
+    <div class="rt-term" id="rt-term"><pre id="rt-term-text" aria-hidden="true"></pre>
+      <!-- five misses in a row: she offers the ad (says it: lines.ts adOffer), and this stays under whatever she's saying
+           till you answer or throw (main.ts) -->
+      <div class="rt-term-ask" id="rt-term-ask" role="group" aria-label="Watch an ad for lucky rings?">
+        <p>5-sec ad &rarr; next 5 rings lucky (3&times; odds)</p>
+        <div><button type="button" data-answer="y">[Y] Deal. 🤫</button><button type="button" data-answer="n">[N] I'll pass</button></div>
+      </div>
+    </div>
     <p class="rt-spoken" id="rt-spoken" aria-live="polite"></p>
     {dev && <ol class="rt-log" id="rt-log"></ol>}
     <!-- the opening, on black, like a film (opening.ts); the stall loads behind it -->
@@ -167,8 +168,8 @@ siman.li</b></pre>
   .rt-top > * { pointer-events: auto; }
   /* the sound switch: four little level bars, like a meter on a mixing desk, that dance while it plays and lie flat
      when it doesn't; and the word, in the type of the rest. Above everything, the opening too */
-  .rt-sound { position: absolute; z-index: 40; top: 10px; right: 8px; display: flex; align-items: baseline; gap: 9px; padding: 6px 8px; font: 12px/1 'Courier Prime', var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #f3ead899; background: none; border: 0; cursor: pointer; transition: color .25s; }
-  .rt-sound:hover { color: #f3ead8; }
+  .rt-sound { position: absolute; z-index: 40; top: 10px; right: 8px; display: flex; align-items: baseline; gap: 9px; padding: 6px 8px; font: 12px/1 'Courier Prime', var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #f3ead899; background: none; border: 0; cursor: pointer; transition: color var(--hover), translate var(--hover); }
+  .rt-sound:hover { color: #f3ead8; translate: 0 -1px; }
   .rt-sound:focus-visible { outline: 1px solid #f3ead8; outline-offset: 2px; }
   /* the words end exactly 16px from the right, as SIMAN LI starts 16px from the left: the padding (8px) is outside
      that line, and the spacing after the last letter is taken back. ON and OFF plain, not bold */
@@ -176,7 +177,7 @@ siman.li</b></pre>
   .rt-sound-label b { margin-left: .61em; font-weight: 400; }
   /* the bars stand on the text's baseline and reach its cap height, so they line up with the capitals */
   .rt-sound-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: .62em; }
-  .rt-sound-bars i { width: 2px; height: 100%; background: currentColor; transform-origin: bottom; transform: scaleY(.15); transition: transform .4s cubic-bezier(.2,.8,.2,1); }
+  .rt-sound-bars i { width: 2px; height: 100%; background: currentColor; transform-origin: bottom; transform: scaleY(.15); transition: transform var(--hover); }
   .rt-sound.is-on .rt-sound-bars i { animation: rt-level 1s ease-in-out infinite alternate; }
   .rt-sound.is-on .rt-sound-bars i:nth-child(2) { animation-duration: .7s; animation-delay: -.3s; }
   .rt-sound.is-on .rt-sound-bars i:nth-child(3) { animation-duration: .85s; animation-delay: -.6s; }
@@ -198,6 +199,16 @@ siman.li</b></pre>
   .rt-term pre::before { content: '\203A'; display: inline-block; width: 1.3em; color: #8b85ff; font-weight: 700; text-shadow: 0 0 8px #635bff99; }
   .rt-term pre::after { content: '\2588'; margin-left: 2px; color: #f3ead8; text-shadow: 0 0 8px #f3ead888; animation: rt-caret 1s steps(1) infinite; }
   .rt-term.is-typing pre::after { animation: none; }
+  /* her offer of the ad: a question, and two answers to click (or Y, N on the keys) */
+  .rt-term-ask { display: none; margin-top: 10px; padding-top: 9px; border-top: 1px dashed #f3ead833; font: 400 12px/1.45 'Courier Prime', var(--mono); letter-spacing: .06em; text-transform: uppercase; color: #f7d67eb3; }
+  .rt-term-ask p { margin: 0; text-shadow: 0 0 6px #f2c14e33; }
+  .rt-term-ask div { display: flex; gap: 8px; margin-top: 8px; }
+  .rt-term-ask button { position: relative; z-index: 1; flex: 1; padding: 7px 6px; border: 1px solid #f3ead855; border-radius: 3px; background: none; color: #f3ead8; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: background-color var(--hover), color var(--hover), border-color var(--hover), translate var(--hover); }
+  .rt-term-ask button[data-answer="y"] { border-color: #f2c14e99; color: #f7d67ed9; }
+  .rt-term-ask button:hover { background: #f3ead8; color: #0d0d0d; border-color: #f3ead8; translate: 0 -1px; }
+  .rt-term-ask button[data-answer="y"]:hover { background: #f2c14e; border-color: #f2c14e; color: #0d0d0d; }
+  .rt-term.is-asking { opacity: 1; pointer-events: auto; }
+  .rt-term.is-asking .rt-term-ask { display: block; }
   @keyframes rt-caret { 50% { opacity: 0; } }
   .rt-spoken { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   /* the power, swinging while you hold */
@@ -210,12 +221,12 @@ siman.li</b></pre>
   /* the labels over the cash tin and the card reader */
   /* the labels, in the opening's type: a terminal tag in brackets, no box. They don't move: pointing at one only
      brightens it (and its spotlight comes up, pay.ts) */
-  .rt-pay { position: absolute; left: 0; top: 0; font: 700 13px/1 'Courier Prime', var(--mono); letter-spacing: .18em; text-transform: uppercase; color: #f3ead8b3; background: #000000a6; border: 1px solid #f3ead833; border-radius: 2px; padding: 8px 11px; opacity: 0; pointer-events: none; transition: opacity .25s, color .25s, border-color .25s, text-shadow .25s; }
+  .rt-pay { position: absolute; left: 0; top: 0; font: 700 13px/1 'Courier Prime', var(--mono); letter-spacing: .18em; text-transform: uppercase; color: #f3ead8b3; background: #000000a6; border: 1px solid #f3ead833; border-radius: 2px; padding: 8px 11px; opacity: 0; pointer-events: none; transition: opacity .25s, color var(--hover), border-color var(--hover), text-shadow var(--hover), translate var(--hover); }
   .rt-pay::before { content: '[ '; } .rt-pay::after { content: ' ]'; }
   .rt-pay--tap { color: #8b85ffd9; }
   .rt-pay.is-on { opacity: 1; pointer-events: auto; }   /* (they stay still: no bobbing) */
   /* pointing at the label, or at its thing in the stall: it grows a little and glows */
-  .rt-pay:is(:hover, .is-hover) { color: #f3ead8; border-color: #f3ead899; text-shadow: 0 0 8px #f3ead866; }
+  .rt-pay:is(:hover, .is-hover) { color: #f3ead8; border-color: #f3ead899; text-shadow: 0 0 8px #f3ead866; translate: 0 -1px; }
   .rt-pay--tap:is(:hover, .is-hover) { color: #fff; border-color: #8b85ff; text-shadow: 0 0 6px #635bff, 0 0 16px #635bffaa; }
   .rt-pay:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
   /* a till receipt, sliding up from the bottom right */
@@ -263,7 +274,7 @@ siman.li</b></pre>
   .rt-summary.is-complete .rt-summary-done { display: block; }
   .rt-summary.is-complete > .rt-summary-foot, .rt-summary.is-complete > .rt-summary-pay { display: none; }
   .rt-summary-done .rt-summary-foot { line-height: 1.7; }
-  .rt-summary-done .rt-summary-pay > * { flex: 1; display: block; text-align: center; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; text-decoration: none; transition: background-color .25s, color .25s, translate .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .rt-summary-done .rt-summary-pay > * { flex: 1; display: block; text-align: center; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; text-decoration: none; transition: background-color var(--hover), color var(--hover), translate var(--hover), box-shadow var(--hover); }
   .rt-summary-done .rt-summary-pay > *:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; }
   .rt-summary-done .rt-more { background: #635bff; border-color: #635bff; color: #fff; }
   .rt-summary-done .rt-more:hover { background: #7a73ff; border-color: #7a73ff; color: #fff; box-shadow: 0 4px 16px #635bff66; }
@@ -312,7 +323,7 @@ siman.li</b></pre>
   .rt-tag-line { display: block; color: #1d1b17cc; }
   @media (prefers-reduced-motion: reduce) { .rt-tag.is-on { animation: none; } }
   .rt-summary-pay { display: flex; gap: 10px; margin-top: 14px; }
-  .rt-summary-pay button { flex: 1; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; transition: background-color .25s, color .25s, border-color .25s, box-shadow .25s, translate .25s cubic-bezier(.2,.8,.2,1); }
+  .rt-summary-pay button { flex: 1; font: 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; padding: 11px 0; border: 1px solid #1d1b17; background: transparent; color: #1d1b17; transition: background-color var(--hover), color var(--hover), border-color var(--hover), box-shadow var(--hover), translate var(--hover); }
   /* both answer alike, over the same quarter second: filled darker, lifted a pixel, a soft shadow under */
   .rt-summary-pay button:hover { background: #1d1b17; color: #f6f1e4; translate: 0 -1px; box-shadow: 0 4px 16px #1d1b1733; }
   .rt-summary-pay button[data-pay="tap"] { background: #635bff; border-color: #635bff; color: #fff; }
@@ -376,7 +387,7 @@ siman.li</b></pre>
   .rt-cine-rest { visibility: hidden; }
   .rt-cine-cursor { display: inline-block; width: 0; overflow: visible; color: var(--cine-ink); font-weight: 400; text-shadow: 0 0 8px #f3ead888; animation: rt-caret 1s steps(1) infinite; }
   /* Step right up: just bold type in blurple; on hover it decodes itself (opening.ts), lights up, and a scan line runs under it */
-  .rt-cine-cta { position: relative; display: inline-flex; align-items: center; gap: .7em; padding: 8px 4px; font: 700 14px/1 'Courier Prime', var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--cine-blue-lt); background: none; border: 0; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .4s ease, color .25s, text-shadow .25s, letter-spacing .35s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-cta { position: relative; display: inline-flex; align-items: center; gap: .7em; padding: 8px 4px; font: 700 14px/1 'Courier Prime', var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--cine-blue-lt); background: none; border: 0; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .4s ease, color var(--hover), text-shadow var(--hover), letter-spacing var(--hover), translate var(--hover); }
   .rt-cine-ctas { display: grid; justify-items: center; margin-top: 2.8em; }
   .rt-cine-ctas > * { grid-area: 1 / 1; }   /* the two in the same spot */
   .rt-cine-sound { margin: 1.4em 0 0; font-size: 10px; letter-spacing: .18em; color: var(--cine-blue-lt); text-shadow: 0 0 8px #635bff55; transition: opacity .6s; animation: rt-breathe 2.6s ease-in-out infinite; }
@@ -385,13 +396,13 @@ siman.li</b></pre>
   @media (pointer: coarse) { .rt-cine-sound-mouse { display: none; } .rt-cine-sound-touch { display: inline; } }
   @keyframes rt-breathe { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
   .rt-cine-cta.is-on { opacity: 1; pointer-events: auto; }
-  .rt-cine-cta::before, .rt-cine-cta::after { position: absolute; top: 50%; translate: 0 -50%; color: var(--cine-blue); opacity: 0; transition: opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1); }
+  .rt-cine-cta::before, .rt-cine-cta::after { position: absolute; top: 50%; translate: 0 -50%; color: var(--cine-blue); opacity: 0; transition: opacity var(--hover), transform var(--hover); }
   .rt-cine-cta::before { content: '['; left: -1.2em; transform: translateX(8px); }
   .rt-cine-cta::after { content: ']'; right: -1.2em; transform: translateX(-8px); }
   .rt-cine-cta-label { position: relative; }
-  .rt-cine-cta-label::after { content: ''; position: absolute; left: 0; right: -.2em; bottom: -9px; height: 1px; background: linear-gradient(90deg, transparent, var(--cine-blue) 30%, #fff 50%, var(--cine-blue) 70%, transparent); background-size: 200% 100%; box-shadow: 0 0 8px var(--cine-blue); transform: scaleX(0); transform-origin: left; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
-  .rt-cine-cta-arrow { display: inline-block; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-  .rt-cine-cta:is(:hover, :focus-visible) { color: #fff; letter-spacing: .26em; text-shadow: 0 0 6px var(--cine-blue), 0 0 18px #635bffaa, 0 0 36px #635bff66; outline: none; }
+  .rt-cine-cta-label::after { content: ''; position: absolute; left: 0; right: -.2em; bottom: -9px; height: 1px; background: linear-gradient(90deg, transparent, var(--cine-blue) 30%, #fff 50%, var(--cine-blue) 70%, transparent); background-size: 200% 100%; box-shadow: 0 0 8px var(--cine-blue); transform: scaleX(0); transform-origin: left; transition: transform var(--hover); }
+  .rt-cine-cta-arrow { display: inline-block; transition: transform var(--hover); }
+  .rt-cine-cta:is(:hover, :focus-visible) { color: #fff; letter-spacing: .26em; text-shadow: 0 0 6px var(--cine-blue), 0 0 18px #635bffaa, 0 0 36px #635bff66; outline: none; translate: 0 -1px; }
   .rt-cine-cta:is(:hover, :focus-visible)::before, .rt-cine-cta:is(:hover, :focus-visible)::after { opacity: 1; transform: none; text-shadow: 0 0 8px var(--cine-blue); }
   .rt-cine-cta:is(:hover, :focus-visible) .rt-cine-cta-label::after { transform: scaleX(1); animation: rt-scan 1.4s linear infinite; }
   .rt-cine-cta:is(:hover, :focus-visible) .rt-cine-cta-arrow { transform: translateX(5px); animation: rt-nudge .9s ease-in-out infinite; }
@@ -400,39 +411,34 @@ siman.li</b></pre>
   .rt-cine-cta:disabled { cursor: progress; }
   @media (prefers-reduced-motion: reduce) { .rt-cine::before, .rt-cine::after, .rt-cine-cta *, .rt-cine.is-glitch .rt-cine-in { animation: none !important; } .rt-cine.is-off { animation: none; opacity: 0; transition: opacity .6s; } }
   .rt-log { position: absolute; left: 16px; top: 52px; margin: 0; padding: 0; list-style: none; font-size: 11px; line-height: 1.5; opacity: .7; pointer-events: none; max-width: min(520px, 90vw); }
-  /* the ad (ad.ts): first a card asking, like the receipt; then the film, in black, with a bar over it as a phone game's
-     ads have (AD, the seconds to the reward, ×); at its end, Hire Siman and the reward */
+  /* the ad (ad.ts), once you've said yes to it in her terminal: the film, in black, with a bar over it as a phone
+     game's ads have (AD, the seconds to the reward, ×); at its end, Hire Siman and the reward */
   .rt-ad { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: #0a0f1e8c; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .3s; }
   .rt-ad:not([data-state="off"]) { opacity: 1; pointer-events: auto; }
-  .rt-ad-card { width: min(380px, 100%); max-height: 100%; overflow-y: auto; scrollbar-width: none; padding: 22px 22px 24px; background: #f6f1e4; color: #1d1b17; box-shadow: 0 24px 80px #000b; font: 13px/1.5 'Courier Prime', var(--mono); transform: translateY(10px) scale(.97); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+  .rt-ad-card { width: min(448px, 100%); max-height: 100%; overflow-y: auto; scrollbar-width: none; padding: 12px 12px 14px; background: #0d0d0d; color: #f3ead8; border: 2px solid #f2c14e; box-shadow: 0 0 5px #f2c14eaa, 0 0 16px #f2c14e55, 0 0 40px #f2c14e26, inset 0 0 14px #f2c14e26, 0 24px 80px #000b; font: 13px/1.5 'Courier Prime', var(--mono); transform: translateY(10px) scale(.97); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
   .rt-ad:not([data-state="off"]) .rt-ad-card { transform: none; }
-  .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-card { width: min(800px, 100%); padding: 10px 10px 12px; background: #0d0d0d; color: #f3ead8; }
-  .rt-ad-film, .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-offer { display: none; }
-  .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-film { display: block; }
-  .rt-ad p { margin: 0; }
-  .rt-ad-kicker { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: #d42a20; }
-  .rt-ad-kicker::before { content: '● '; }
-  .rt-ad-title { margin-top: 6px !important; font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; }
-  .rt-ad-body { margin-top: 8px !important; }
-  .rt-ad-thumb { position: relative; margin-top: 14px; border: 1px solid #1d1b17; }
-  .rt-ad-thumb img { display: block; width: 100%; height: auto; }
-  .rt-ad-thumb span { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; translate: -50% -50%; display: grid; place-items: center; padding-left: 4px; border-radius: 50%; background: #d42a20; color: #fff; font-size: 18px; box-shadow: 0 4px 18px #0006; }
   .rt-ad-btns { display: flex; gap: 10px; margin-top: 16px; }
-  .rt-ad-btns > * { flex: 1; display: block; padding: 11px 6px; border: 1px solid currentColor; background: transparent; color: inherit; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; text-decoration: none; cursor: pointer; transition: background-color .25s, color .25s, translate .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .rt-ad-btns > * { flex: 1; display: block; padding: 11px 6px; border: 1px solid currentColor; background: transparent; color: inherit; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; text-decoration: none; cursor: pointer; transition: background-color var(--hover), color var(--hover), translate var(--hover), box-shadow var(--hover); }
   .rt-ad-btns > *:hover { translate: 0 -1px; }
-  .rt-ad-watch, .rt-ad-hire { background: #d42a20 !important; border-color: #d42a20 !important; color: #fff !important; }
-  .rt-ad-watch:hover, .rt-ad-hire:hover { background: #e8473b !important; box-shadow: 0 4px 16px #d42a2066; }
-  .rt-ad-no:hover { background: #1d1b17; color: #f6f1e4; }
-  .rt-ad-claim:hover { background: #f3ead8; color: #0d0d0d; }
-  .rt-ad-bar { display: flex; align-items: center; gap: 10px; padding: 0 0 8px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
-  .rt-ad-tag { padding: 3px 6px 2px; background: #f2c14e; color: #0d0d0d; font-weight: 700; }
-  .rt-ad-count { flex: 1; color: #f3ead8b3; }
-  .rt-ad-x { width: 28px; height: 28px; padding: 0; border: 1px solid #f3ead855; border-radius: 50%; background: none; color: #f3ead8; font: 16px/1 var(--mono); cursor: pointer; }
-  .rt-ad-x:hover { border-color: #f3ead8; }
-  .rt-ad-video { display: block; width: 100%; max-height: calc(100dvh - 150px); aspect-ratio: 1292 / 724; object-fit: contain; background: #000; }
-  .rt-ad-after { visibility: hidden; margin-top: 10px; }
-  .rt-ad[data-state="done"] .rt-ad-after { visibility: visible; animation: rt-ad-in .4s cubic-bezier(.2,.8,.2,1); }
-  @keyframes rt-ad-in { from { opacity: 0; translate: 0 6px; } }
+  .rt-ad-hire { background: #f2c14e !important; border-color: #f2c14e !important; color: #0d0d0d !important; box-shadow: 0 0 6px #f2c14eaa, 0 0 18px #f2c14e44; }
+  .rt-ad-hire:hover { background: #f7d67e !important; border-color: #f7d67e !important; box-shadow: 0 0 8px #f2c14e, 0 0 24px #f2c14e99, 0 0 44px #f2c14e44; }
+  .rt-ad-claim { border-color: #f3ead84d !important; color: #f3ead8cc !important; }
+  .rt-ad-claim:hover { background: #f3ead8; border-color: #f3ead8 !important; color: #0d0d0d !important; }
+  .rt-ad-bar { display: flex; align-items: center; gap: 10px; padding: 0 0 8px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+  .rt-ad-tag { padding: 3px 6px 2px; background: #f2c14e; color: #0d0d0d; font-weight: 700; box-shadow: 0 0 6px #f2c14ecc, 0 0 16px #f2c14e66; }
+  .rt-ad-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f7d67e; text-shadow: 0 0 6px #f2c14e88; }   /* and it knows it */
+  .rt-ad-count { color: #f3ead899; white-space: nowrap; }
+  .rt-ad-x { width: 22px; height: 22px; padding: 0; border: 1px solid #f3ead84d; font-size: 13px !important; border-radius: 50%; background: none; color: #f3ead8; font: 16px/1 var(--mono); cursor: pointer; transition: color var(--hover), border-color var(--hover), translate var(--hover); }
+  .rt-ad-x:hover { border-color: #f2c14e; color: #fff; box-shadow: 0 0 6px #f2c14eaa; translate: 0 -1px; }
+  .rt-ad-video { display: block; width: 100%; max-height: calc((100dvh - 150px) * .56); aspect-ratio: 1292 / 724; object-fit: contain; background: #000; }
+  .rt-ad-screen { position: relative; }
+  .rt-ad-loop { position: absolute; inset: 0; height: 100%; opacity: 0; }
+  .rt-ad-loop.is-on { opacity: 1; }
+  .rt-ad-after { margin-top: 10px; }
+  /* the reward can't be claimed till it's watched: there all along, dim, and it lights up at the end */
+  .rt-ad[data-state="play"] .rt-ad-claim { opacity: .3; pointer-events: none; }
+  .rt-ad[data-state="done"] .rt-ad-claim { animation: rt-ad-lit .5s cubic-bezier(.2,.8,.2,1); }
+  @keyframes rt-ad-lit { from { opacity: .3; } 40% { opacity: 1; box-shadow: 0 0 10px #f3ead8aa; } }
   /* (last, so it wins over the rules above) */
   /* a phone on its side: little height, so the boxes over the stall come down in size */
   @media (max-height: 520px) {
@@ -447,6 +453,8 @@ siman.li</b></pre>
     .rt-cine > .rt-status { display: none; }
     .rt-term { max-width: 170px; padding: 6px 9px 7px; border-radius: 6px; }   /* within the owner's stand: clear of the prizes and of Cash */
     .rt-term pre { font-size: 9.5px; letter-spacing: .06em; }
+    .rt-term-ask { margin-top: 6px; padding-top: 6px; font-size: 9px; }
+    .rt-term-ask button { padding: 6px 4px; font-size: 9.5px; }
     .rt-receipt { zoom: .7; }
     .rt-summary { zoom: .78; width: min(460px, calc(100vw - 32px)); padding: 16px 22px 20px; }
     .rt-summary-logo { width: 38%; margin-bottom: 6px; }
@@ -459,8 +467,7 @@ siman.li</b></pre>
     .rt-hint { font-size: 11px; bottom: 5%; }
     .rt-ad { padding: 8px; }
     .rt-ad-card { zoom: .85; }
-    .rt-ad-thumb { display: none; }
-    .rt-ad-video { max-height: calc(100dvh - 120px); }
+    .rt-ad-video { max-height: calc((100dvh - 120px) * .56); }
   }
 </style>
 

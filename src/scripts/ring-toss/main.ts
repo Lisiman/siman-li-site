@@ -200,12 +200,59 @@ let cleanedOut = false;   // the ring just down won the last prize not yet found
 /** the round is over and its receipt is on its way: no paying for more till it's up (paid then, at the stall, the
  *  receipt came up over a new round, and its own Cash and Tap did nothing) */
 let ending = false;
-const ad = setupAd(() => { luckyLeft = AD_REWARD; refreshLuck(); });
-function maybeAd(): void {
-  if (missStreak < AD_AFTER || rings <= 0 || luckyLeft > 0 || adRound === roundsPaid || adWatched()) return;
-  adRound = roundsPaid;
-  window.setTimeout(() => ad.offer(), 700);
+/** the round's last ring was the fifth miss in a row: its receipt waits on her offer. Watched, the five lucky rings
+ *  are on the house (no paying for them), and the round goes on; said no to (or let be, END_WAIT s), the receipt */
+let endWaiting = false, endTimer = 0;
+const END_WAIT = 15;
+/** the round's over: her line about it, and the receipt */
+function endRound(): void {
+  emit('empty', { wins: roundWins.length });
+  ending = true;
+  window.setTimeout(summary, 1400);
 }
+const ad = setupAd(() => {
+  luckyLeft = AD_REWARD;
+  // no rings to make lucky (the round's over, or none paid for yet): the five are on the house
+  if (endWaiting || rings === 0 && flying.length === 0 && !ready && fetching === null) {
+    endWaiting = false;
+    ending = false;
+    rings += AD_REWARD;
+    showRings();
+  }
+  refreshLuck();
+}, (watched) => {
+  if (watched) next();   // (the next ring up, if it's waiting: a gift's first)
+  else if (endWaiting) { endWaiting = false; endRound(); }
+});
+/** offer the ad, if it's time: true if it was offered */
+function maybeAd(): boolean {
+  if (missStreak < AD_AFTER || luckyLeft > 0 || adRound === roundsPaid || adWatched()) return false;
+  adRound = roundsPaid;
+  // she says it now, in place of her line about the misses (said this same moment, it never gets heard: voice.ts)
+  talk.line('adOffer', 4, true);   // said in full: what happens meanwhile is said after
+  figureModel?.secret();           // and she leans in to say it
+  asking(true);
+  return true;
+}
+/** her offer of the ad, in her terminal under whatever she's saying: Y plays it at once (from the click itself, so a
+ *  phone plays its sound), N says no. Throwing on doesn't (many throw again before she's done talking): it stays up
+ *  till you answer, or till the round's over */
+const askEl = $('rt-term-ask');
+let offering = false;
+function asking(on: boolean): void {
+  offering = on;
+  termEl.classList.toggle('is-asking', on);
+  if (on) ad.prepare();
+}
+const answer = (yes: boolean): void => {
+  if (!offering) return;
+  asking(false);
+  clearTimeout(endTimer);
+  if (yes) ad.play();
+  else if (endWaiting) { endWaiting = false; endRound(); }
+};
+askEl.querySelectorAll<HTMLButtonElement>('[data-answer]').forEach((b) => b.addEventListener('click', () => answer(b.dataset.answer === 'y')));
+addEventListener('keydown', (e) => { if (offering && /^[yn]$/i.test(e.key)) answer(e.key.toLowerCase() === 'y'); });
 const roundNew = new Set<Kind>();
 const paidWith = new Set<Method>();
 let cashTeased = -Infinity;
@@ -290,6 +337,7 @@ const STAMP_AT = 1.3, STAMP_GAP = 0.42, STAMP_HIT = 0.21;   // s: the first, bet
 let stampTimers: number[] = [];
 function summary(): void {
   ending = false;
+  if (offering) asking(false);   // the round's over: her offer with it
   renderBook();
   // all of it found: the receipt's last state (SOLD OUT, and a way to start over or to see more work)
   const complete = foundCount() === CATALOG.length;
@@ -390,7 +438,7 @@ const hooks = {
       winStreak = 0;
       missStreak++;   // on his head: he has already said something
     }
-    if (result.kind !== 'win') maybeAd();
+    const offered = result.kind !== 'win' && maybeAd();
     if (cleanedOut) {
       // the last one found: that's the game. The receipt comes now (once the prize has been held up and her line
       // said), not after the rest of the rings are thrown; he takes back the ones still on the counter
@@ -402,9 +450,11 @@ const hooks = {
       return;
     }
     if (rings === 0 && flying.length === 0) {
-      emit('empty', { wins: roundWins.length });
-      ending = true;
-      window.setTimeout(summary, 1400);
+      if (offered) {
+        endWaiting = true;
+        ending = true;   // (no paying meanwhile)
+        endTimer = window.setTimeout(() => { if (endWaiting && offering) { asking(false); endWaiting = false; endRound(); } }, END_WAIT * 1000);
+      } else endRound();
     }
     next();
   },
@@ -633,8 +683,8 @@ const finishIntro = (): void => {
         }, 800);
       }, 200);
     }
-    // ?ad: the ad offered at once (and forgotten, so it can be watched again)
-    if (q.has('ad')) { try { localStorage.removeItem('rt-ad'); } catch { /* fine */ } window.setTimeout(() => ad.offer(), 400); }
+    // ?ad: the ad offered in her terminal (and forgotten, so it can be watched again), once her hello is over
+    if (q.has('ad')) { try { localStorage.removeItem('rt-ad'); } catch { /* fine */ } window.setTimeout(() => { talk.line('adOffer', 4, true); figureModel?.secret(); asking(true); }, 4500); }
     // ?complete: the receipt as it is with the whole collection found (the last few as won this round)
     if (q.has('complete')) {
       for (const e of CATALOG) find(e.kind);
@@ -754,7 +804,7 @@ renderer.setAnimationLoop(() => {
   const idle = (performance.now() - lastAction) / 1000;
   // every 10 s of nothing, she says something about it (a different line each time, at random)
   // (not before the opening is over, nor while the receipt is up)
-  const canNag = introDone && !summaryEl.classList.contains('is-on') && !ad.isOpen();
+  const canNag = introDone && !summaryEl.classList.contains('is-on') && !ad.isOpen() && !offering;
   if (canNag && flying.length === 0 && idle > 10 * (idleSaid + 1)) {
     idleSaid++;
     emit('idle', { seconds: Math.round(idle), rings, paid: roundsPaid > 0 });
