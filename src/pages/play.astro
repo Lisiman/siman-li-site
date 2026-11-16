@@ -418,7 +418,7 @@ siman.li</b></pre>
   .rt-ad-card { --room: calc(100dvh - 190px); width: min(448px, 100%, calc(var(--room) * 1292 / 724 + 28px)); max-height: 100%; overflow-y: auto; scrollbar-width: none; padding: 12px 12px 14px; background: #0d0d0d; color: #f3ead8; border: 2px solid #f2c14e; box-shadow: 0 0 5px #f2c14eaa, 0 0 16px #f2c14e55, 0 0 40px #f2c14e26, inset 0 0 14px #f2c14e26, 0 24px 80px #000b; font: 13px/1.5 'Courier Prime', var(--mono); transform: translateY(10px) scale(.97); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
   .rt-ad:not([data-state="off"]) .rt-ad-card { transform: none; }
   .rt-ad-btns { display: flex; gap: 10px; margin-top: 16px; }
-  .rt-ad-btns > * { flex: 1; display: block; padding: 11px 6px; border: 1px solid currentColor; background: transparent; color: inherit; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; text-decoration: none; cursor: pointer; transition: background-color var(--hover), color var(--hover), translate var(--hover), box-shadow var(--hover); }
+  .rt-ad-btns > * { flex: 1; display: block; padding: 11px 6px; border: 1px solid currentColor; background: transparent; color: inherit; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color var(--hover), color var(--hover), translate var(--hover), box-shadow var(--hover); }
   .rt-ad-btns > *:hover { translate: 0 -1px; }
   .rt-ad-hire { background: #f2c14e !important; border-color: #f2c14e !important; color: #0d0d0d !important; box-shadow: 0 0 6px #f2c14eaa, 0 0 18px #f2c14e44; }
   .rt-ad-hire:hover { background: #f7d67e !important; border-color: #f7d67e !important; box-shadow: 0 0 8px #f2c14e, 0 0 24px #f2c14e99, 0 0 44px #f2c14e44; }
@@ -441,6 +441,8 @@ siman.li</b></pre>
   @keyframes rt-ad-lit { from { opacity: .3; } 40% { opacity: 1; box-shadow: 0 0 10px #f3ead8aa; } }
   /* (last, so it wins over the rules above) */
   /* a phone on its side: little height, so the boxes over the stall come down in size */
+  /* a phone held upright: the two buttons stay one line each, a little smaller and tighter */
+  @media (max-width: 480px) { .rt-ad-btns { gap: 8px; } .rt-ad-btns > * { padding: 10px 4px; font-size: 10px; letter-spacing: .06em; } }
   @media (max-height: 520px) {
     /* the opening: the short version (below), the button right under it */
     .rt-cine { padding: 14px 16px; }
