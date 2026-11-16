@@ -13,7 +13,7 @@ export type Pool =
   | 'win'         // ringed one
   | 'streak'      // ringed two or more in a row
   | 'owner'       // hit the owner
-  | 'idle'        // standing there doing nothing (every 10 s of it)
+  | 'idle'        // standing there doing nothing (every 30 s of it: main.ts IDLE_SAY)
   | 'hoverCash'   // pointing at the cash tin, before paying
   | 'jackpot'     // ringed one of the big prizes (the top row)
   | 'mine'        // ringed the owner's own controller

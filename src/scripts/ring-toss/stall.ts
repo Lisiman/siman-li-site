@@ -26,7 +26,9 @@ export interface Owner {
 const SPOT = { x: -1.5, z: -2.05 };
 /** he stands on a low platform behind his stand, to be up level with the raised stage */
 const LIFT = 0.32;
-const STAND = { w: 0.7, d: 0.4, h: 0.95 + LIFT, z: -1.7 };
+/** dx: its middle, to the left of hers: it keeps its left side (by the post, at x -1.95) and its right side just
+ *  meets the stage's (the cloth's edge, at x -1.215: at 0.7 wide, centred on her, it went 5 cm into the steps) */
+const STAND = { w: 0.635, dx: -0.0325, d: 0.4, h: 0.95 + LIFT, z: -1.7 };
 export const STAND_TOP = STAND.h;
 
 /** His laptop, open on the stand with its screen toward him: you see the back of the lid (space grey aluminium,
@@ -180,7 +182,7 @@ function laptop(top: number, z: number): THREE.Group {
   hinge.add(lid);
   g.add(base, hinge);
   g.traverse((o) => { o.castShadow = true; });
-  g.position.set(0.02, top, z - 0.02);
+  g.position.set(-0.02, top, z - 0.02);   // (in from the stand's right edge)
   g.rotation.y = 0.12;
   return g;
 }
@@ -191,7 +193,7 @@ export function buildOwner(scene: THREE.Scene): { owner: Owner; table: Slot; fig
   const hipH = 0.9 + LIFT, bodyR = 0.19, bodyTop = 1.38 + LIFT, headR = 0.1, headY = 1.5 + LIFT;
   const g = new THREE.Group();
   const stand = new THREE.Mesh(new THREE.BoxGeometry(STAND.w, STAND.h, STAND.d), new THREE.MeshStandardMaterial({ color: 0x5a3b28, roughness: 0.7 }));
-  stand.position.set(0, STAND.h / 2, STAND.z - SPOT.z);
+  stand.position.set(STAND.dx, STAND.h / 2, STAND.z - SPOT.z);
   const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.11, hipH - LIFT, 16), new THREE.MeshStandardMaterial({ color: 0x2b2d31, roughness: 0.9 }));
   legs.position.y = LIFT + (hipH - LIFT) / 2;
   const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyR * 0.85, bodyR, bodyTop - hipH, 24), new THREE.MeshStandardMaterial({ color: 0x2e8b6a, roughness: 0.6 }));
@@ -209,7 +211,7 @@ export function buildOwner(scene: THREE.Scene): { owner: Owner; table: Slot; fig
       x: SPOT.x, z: SPOT.z, hipH, floor: LIFT, bodyR, bodyTop,
       head: new THREE.Vector3(SPOT.x, headY, SPOT.z), headY, headR, headTop: headY + headR,
     },
-    table: { x: SPOT.x, z: STAND.z, stoolH: STAND.h, stoolR: STAND.w / 2 - 0.05, prize: null, group: null, claimed: false },
+    table: { x: SPOT.x + STAND.dx, z: STAND.z, stoolH: STAND.h, stoolR: STAND.w / 2 - 0.05, prize: null, group: null, claimed: false },
     figure,
   };
 }
@@ -274,20 +276,35 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
     current = t;
     if (shownRank === 0) show(t);
   };
-  const pick = (pool: Pool, rank = 1, chance = 1, only?: readonly number[], hold = false): void => {
-    if (!holding && Math.random() > chance) return;   // (while a held line's said, every one: the last of them is the one said after)
+  /** say one of a pool's lines (if the dice say so): true if it was said */
+  const pick = (pool: Pool, rank = 1, chance = 1, only?: readonly number[], hold = false): boolean => {
+    if (!holding && Math.random() > chance) return false;   // (while a held line's said, every one: the last of them is the one said after)
     const lines = only ? only.map((i) => LINES[pool][i]) : LINES[pool];
     const options = lines.length > 1 ? lines.filter((l) => l !== last.get(pool)) : lines;
     const line = options[Math.floor(Math.random() * options.length)];
     last.set(pool, line);
     say(line, rank, hold);
+    return true;
   };
 
+  // the misses: she gets a dig in now and then, and mostly just watches you throw (it was nearly every miss, two
+  // lines for some). After one, the next GRUMBLE_REST throws go by without; and each only by chance. A run of misses
+  // still gets her at its milestones (the 5th: she offers the ad, main.ts). The wins, she always has something for
+  const GRUMBLE_REST = 2;
+  let sinceGrumble = Infinity;   // throws since she last said something about a miss
+  on('throw', () => { sinceGrumble++; });
+  const grumble = (pool: Pool, rank: number, chance: number): void => {
+    if (sinceGrumble <= GRUMBLE_REST && !holding) return;
+    if (pick(pool, rank, chance)) sinceGrumble = 0;
+  };
+  const milestone = (streak: number): boolean => streak > 0 && streak % 8 === 0;   // the 8th, 16th… (the 5th is the ad's)
+
   on('coin', ({ method, both }) => pick(both ? 'payBoth' : method === 'cash' ? 'payCash' : 'payTap', 2));
-  on('miss', ({ streak }) => (streak === 3 || streak === 5 || streak >= 8 && streak % 4 === 0 ? pick('missStreak', 2) : pick('miss', 1, 0.35)));
-  on('near', () => pick('near', 2, 0.8));
-  on('clink', ({ prize }) => { if (prize.glass) pick('clink', 1, 0.5); });
-  on('win', ({ prize, streak }) => {
+  on('miss', ({ streak }) => { if (milestone(streak)) { pick('missStreak', 2); sinceGrumble = 0; } else grumble('miss', 1, 0.25); });
+  on('near', ({ streak }) => { if (milestone(streak)) { pick('missStreak', 2); sinceGrumble = 0; } else grumble('near', 2, 0.5); });
+  on('clink', ({ prize }) => { if (prize.glass) grumble('clink', 1, 0.3); });
+  on('win', ({ prize, streak, last }) => {
+    if (last) return;   // the very last: she says only her line about that (complete)
     if (prize.kind === 'controller') pick('mine', 3);
     else if (prize.strict) pick('jackpot', 3);
     else if (streak < 2) pick('win', 3);
@@ -296,13 +313,13 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
   on('owner', () => pick('owner', 4));
   // standing there: before paying at all, her pitch again (her recorded opening lines, not the hellos); with rings
   // in hand, a dig; out of rings, a nudge to buy more
-  on('idle', ({ rings, paid }) => (!paid && rings === 0 ? pick('open', 1, 1, [2, 3, 4]) : pick(rings > 0 ? 'idle' : 'empty', 1)));
+  on('idle', ({ rings, paid, say }) => { if (say) (!paid && rings === 0 ? pick('open', 1, 1, [2, 3, 4]) : pick(rings > 0 ? 'idle' : 'empty', 1)); });
   on('empty', ({ wins }) => pick('end', 2, 1, END[endMood(wins)]));
   // after the line about how you paid has had its moment
-  on('restock', ({ unseen }) => window.setTimeout(() => pick(unseen ? 'restockNew' : 'restock', 2), 2600));
-  // the moment the last one is won: after the line about the win itself
-  // (LinkedIn, nine times in ten: it's the funniest)
-  on('complete', () => window.setTimeout(() => pick('complete', 5, 1, [Math.random() < 0.9 ? 0 : 1 + Math.floor(Math.random() * 3)]), 1800));
+  // (something never seen before: always the auntie's basement, the funnier of the two)
+  on('restock', ({ unseen }) => window.setTimeout(() => (unseen ? pick('restockNew', 2, 1, [1]) : pick('restock', 2)), 2600));
+  // the moment the last one is won: the LinkedIn line, and only that (no line about the win itself first)
+  on('complete', () => window.setTimeout(() => pick('complete', 5, 1, [0]), 700));   // (the LinkedIn one, said straight off: no line about the win before it)
   // three left to find, then the last one: after the line about the win itself
   on('closing', ({ left }) => { if (left === 3 || left === 1) window.setTimeout(() => pick(left === 1 ? 'lastOne' : 'closing', 4), 1800); });
   on('ask', ({ id }) => {

@@ -179,13 +179,25 @@ let rings = 0, thrown = 0, missStreak = 0, winStreak = 0, ownerHits = 0;
 // this round (one payment's worth of rings), for the receipt at the end
 let roundThrown = 0, roundOwner = 0, roundsPaid = 0;
 let roundWins: Kind[] = [];
-// the ad (ad.ts): offered after AD_AFTER misses in a row (counted across rounds), once a round at most, never again
-// once watched; its reward, the next AD_REWARD rings lucky (wider and gold: ring.ts setLuck)
+// the ad (ad.ts): offered after AD_AFTER misses in a row (counted across rounds), once a round at most, not again
+// once watched (till the page is opened again); its reward, the next AD_REWARD rings lucky (wider and gold: ring.ts setLuck)
 let luckyLeft = 0, adRound = -1;
 /** three prizes or fewer left to find: closing time, she'd like to go home, so the rings are bigger from now on */
 let closing = false;
-/** which bigger ring the next one is, if any: the ad's while it lasts (the bigger of the two), else hers */
-const luckNow = (): Luck | null => (luckyLeft > 0 ? 'ad' : closing ? 'closing' : null);
+/** over his odds, which bigger ring this is */
+const luckLine = (): string => {
+  const k = luckNow();
+  return k === 'ad' ? `★ Lucky ring ×3 · ${luckyLeft} left\n` : k === 'closing' ? '★ Closing-time special: big ring\n' : k ? '★ Last one: even bigger ring\n' : '';
+};
+/** misses at the very last prize left: her ring grows (two, then four: ring.ts BIG) so the end never drags on */
+let lastMisses = 0;
+/** which bigger ring the next one is, if any: the biggest going (the ad's, or hers, growing at the last one) */
+const luckNow = (): Luck | null => {
+  const hers: Luck | null = !closing ? null : lastMisses >= 4 ? 'closing3' : lastMisses >= 2 ? 'closing2' : 'closing';
+  const ad: Luck | null = luckyLeft > 0 ? 'ad' : null;
+  if (!hers || !ad) return hers ?? ad;
+  return BIG[ad].extra >= BIG[hers].extra ? ad : hers;
+};
 /** the rings from now on, and the one in your hand, as big as they now are (and his odds worked out again) */
 function refreshLuck(): void {
   const k = luckNow();
@@ -257,9 +269,12 @@ const roundNew = new Set<Kind>();
 const paidWith = new Set<Method>();
 let cashTeased = -Infinity;
 let bothSaid = false;
-let lastAction = performance.now(), idleSaid = 0;   // idleSaid: how many times she's said something about it since
+const IDLE_EVERY = 10, IDLE_SAY = 3;   // s of nothing between her fidgets; and a line with every this many of them
+let lastAction = performance.now(), idleSaid = 0;   // idleSaid: how many times she's fidgeted about it since
 const flying: Ring[] = [];
 const resting: Ring[] = [];
+/** what's in the bag, oldest first (only the last bag.shows of them are still shown) */
+const inBag: THREE.Group[] = [];
 /** prizes on their way to you: up off the stand, held up in front of you, then into the bag (into: its spot there,
  *  fixed when it sets off for it) */
 const won: { kind: Kind; fresh: boolean; group: THREE.Group; t: number; from: THREE.Vector3; s0: number; r0: number; h: number; size: number; footR: number; into: { at: THREE.Vector3; scale: number; tilt: number; from: THREE.Vector3; fromS: number } | null }[] = [];
@@ -378,7 +393,7 @@ function toss(t: Toss): void {
   thrown++;
   roundThrown++;
   const ring = new Ring(scene, t, thrown);   // lucky, if there are lucky ones left (setLuck)
-  if (ring.lucky === 'ad') { luckyLeft--; setLuck(luckNow()); }
+  if (luckyLeft > 0 && ring.lucky === 'ad') { luckyLeft--; setLuck(luckNow()); }
   ring.pos.x = held.position.x;   // from where your hand is
   flying.push(ring);
   showRings();
@@ -410,17 +425,18 @@ const hooks = {
       const prize = slot.prize!;
       missStreak = 0;
       winStreak++;
-      emit('win', { prize, streak: winStreak });
-      roundWins.push(prize.kind);
       const fresh = find(prize.kind);
+      const last = fresh && foundCount() === CATALOG.length;   // the last one there was to find
+      emit('win', { prize, streak: winStreak, last });
+      roundWins.push(prize.kind);
       if (fresh) roundNew.add(prize.kind);
       const left = CATALOG.length - foundCount();
       if (fresh && left > 0 && left <= 3) { closing = true; emit('closing', { left }); }   // her bigger rings, from the next one
-      if (fresh && foundCount() === CATALOG.length) {
+      if (last) {
         emit('complete', { total: CATALOG.length });
         cleanedOut = true;
       }
-      if (winStreak >= 2) emit('streak', { count: winStreak });
+      if (winStreak >= 2 && !last) emit('streak', { count: winStreak });
       if (slot.group) {
         const g = slot.group;
         // one won while another is still held up in front of you: that one goes into the bag now, out of the way
@@ -438,6 +454,7 @@ const hooks = {
       winStreak = 0;
       missStreak++;   // on his head: he has already said something
     }
+    if (result.kind !== 'win' && closing && CATALOG.length - foundCount() === 1) lastMisses++;   // (the next ring up is sized by it: next)
     const offered = result.kind !== 'win' && maybeAd();
     if (cleanedOut) {
       // the last one found: that's the game. The receipt comes now (once the prize has been held up and her line
@@ -605,7 +622,11 @@ function carry(dt: number): void {
       w.group.scale.setScalar(w.into.fromS + (w.into.scale - w.into.fromS) * Math.min(1, e * 1.5));
       w.group.rotation.y *= 0.9;
       w.group.rotation.z = w.into.tilt * k;   // leaning as it settles in
-      if (e >= 1) { bag.drop(); rustle(); won.splice(i, 1); }   // and stays in there
+      if (e >= 1) {   // and stays in there: the last few showing over the rim, the one it's taken the place of gone down inside
+        bag.drop(); rustle(); won.splice(i, 1);
+        inBag.push(w.group);
+        while (inBag.length > bag.shows) inBag.shift()!.visible = false;
+      }
     }
   }
 }
@@ -683,8 +704,8 @@ const finishIntro = (): void => {
         }, 800);
       }, 200);
     }
-    // ?ad: the ad offered in her terminal (and forgotten, so it can be watched again), once her hello is over
-    if (q.has('ad')) { try { localStorage.removeItem('rt-ad'); } catch { /* fine */ } window.setTimeout(() => { talk.line('adOffer', 4, true); figureModel?.secret(); asking(true); }, 4500); }
+    // ?ad: the ad offered in her terminal, once her hello is over
+    if (q.has('ad')) { window.setTimeout(() => { talk.line('adOffer', 4, true); figureModel?.secret(); asking(true); }, 4500); }
     // ?complete: the receipt as it is with the whole collection found (the last few as won this round)
     if (q.has('complete')) {
       for (const e of CATALOG) find(e.kind);
@@ -790,7 +811,7 @@ renderer.setAnimationLoop(() => {
     const until = performance.now() + 3;
     let r = job.next();
     while (!r.done && performance.now() < until) r = job.next();
-    if (r.done) { job = null; if (ready) talk.status((luckyLeft > 0 ? `★ Lucky ring ×3 · ${luckyLeft} left\n` : closing ? '★ Closing-time special: big ring\n' : '') + STATUS.odds(r.value * 100)); }
+    if (r.done) { job = null; if (ready) talk.status(luckLine() + STATUS.odds(r.value * 100)); }
   }
   if (!ready) job = null;
   // on the front of her stand, hanging from just under the laptop's edge (the stand's face is bare there): its top
@@ -802,12 +823,13 @@ renderer.setAnimationLoop(() => {
   termEl.style.transform = `translate(${Math.round(tx)}px, ${Math.round(ty)}px) translate(-50%, 0)`;
 
   const idle = (performance.now() - lastAction) / 1000;
-  // every 10 s of nothing, she says something about it (a different line each time, at random)
+  // every 10 s of nothing, she yawns, looks at her phone… (owner.ts); and every third time (30 s) she says something
+  // about it too (a different line each time, at random: every 10 s, she never stopped talking)
   // (not before the opening is over, nor while the receipt is up)
   const canNag = introDone && !summaryEl.classList.contains('is-on') && !ad.isOpen() && !offering;
-  if (canNag && flying.length === 0 && idle > 10 * (idleSaid + 1)) {
+  if (canNag && flying.length === 0 && idle > IDLE_EVERY * (idleSaid + 1)) {
     idleSaid++;
-    emit('idle', { seconds: Math.round(idle), rings, paid: roundsPaid > 0 });
+    emit('idle', { seconds: Math.round(idle), rings, paid: roundsPaid > 0, say: idleSaid % IDLE_SAY === 0 });
   }
   world.update(clock.elapsedTime, dt);
   figureModel?.update(dt);

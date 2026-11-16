@@ -22,7 +22,8 @@ const HEAD_ABOVE_BONE = 0.09 * HEAD_SCALE;   // the head bone sits at the bottom
  *  matters: a bigger one can cut a smaller one short, never the other way round (a flinch beats everything) */
 const ACTS = {
   idle:   { rank: 0, clips: ['happy-idle', 'idle', 'happy-idle-1'] },
-  fidget: { rank: 0.5, clips: ['looking-around', 'texting-while-standing', 'bored', 'yawn', 'rapping'] },
+  // (not 'yawn': its hand over her mouth went into her face)
+  fidget: { rank: 0.5, clips: ['looking-around', 'texting-while-standing', 'bored', 'rapping'] },
   talk:   { rank: 1, clips: ['talking', 'talking-1', 'happy-hand-gesture'] },
   secret: { rank: 2, clips: ['telling-a-secret'] },   // offering you the ad: leaning in, as if no one else should hear
   nod:    { rank: 1.5, clips: ['sarcastic-head-nod', 'thoughtful-head-nod', 'lengthy-head-nod'] },
@@ -41,7 +42,7 @@ const ACTS = {
 type Act = keyof typeof ACTS;
 /** the long clips, cut short (s), and the very short one played a few times over */
 const HOLD: Record<string, number> = {
-  'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, yawn: 4.5, rapping: 5, 'looking-around': 5, laughing: 3.5,
+  'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, rapping: 5, 'looking-around': 5, laughing: 3.5,
   excited: 3, victory: 3.5, agreeing: 3, disappointed: 3, thankful: 3,
 };
 const REPEAT: Record<string, number> = { waving: 5 };

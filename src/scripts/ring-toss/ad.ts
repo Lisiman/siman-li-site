@@ -3,7 +3,7 @@
 // She somehow makes it work. She's available for hire!).
 // Watched to the end, the reward is yours (the next AD_REWARD rings are lucky: ring.ts setLuck), whichever way you
 // then close it. Closed before the end, no reward, and it may be offered again another round. Once watched, it's
-// never offered again in this browser.
+// not offered again on this visit (opened again, or reloaded: it can be, once more).
 import { isMuted, streetLevel, audioContext } from './sound';
 
 /** the ad's music (upbeat music.mp3, from Pixabay), the whole song, at the level it is in the film. The film has
@@ -19,10 +19,11 @@ let song: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
 export const AD_REWARD = 5;
 /** misses in a row before it's offered */
 export const AD_AFTER = 5;
-const KEY = 'rt-ad';
+/** watched to the end on this visit (kept nowhere: a new visit, a new chance) */
+let watched = false;
 
 export function adWatched(): boolean {
-  try { return localStorage.getItem(KEY) === 'watched'; } catch { return false; }
+  return watched;
 }
 
 type State = 'off' | 'play' | 'done';
@@ -32,10 +33,10 @@ export function setupAd(reward: () => void, closed?: (watched: boolean) => void)
   const root = document.getElementById('rt-ad')!;
   const video = root.querySelector<HTMLVideoElement>('.rt-ad-video')!;
   const count = root.querySelector<HTMLElement>('.rt-ad-count')!;
-  /** after it: the same film going round, silent, the titles all up. It goes there and back (ad-loop.mp4), and starts
-   *  at LOOP_AT, on the very frame the ad ends on, so the change can't be seen */
+  /** after it: the same film going round, silent, the titles all up. It goes there and back (ad-loop.mp4): its first
+   *  5 s are the ad's own frames, so it runs hidden under the ad from the start, in step, and at the end it's only
+   *  shown. (Started then, at the frame the ad ends on, starting a second film stuttered just as Claim lit up) */
   const loop = root.querySelector<HTMLVideoElement>('.rt-ad-loop')!;
-  const LOOP_AT = 5;
   let state: State = 'off';
   const claim = root.querySelector<HTMLButtonElement>('.rt-ad-claim')!;
   const set = (s: State): void => { state = s; root.dataset.state = s; claim.disabled = s === 'play'; };
@@ -70,15 +71,19 @@ export function setupAd(reward: () => void, closed?: (watched: boolean) => void)
     streetLevel(0.15, 0.3);   // the street hushed under it
     video.currentTime = 0;
     loop.classList.remove('is-on');
-    // the loop waits, already on the frame the ad ends on, so at the end it's only shown and set going: no pause
     loop.preload = 'auto';
-    if (loop.readyState >= 1) loop.currentTime = LOOP_AT;
-    else loop.addEventListener('loadedmetadata', () => { loop.currentTime = LOOP_AT; }, { once: true });   // (Safari won't seek before)
     video.muted = isMuted();
     video.play().catch(() => { video.muted = true; void video.play().catch(() => {}); });
   }
 
+  // the loop under it, going along with it: started when the ad starts, nudged back into step if it drifts
+  video.addEventListener('playing', () => {
+    if (state !== 'play') return;
+    loop.currentTime = video.currentTime;
+    void loop.play().catch(() => { /* then it's started at the end */ });
+  });
   video.addEventListener('timeupdate', () => {
+    if (state === 'play' && !loop.paused && Math.abs(loop.currentTime - video.currentTime) > 0.15) loop.currentTime = video.currentTime;
     if (state !== 'play' || !video.duration) return;
     count.textContent = `Reward in ${Math.max(1, Math.ceil(video.duration - video.currentTime))}s`;
   });
@@ -88,7 +93,7 @@ export function setupAd(reward: () => void, closed?: (watched: boolean) => void)
     set('done');
     count.textContent = '✓ Unlocked';
     loop.classList.add('is-on');
-    void loop.play().catch(() => { /* it stays on that frame: fine */ });
+    if (loop.paused) void loop.play().catch(() => { /* it stays on that frame: fine */ });   // (if it couldn't keep up)
     // and the music goes on from where the film's left it
     const ctx = audioContext(), at = video.duration;
     if (ctx && music && !isMuted()) {
@@ -106,7 +111,7 @@ export function setupAd(reward: () => void, closed?: (watched: boolean) => void)
         song = { src, gain };
       }).catch(() => { /* silent, then */ });
     }
-    try { localStorage.setItem(KEY, 'watched'); } catch { /* it may be offered again: fine */ }
+    watched = true;
     reward();
     root.querySelector<HTMLButtonElement>('.rt-ad-claim')!.focus({ preventScroll: true });
   }

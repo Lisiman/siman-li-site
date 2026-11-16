@@ -125,11 +125,13 @@ export function setupPay(o: PayOptions): Pay {
   o.scene.add(bill);
 
   // the reader's ripple: a blurple ring that spreads from the contactless sign on its face and fades
-  const rippleMat = new THREE.MeshBasicMaterial({ transparent: true, toneMapped: false, depthWrite: false, side: THREE.DoubleSide });
+  // (drawn over everything: spreading, it reaches down past the reader's foot, and the counter cut its lower half off)
+  const rippleMat = new THREE.MeshBasicMaterial({ transparent: true, toneMapped: false, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
   rippleMat.color.set(BLURPLE).multiplyScalar(2);
   const ripple = new THREE.Mesh(new THREE.RingGeometry(0.02, 0.025, 48), rippleMat);
   ripple.position.set(-0.008, -0.002, 0.0125);   // on the reader's face, at the contactless sign
   ripple.visible = false;
+  ripple.renderOrder = 10;
   o.reader.add(ripple);
   const SCREEN = o.screen.color.clone();
 

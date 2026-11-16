@@ -27,10 +27,13 @@ export function setRounds(rounds: number): void { LEEWAY = Math.min(0.04, Math.m
  *  at closing time (three prizes or fewer left to find: hers, red, wider by 8 cm, about 2.4×). Each is wider inside by
  *  extra (m), and looks it. The unseen rings he throws to work out your odds are as wide, so what his terminal says is
  *  still the game's own figure (the ×: odds.ts over the whole stall, tried out away from the page) */
-export type Luck = 'ad' | 'closing';
+export type Luck = 'ad' | 'closing' | 'closing2' | 'closing3';
 export const BIG: Record<Luck, { extra: number; color: number; emissive: number }> = {
   ad: { extra: 0.12, color: 0xf2c14e, emissive: 0xb07a10 },
   closing: { extra: 0.08, color: 0xd8322a, emissive: 0x5a0c06 },
+  // the last one left, and still not won: bigger again after two misses at it, and again after four (all but sure)
+  closing2: { extra: 0.16, color: 0xd8322a, emissive: 0x6a1008 },
+  closing3: { extra: 0.24, color: 0xd8322a, emissive: 0x7a140a },
 };
 let LUCK: Luck | null = null;
 /** the rings thrown from now on: bigger (which kind), or plain (null) */

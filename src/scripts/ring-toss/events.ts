@@ -9,10 +9,12 @@ export interface GameEvents {
   miss: { streak: number };
   near: { prize: Prize; gap: number; streak: number };
   clink: { prize: Prize };
-  win: { prize: Prize; streak: number };
+  /** last: it was the last prize not yet found (her line for that is the 'complete' one, not this) */
+  win: { prize: Prize; streak: number; last?: boolean };
   streak: { count: number };
   owner: { count: number };
-  idle: { seconds: number; rings: number; paid: boolean };
+  /** say: she says something about it this time (not every time she fidgets) */
+  idle: { seconds: number; rings: number; paid: boolean; say: boolean };
   empty: { wins: number };   // prizes won this round
   /** a new round paid for, and the places left empty filled: how many, how many of them never seen before, and
    *  whether every prize has now been found */

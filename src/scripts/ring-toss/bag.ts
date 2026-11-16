@@ -39,6 +39,8 @@ function grain(): THREE.CanvasTexture {
 
 export interface Bag {
   group: THREE.Group;
+  /** how many show over the rim at once (older ones are down inside, out of sight) */
+  shows: number;
   /** where the next prize goes in, in the world, and how big it is drawn there (a share of its size on the stand) */
   slot(height: number, footR: number): { at: THREE.Vector3; scale: number; tilt: number };
   /** one more inside: the bag gives a little shake (the caller plays the sound) */
@@ -69,18 +71,18 @@ export function buildBag(scene: THREE.Scene, x: number, top: number, z: number):
   scene.add(group);
 
   // where each prize stands in the bag: [across (share of W), front to back (share of DEEP), how much lower, lean].
-  // Three at the back, then two in front, lower, between them, so the back ones show over them; the ones at the
-  // sides lean out a little, as things stuffed in a bag do. Past five, round again, each round a little higher.
+  // Only the last few won show over the rim, three along the back (the ones at the sides leaning out a little, as
+  // things stuffed in a bag do); each new one takes the place of the oldest there, which has gone down out of sight
+  // (main.ts hides it). (Two more in front, lower, came out through the bag's front)
   const PLACES: [number, number, number, number][] = [
     [0, -0.2, 0, 0.03],
     [-0.25, -0.16, 0.008, 0.14],
     [0.25, -0.16, 0.008, -0.14],
-    [-0.12, 0.22, 0.045, 0.06],
-    [0.12, 0.22, 0.045, -0.07],
   ];
   let taken = 0, wobble = 0;
   return {
     group,
+    shows: PLACES.length,
     slot(height, footR) {
       // drawn smaller and stuffed in standing up, so the top of each shows over the rim: you see what you've won.
       // Small enough that neighbours don't run into each other (front to back is the tight way). The place is taken
@@ -89,7 +91,7 @@ export function buildBag(scene: THREE.Scene, x: number, top: number, z: number):
       const [ax, az, down, tilt] = PLACES[n % PLACES.length];
       const scale = Math.min(0.5, (RIM * 0.75) / height, (DEEP * 0.26) / footR);
       const shown = height * scale;
-      const base = Math.max(0.005, RIM - shown * 0.6 - down + Math.floor(n / PLACES.length) * 0.015);   // its top ~40% over the rim
+      const base = Math.max(0.005, RIM - shown * 0.6 - down);   // its top ~40% over the rim
       const local = new THREE.Vector3(ax * W, base, az * DEEP);
       return { at: group.localToWorld(local), scale, tilt };
     },
