@@ -61,8 +61,18 @@ export const GRAVITY = G;
 
 /** the highest the stage comes anywhere under the ring: under its middle and four points round its rim, so the
  *  rim never sinks into a step */
-function floorUnder(x: number, z: number): number {
-  return Math.max(floorAt(x, z), floorAt(x + MID, z), floorAt(x - MID, z), floorAt(x, z + MID), floorAt(x, z - MID));
+function floorUnder(x: number, z: number, r = MID): number {
+  return Math.max(floorAt(x, z), floorAt(x + r, z), floorAt(x - r, z), floorAt(x, z + r), floorAt(x, z - r));
+}
+
+/** lying with its middle out over a drop (past a step's edge, or the stage's side), held up only by its rim on the
+ *  edge: which way is down (to slide off that way), or null if its middle is over where it lies */
+function overhang(x: number, z: number, floor: number, r: number): [number, number] | null {
+  if (floorAt(x, z) >= floor - 0.01) return null;
+  let dx = 0, dz = 0;
+  for (const [ox, oz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (floorAt(x + ox * r, z + oz * r) < floor - 0.01) { dx += ox; dz += oz; }
+  const d = Math.hypot(dx, dz);
+  return d ? [dx / d, dz / d] : [Math.sign(x) || 1, 0];
 }   // over the counter, just in front of you
 
 export type Result =
@@ -89,7 +99,9 @@ export class Ring {
   readonly mesh: THREE.Mesh | null;
   readonly pos = new THREE.Vector3();
   readonly vel = new THREE.Vector3();
-  state: 'fly' | 'slide' | 'settle' | 'rest' = 'fly';
+  state: 'fly' | 'slide' | 'settle' | 'rest' | 'tip' = 'fly';
+  /** tipping off an edge it was hanging over: where it's going, out past the edge, and which way that is */
+  private tipTo: { x: number; z: number; dx: number; dz: number } | null = null;
   private hitSign = false;
   /** the height it slides on: the ground (null), or a stool top */
   floor = 0;
@@ -109,6 +121,13 @@ export class Ring {
   /** how much wider than a plain ring it is inside (a lucky ring: setLuck), fixed when it's thrown */
   readonly lucky = LUCK;
   readonly luck = LUCK ? BIG[LUCK].extra : 0;
+  /** the circle through the middle of its tube, as big as it's drawn */
+  readonly r = MID + this.luck;
+  /** how close its middle may come to another ring's before they touch (each as big as it's drawn: a lucky ring
+   *  is bigger, and the plain size let others lie overlapping it) */
+  private gap(o: Ring): number { return this.r + o.r + 2 * TUBE; }
+  /** times it's been tipped off an edge it was hanging over */
+  private tips = 0;
 
   constructor(scene: THREE.Scene | null, toss: Toss, n: number) {
     const mat = this.lucky
@@ -136,10 +155,11 @@ export class Ring {
     this.t += dt;
     // a time limit: a ring still not lying still STUCK_AFTER seconds after it left your hand (caught on an edge, wedged
     // between things, bouncing in a corner) just drops where it is and lies there, so the next ring is never kept waiting
-    if (this.t > STUCK_AFTER && (this.state === 'fly' || this.state === 'slide')) { this.giveUp(slots, owner, hooks); this.place(); return; }
+    if (this.t > STUCK_AFTER && (this.state === 'fly' || this.state === 'slide')) { this.giveUp(slots, owner, hooks, others); this.place(); return; }
     if (this.state === 'fly') this.fly(dt, slots, owner, others, hooks);
     else if (this.state === 'slide') this.slide(dt, slots, owner, others, hooks);
     else if (this.state === 'settle') this.settle(dt, others, hooks);
+    else if (this.state === 'tip') this.tip(dt);
     this.place();
   }
 
@@ -167,9 +187,9 @@ export class Ring {
       this.vel.x *= 0.5;
     }
     // into the front (or a side) of a step, below its top: knocked back off it
-    const f = floorUnder(this.pos.x, this.pos.z);
+    const f = floorUnder(this.pos.x, this.pos.z, this.r);
     if (bottom < f && prevBottom < f) {
-      const front = floorUnder(px, this.pos.z) > bottom;   // the step is ahead of it, not beside it
+      const front = floorUnder(px, this.pos.z, this.r) > bottom;   // the step is ahead of it, not beside it
       this.pos.x = px;
       this.pos.z = pz;
       if (front) this.vel.z = Math.abs(this.vel.z) * 0.3;
@@ -200,7 +220,7 @@ export class Ring {
     // the rings already down: land on one, or knock against it
     for (const o of others) {
       const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z;
-      if (Math.hypot(dx, dz) >= 2 * OUTER) continue;
+      if (Math.hypot(dx, dz) >= this.gap(o)) continue;
       const top = o.pos.y + TUBE;
       if (prevBottom > top && bottom <= top) {
         if (this.restOn(o, slots, owner, others, hooks)) return;
@@ -236,7 +256,7 @@ export class Ring {
       // the stool's edge or legs: knocked back
       if (bottom < s.stoolH && d < s.stoolR + OUTER) this.bounce(dx, dz, 0.15);
     }
-    const floor = floorUnder(this.pos.x, this.pos.z);
+    const floor = floorUnder(this.pos.x, this.pos.z, this.r);
     if (bottom <= floor) this.land(null, floor);   // onto the stage, or the street
   }
 
@@ -256,12 +276,24 @@ export class Ring {
     this.tilt.multiplyScalar(Math.max(0, 1 - 12 * dt));
     this.clearDrape();
     if (speed < 0.03) {
+      // its middle out over a drop, held up only by its rim on the edge (it looked to float): off it goes, that way
+      // (moved straight out past the edge, not pushed: pushed, the things it slides against pushed it back, and it
+      // juddered there, side to side)
+      const o = !this.on && this.tips < 1 ? overhang(this.pos.x, this.pos.z, this.floor, this.r) : null;
+      if (o) {
+        this.tips++;
+        let d = 0.02;
+        while (d < this.r * 2.5 && floorUnder(this.pos.x + o[0] * d, this.pos.z + o[1] * d, this.r) >= this.floor - 0.01) d += 0.02;
+        this.tipTo = { x: this.pos.x + o[0] * (d + 0.01), z: this.pos.z + o[1] * (d + 0.01), dx: o[0], dz: o[1] };
+        this.state = 'tip';
+        return;
+      }
       // only settles where it touches nothing: else it slides on sideways, off whatever it is against
       // (and if it's still shuffling about after a few tries or a second and a half, it just lies where it is, a
       // little against whatever it's against: it used to nudge on for up to 200 tries, some 15 s of small twitching,
       // and the next ring waited for it)
       const hit = this.against(slots, owner, others);
-      if (!hit || this.nudges > 8 || this.sliding > 1.5) { this.rest(slots, hooks); return; }
+      if (!hit || this.nudges > 8 || this.sliding > 1.5) { this.rest(slots, hooks, others); return; }
       // wedged (sideways keeps meeting something): a firmer push some other way
       if (++this.nudges > 3) {
         const th = Math.random() * Math.PI * 2;
@@ -281,7 +313,7 @@ export class Ring {
     this.pos.z += this.vel.z * dt;
     if (this.pos.z < BACK) { this.pos.z = BACK; this.vel.z = 0; }   // stopped by the back wall
     if (!this.on) {
-      const f = floorUnder(this.pos.x, this.pos.z);
+      const f = floorUnder(this.pos.x, this.pos.z, this.r);
       if (f > this.floor + 1e-4) { this.pos.x = px; this.pos.z = pz; this.vel.x = this.vel.z = 0; }   // against a step
       else if (f < this.floor - 1e-4) { this.state = 'fly'; this.vel.y = 0; return; }              // off the edge of one
     }
@@ -294,7 +326,7 @@ export class Ring {
       for (const s of slots) this.keepOff(s.x, s.z, s.stoolR + OUTER);
       this.keepOff(owner.x, owner.z, STOOL_HALF + OUTER);
     }
-    for (const o of others) if (Math.abs(o.pos.y - this.pos.y) < 2 * TUBE) this.keepOff(o.pos.x, o.pos.z, 2 * OUTER);
+    for (const o of others) if (Math.abs(o.pos.y - this.pos.y) < 2 * TUBE) this.keepOff(o.pos.x, o.pos.z, this.gap(o));
     if (this.on && Math.hypot(this.pos.x - this.on.x, this.pos.z - this.on.z) >= this.on.stoolR) {
       this.on = null;                                                                        // slid off the stool
       this.state = 'fly';
@@ -321,7 +353,7 @@ export class Ring {
   private restOn(o: Ring, slots: Slot[], owner: Owner, others: Ring[], hooks: Hooks): boolean {
     if (this.ringHops++ < 4) { this.bounce(this.pos.x - o.pos.x, this.pos.z - o.pos.z, 0.3); return false; }
     let y = 0;
-    for (const q of others) if (Math.hypot(this.pos.x - q.pos.x, this.pos.z - q.pos.z) < 2 * OUTER) y = Math.max(y, q.pos.y + 2 * TUBE);
+    for (const q of others) if (Math.hypot(this.pos.x - q.pos.x, this.pos.z - q.pos.z) < this.gap(q)) y = Math.max(y, q.pos.y + 2 * TUBE);
     const blocked = slots.some((s) => y - TUBE < s.stoolH && Math.hypot(this.pos.x - s.x, this.pos.z - s.z) < s.stoolR + OUTER)
       || y - TUBE < owner.hipH && Math.hypot(this.pos.x - owner.x, this.pos.z - owner.z) < STOOL_HALF + OUTER
       || risersAbove(this.pos.x, y - TUBE).some((f) => this.pos.z < f + OUTER && this.pos.z > f - 0.6);   // in the drape
@@ -329,18 +361,35 @@ export class Ring {
     this.pos.y = y;
     this.floor = y - TUBE;
     this.vel.set(0, 0, 0);
-    this.rest(slots, hooks);
+    this.rest(slots, hooks, others);
     const dx = this.pos.x - o.pos.x, dz = this.pos.z - o.pos.z, d = Math.hypot(dx, dz) || 1;
     this.tilt.set(-dz / d * 0.12, dx / d * 0.12);
     this.place();
     return true;
   }
 
+  /** off the edge: across to its spot out past it, tilting that way a little, then it drops (fly) */
+  private tip(dt: number): void {
+    const t = this.tipTo!;
+    const ex = t.x - this.pos.x, ez = t.z - this.pos.z, d = Math.hypot(ex, ez), go = 0.9 * dt;
+    this.spin = 0;   // (its tilt is set as if unturned: turned, the tilt would point some other way)
+    this.tilt.set(t.dz * 0.25, -t.dx * 0.25);
+    if (d <= go) {
+      this.pos.x = t.x; this.pos.z = t.z;
+      this.tipTo = null;
+      this.state = 'fly';
+      this.vel.set(t.dx * 0.25, 0, t.dz * 0.25);
+      return;
+    }
+    this.pos.x += ex / d * go;
+    this.pos.z += ez / d * go;
+  }
+
   private settle(dt: number, others: Ring[], hooks: Hooks): void {
     const s = this.target!;
     // it comes down round the prize onto the stool, or onto a ring already lying there
     let floor = s.stoolH;
-    for (const o of others) if (Math.hypot(this.pos.x - o.pos.x, this.pos.z - o.pos.z) < 2 * OUTER) floor = Math.max(floor, o.pos.y + TUBE);
+    for (const o of others) if (Math.hypot(this.pos.x - o.pos.x, this.pos.z - o.pos.z) < this.gap(o)) floor = Math.max(floor, o.pos.y + TUBE);
     const k = Math.min(1, 10 * dt);
     this.pos.x += (s.x - this.pos.x) * k * 0.5;
     this.pos.z += (s.z - this.pos.z) * k * 0.5;
@@ -360,7 +409,7 @@ export class Ring {
       const r = s.prize ? s.stoolR : 0;
       if (s.prize && Math.hypot(this.pos.x - s.x, this.pos.z - s.z) < r + OUTER - 1e-3) return s;
     }
-    for (const o of others) if (Math.abs(o.pos.y - this.pos.y) < 2 * TUBE && Math.hypot(this.pos.x - o.pos.x, this.pos.z - o.pos.z) < 2 * OUTER - 1e-3) return o.pos;
+    for (const o of others) if (Math.abs(o.pos.y - this.pos.y) < 2 * TUBE && Math.hypot(this.pos.x - o.pos.x, this.pos.z - o.pos.z) < this.gap(o) - 1e-3) return o.pos;
     if (this.floor < owner.hipH && Math.hypot(this.pos.x - owner.x, this.pos.z - owner.z) < STOOL_HALF + OUTER - 1e-3) return owner;
     return null;
   }
@@ -374,7 +423,7 @@ export class Ring {
   }
 
   /** stuck: straight down onto whatever is under it (out of the owner's stand, if it's in it), and still */
-  private giveUp(slots: Slot[], owner: Owner, hooks: Hooks): void {
+  private giveUp(slots: Slot[], owner: Owner, hooks: Hooks, others: Ring[] = []): void {
     const dh = Math.hypot(this.pos.x - owner.x, this.pos.z - owner.z);
     if (dh < STOOL_HALF + OUTER) {
       const nx = dh > 1e-4 ? (this.pos.x - owner.x) / dh : 1, nz = dh > 1e-4 ? (this.pos.z - owner.z) / dh : 0;
@@ -382,16 +431,27 @@ export class Ring {
       this.pos.z = owner.z + nz * (STOOL_HALF + OUTER);
     }
     this.on = null;
-    this.floor = floorUnder(this.pos.x, this.pos.z);
+    this.floor = floorUnder(this.pos.x, this.pos.z, this.r);
     this.pos.y = this.floor + TUBE;
     this.vel.set(0, 0, 0);
-    this.rest(slots, hooks);
+    this.rest(slots, hooks, others);
   }
 
-  private rest(slots: Slot[], hooks: Hooks): void {
-
+  private rest(slots: Slot[], hooks: Hooks, others: Ring[] = []): void {
     this.state = 'rest';
     this.tilt.set((Math.random() - 0.5) * 0.04, (Math.random() - 0.5) * 0.04);
+    // still hanging over an edge (something below kept it from going over: a prize on the step below): it lies
+    // leaning, its rim on the edge and the side out over the drop down, not flat in mid-air
+    const o = !this.on && Math.abs(this.floor - floorUnder(this.pos.x, this.pos.z, this.r)) < 0.005 ? overhang(this.pos.x, this.pos.z, this.floor, this.r) : null;
+    // (not if another ring lies where that side would come down: it went through it)
+    const below = o && others.some((q) => q.pos.y < this.pos.y && Math.hypot(this.pos.x + o[0] * this.r - q.pos.x, this.pos.z + o[1] * this.r - q.pos.z) < q.r + this.r * 0.5 + TUBE);
+    if (o && !below) {
+      const drop = this.floor - floorAt(this.pos.x, this.pos.z);
+      const a = Math.min(0.45, Math.atan2(drop, this.r * 1.5));
+      this.spin = 0;
+      this.tilt.set(o[1] * a, -o[0] * a);
+      this.pos.y -= this.r * Math.sin(a);   // turned about its rim on the edge: its middle comes down
+    }
     let near: { slot: Slot; gap: number } | null = null;
     for (const s of slots) {
       if (!s.prize || s.claimed) continue;

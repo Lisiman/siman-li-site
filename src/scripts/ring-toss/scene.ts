@@ -67,7 +67,7 @@ const rand = (() => { let s = 7; return (): number => ((s = (s * 16807) % 214748
 const SCRIPT_FONT = '"Marker Felt", "Chalkboard SE", "Segoe Print", cursive';   // a round hand, thick enough to read as neon
 
 /** The stall's old cloth banner, CASH ONLY 只收現金, tied between the back posts; and in front of it, put up
- *  later, two neon signs: a red NO and, squeezed in between, a jade "more". Read together: No [more] Cash Only. */
+ *  later, two neon signs: a red NO and, squeezed in between, a jade "more". Read together: [No more] Cash Only. */
 function buildSign(scene: THREE.Scene): { neon: THREE.MeshBasicMaterial; more: THREE.MeshBasicMaterial; glow: THREE.PointLight; moreGlow: THREE.PointLight } {
   const W = 2.7, H = 0.7, Y = 1.98, Z = -4.9;   // (a tenth smaller each way than it was: the neon below scales with it, K)
   const K = 0.9;   // (low enough to show in full under the LUCKY 88 sign)

@@ -1,4 +1,4 @@
-// No [more] Cash Only: ring toss on a Chinatown street at night. This file runs the game: the counter and the
+// [No more] Cash Only: ring toss on a Chinatown street at night. This file runs the game: the counter and the
 // rings in your hand, throwing, what happens when a ring lands, and the events the rest of the game listens to.
 // The street, lights and sign are scene.ts; the glow and grain post.ts; the stage and prizes prizes.ts.
 import * as THREE from 'three';
@@ -104,8 +104,9 @@ counter.position.set(0, COUNTER_TOP / 2, 0.35);   // a narrow counter: from the 
 counter.receiveShadow = true;
 scene.add(counter);
 const pile: THREE.Mesh[] = [];
+const PILE_COLORS = [0xe8473b, 0x3fbf9a, 0xf2c14e, 0x5aa9e6];
 for (let i = 0; i < 4; i++) {   // a low stack: the top few of your rings
-  const r = new THREE.Mesh(new THREE.TorusGeometry(MID, TUBE, 12, 48).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: [0xe8473b, 0x3fbf9a, 0xf2c14e, 0x5aa9e6][i % 4], roughness: 0.35 }));
+  const r = new THREE.Mesh(new THREE.TorusGeometry(MID, TUBE, 12, 48).rotateX(Math.PI / 2), new THREE.MeshStandardMaterial({ color: PILE_COLORS[i % 4], roughness: 0.35 }));
   r.position.set(PILE_AT.x + Math.sin(i * 2.3) * 0.02, COUNTER_TOP + TUBE + i * TUBE * 2, PILE_AT.z + Math.cos(i * 1.7) * 0.02);
   r.rotation.set(Math.sin(i) * 0.05, i, Math.cos(i * 1.3) * 0.05);
   r.castShadow = true;
@@ -207,6 +208,7 @@ function refreshLuck(): void {
   heldMat.emissiveIntensity = 0.6;
   held.scale.setScalar(k ? (MID + BIG[k].extra) / MID : 1);
   oddsAt = -1;
+  showRings();
 }
 let cleanedOut = false;   // the ring just down won the last prize not yet found (hooks.done)
 /** the round is over and its receipt is on its way: no paying for more till it's up (paid then, at the stall, the
@@ -283,7 +285,21 @@ function showRings(): void {
   // (no counter on screen: the rings left are the pile on the counter)
   const inHand = ready || fetching !== null ? 1 : 0;
   held.visible = inHand > 0;
-  pile.forEach((r, i) => { r.visible = i < rings - inHand; });
+  pile.forEach((r, i) => {
+    r.visible = i < rings - inHand;
+    // and each looks as it will when it's thrown: the ad's gold for as many as it has left (from the top, after the
+    // one in your hand), her red at closing time; a little bigger, not as big as in your hand (the pile would spill
+    // off the counter and over the bag)
+    const next = rings - inHand - 1 - i + inHand;   // throws before this one
+    const hers: Luck | null = !closing ? null : lastMisses >= 4 ? 'closing3' : lastMisses >= 2 ? 'closing2' : 'closing';
+    const ad: Luck | null = next < luckyLeft ? 'ad' : null;
+    const k = !hers || !ad ? hers ?? ad : BIG[ad].extra >= BIG[hers].extra ? ad : hers;
+    const m = r.material as THREE.MeshStandardMaterial;
+    m.color.setHex(k ? BIG[k].color : PILE_COLORS[i % PILE_COLORS.length]);
+    m.emissive.setHex(k ? BIG[k].emissive : 0x000000);
+    m.emissiveIntensity = 0.6;
+    r.scale.setScalar(k ? Math.min(1.2, (MID + BIG[k].extra) / MID) : 1);
+  });
   hintEl.classList.toggle('is-on', ready && thrown === 0);
 }
 
