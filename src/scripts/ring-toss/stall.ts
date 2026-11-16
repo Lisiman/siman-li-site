@@ -20,6 +20,8 @@ export interface Owner {
   headY: number;
   headR: number;
   headTop: number;
+  /** the laptop's lid (0.36 x 0.24, its +z toward you): her hands are kept behind it (owner.ts) */
+  screen?: THREE.Object3D;
 }
 
 /** where he stands: off to the left of the prizes, behind his stand, so you see him from the waist up */
@@ -184,6 +186,7 @@ function laptop(top: number, z: number): THREE.Group {
   g.traverse((o) => { o.castShadow = true; });
   g.position.set(-0.02, top, z - 0.02);   // (in from the stand's right edge)
   g.rotation.y = 0.12;
+  g.userData.lid = lid;
   return g;
 }
 
@@ -202,7 +205,8 @@ export function buildOwner(scene: THREE.Scene): { owner: Owner; table: Slot; fig
   head.position.y = headY;
   const figure = new THREE.Group();
   figure.add(legs, body, head);
-  g.add(stand, figure, laptop(STAND.h, STAND.z - SPOT.z));
+  const lap = laptop(STAND.h, STAND.z - SPOT.z);
+  g.add(stand, figure, lap);
   g.traverse((o) => { o.castShadow = o.receiveShadow = true; });
   g.position.set(SPOT.x, 0, SPOT.z);
   scene.add(g);
@@ -210,6 +214,7 @@ export function buildOwner(scene: THREE.Scene): { owner: Owner; table: Slot; fig
     owner: {
       x: SPOT.x, z: SPOT.z, hipH, floor: LIFT, bodyR, bodyTop,
       head: new THREE.Vector3(SPOT.x, headY, SPOT.z), headY, headR, headTop: headY + headR,
+      screen: lap.userData.lid as THREE.Object3D,
     },
     table: { x: SPOT.x + STAND.dx, z: STAND.z, stoolH: STAND.h, stoolR: STAND.w / 2 - 0.05, prize: null, group: null, claimed: false },
     figure,

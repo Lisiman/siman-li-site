@@ -1,4 +1,4 @@
-// [No more] Cash Only: ring toss on a Chinatown street at night. This file runs the game: the counter and the
+// 🏮 Lucky 88 — Tap & Play: ring toss on a Chinatown street at night. This file runs the game: the counter and the
 // rings in your hand, throwing, what happens when a ring lands, and the events the rest of the game listens to.
 // The street, lights and sign are scene.ts; the glow and grain post.ts; the stage and prizes prizes.ts.
 import * as THREE from 'three';
