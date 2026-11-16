@@ -83,20 +83,20 @@ export const WEB: Body = {
 export const ART: Body = {
   intro: 'I make <em>media art</em> between the ancient and the future — meaningful interactions drawn from my heritage, everyday fantasies and contemplation.',
   // (Fortune on Hand's Maker Faire Editor’s Choice shows on its own page, under Recognition — not here)
-  // order (Index, and Images reading left/right): Windloom · Fortune on Hand · Su Dongpo: Poem on Hand · The Crossings · Sea and Mulberry Field · Quick Hand Gallery · Drifter
+  // order (Index, and Images reading left/right): Windloom · Fortune on Hand · Su Dongpo: Poem on Hand · The Crossings · Sea and Mulberry Field · Mother River · Quick Hand Gallery · Drifter
   left: [
     { n: 'A.01', title: 'Windloom', cat: 'Installation, NIME, Creative Coding', href: '/work/windloom', media: artImg('windloom', 500, 647), size: 0.7 },   // tall: drawn 30% smaller
     { n: 'A.04', title: 'The Crossings', cat: 'Projection mapping, Installation', href: '/work/the-crossings', media: artImg('the-crossings', 1600, 730) },
-    { n: 'A.07', title: 'Drifter', cat: '3D animation film', href: '/work/drifter', media: artImg('drifter', 1600, 900) },
+    { n: 'A.08', title: 'Drifter', cat: '3D animation film', href: '/work/drifter', media: artImg('drifter', 1600, 900) },
   ],
   right: [
     { n: 'A.02', title: 'Fortune on Hand', cat: 'Installation, Creative Coding', href: '/work/fortune-on-hand', media: artImg('fortune-on-hand', 1600, 900) },
-    // new, 2026 (in progress, local only for now): its cover a film of a visitor's hand on the reader, the hand on the wall lit
+    // 2026: its cover a film of a visitor's hand on the reader, the hand on the wall lit
     { n: 'A.03', title: 'Su Dongpo: Poem on Hand', cat: 'Installation', href: '/work/su-dongpo-poem-on-hand', media: { ...artVid('su-dongpo-poem-on-hand', 1600, 1068), fromStart: true } },
     { n: 'A.05', title: 'Sea and Mulberry Field', cat: 'Installation', href: '/work/sea-and-mulberry-field', media: artImg('sea-and-mulberry-field', 1600, 900) },
-    // hidden for now — uncomment to bring it back:
-    // { n: 'A.09', title: 'Mother River', cat: 'Installation, in progress', href: '#', media: artImg('mother-river', 1600, 1000) },
-    { n: 'A.06', title: 'Quick Hand Gallery', cat: '3D, VR', href: '/work/quick-hand-gallery', media: artImg('quick-hand-gallery', 1600, 856) },
+    // 2025: its cover a loop of the river winding down (turned 10°, closer), from its film
+    { n: 'A.06', title: 'Mother River', cat: 'Installation', href: '/work/mother-river', media: artVid('mother-river', 1600, 900) },
+    { n: 'A.07', title: 'Quick Hand Gallery', cat: '3D, VR', href: '/work/quick-hand-gallery', media: artImg('quick-hand-gallery', 1600, 856) },
   ],
 };
 

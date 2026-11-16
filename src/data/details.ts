@@ -4,7 +4,7 @@
 
 export interface DetailMedia { src: string; poster?: string; w: number; h: number; kind: 'video' | 'image'; alt?: string }
 /** a picture in a gallery row */
-export type GalleryItem = DetailMedia & { /** show it cropped (from the centre) to this shape, e.g. '2 / 1' */ ratio?: string; /** where a cropped one is anchored, as CSS object-position (e.g. '50% 100%': keep the bottom) */ pos?: string; /** draw it smaller inside its columns, centred (0.6 = 60% as wide) */ scale?: number; /** a CSS filter for its look, e.g. 'contrast(1.2) saturate(1.3)' */ filter?: string; /** wider than the page's measure: out to the site's side margins (on a narrowed page) */ bleed?: boolean; caption?: string; fill?: boolean; /** a background behind a transparent picture (e.g. a logo) */ bg?: string; /** a little one (a small animation): two columns wide, in a black square */ small?: boolean; /** where a small (or narrower) one starts, on the 12 columns */ at?: number; /** a picture made of three side by side (a triptych): shown as three, with the grid's gutter between them */ split?: 3; /** a narrower picture: how many of the 12 columns it takes */ span?: number };
+export type GalleryItem = DetailMedia & { /** show it cropped (from the centre) to this shape, e.g. '2 / 1' */ ratio?: string; /** where a cropped one is anchored, as CSS object-position (e.g. '50% 100%': keep the bottom) */ pos?: string; /** draw it smaller inside its columns, centred (0.6 = 60% as wide) */ scale?: number; /** a CSS filter for its look, e.g. 'contrast(1.2) saturate(1.3)' */ filter?: string; /** wider than the page's measure: out to the site's side margins (on a narrowed page) */ bleed?: boolean; caption?: string; fill?: boolean; /** a background behind a transparent picture (e.g. a logo) */ bg?: string; /** a little one (a small animation): two columns wide, in a black square */ small?: boolean; /** where a small (or narrower) one starts, on the 12 columns */ at?: number; /** a picture made of three side by side (a triptych): shown as three, with the grid's gutter between them */ split?: 3; /** a narrower picture: how many of the 12 columns it takes */ span?: number; /** another picture, the same size, shown in its place on hover (e.g. its original colours) */ hoverSrc?: string };
 /** a film (YouTube or Vimeo): a still and a play button until clicked */
 export interface Film { heading: string; note?: string; /** a YouTube id, or… */ youtube?: string; /** …a Vimeo id */ vimeo?: string; title: string; /** the still before it plays (YouTube has its own) */ poster?: string }
 export interface Detail {
@@ -29,7 +29,7 @@ export interface Detail {
   /** a making-of film, before the main one and a little smaller */
   making?: Film;
   /** a gallery after the main recording: rows of one (full width) or two (side by side) pictures, each with an optional caption */
-  gallery?: { heading: string; note?: string; /** how many of the rows come before the film (right under the recording) */ lead?: number; /** screens shown one at a time, in a slideshow, before the rows */ slides?: DetailMedia[]; /** in a pair, `fill` marks the picture cropped to the other one's height (by default the second) */ rows: GalleryItem[][]; /** chapters: a small heading, with room above it, before the row at that position in `rows` (from 0) */ chapters?: { row: number; title: string; /** a line under the heading */ note?: string }[]; /** rows shown after the film, the same kind as `rows` */ after?: GalleryItem[][]; /** the pictures (and film) on a slightly narrower measure */ narrow?: boolean; /** a heading over the rows after the film */ afterTitle?: string; /** a line under that heading */ afterNote?: string };
+  gallery?: { heading: string; note?: string; /** how many of the rows come before the film (right under the recording) */ lead?: number; /** screens shown one at a time, in a slideshow, before the rows */ slides?: DetailMedia[]; /** in a pair, `fill` marks the picture cropped to the other one's height (by default the second) */ rows: GalleryItem[][]; /** chapters: a small heading, with room above it, before the row at that position in `rows` (from 0) */ chapters?: { row: number; title: string; /** a line under the heading */ note?: string }[]; /** rows shown after the film, the same kind as `rows` */ after?: GalleryItem[][]; /** the pictures (and film) on a slightly narrower measure */ narrow?: boolean; /** a heading over the rows after the film */ afterTitle?: string; /** a line under that heading */ afterNote?: string; /** headings before some of the rows after the film (their positions in `after`) */ afterChapters?: { row: number; title: string; note?: string }[] };
   /** desktop and phone, side by side */
   screens?: { desktop?: DetailMedia; mobile?: DetailMedia };
   /** an artwork's page (Art, A.01…): set on pure black */
@@ -464,11 +464,16 @@ const HEROES: Record<string, DetailMedia & { hidden?: boolean }> = {
   'sea-and-mulberry-field': { kind: 'image', src: '/art/sea-and-mulberry-field/hero.webp', w: 2000, h: 1125, alt: 'Sea and Mulberry Field: a round window of light in a dark room' },
   'quick-hand-gallery': { kind: 'image', src: '/art/quick-hand-gallery/hero.webp', w: 2000, h: 1070, alt: 'The Quick Hand Gallery, its entrance' },
   'su-dongpo-poem-on-hand': { kind: 'video', src: '/art/su-dongpo-poem-on-hand/1-overview.mp4', poster: '/art/su-dongpo-poem-on-hand/1-overview.jpg', w: 1920, h: 1280, alt: 'The room: the hand on the wall, the reader on its stand below' },   // the room first (the homepage keeps the visitor film)
+  'mother-river': { kind: 'image', src: '/art/mother-river/film.webp', w: 1920, h: 1080, alt: 'Mother River: a golden river across a dark terrain', hidden: true },   // the film is the page: no picture above it
   'drifter': { kind: 'image', src: '/art/drifter/hero.webp', w: 1920, h: 1080, alt: 'Drifter: a doll’s face in the sand', hidden: true },   // shown as the film's still instead
 };
 
 // the introduction for a page that is not written yet (replaces the DRAFT lines)
 const LEDES: Record<string, Detail['lede']> = {
+  'mother-river': [
+    { heading: 'Project info', text: '*Mother River* is based on 3D scans of six real pregnant women. Their bodies are merged and reconstructed into a continuous, landscape-like terrain. Golden particles, guided by the shape of the Yellow River and its real-time data, flow across the surface like streams of water, tracing the contours of the pregnant bodies.' },
+    { heading: 'About the work', text: 'The Yellow River (黄河) is known as China’s *Mother River*, regarded as the cradle of Chinese civilization and a symbol of the nation’s origins. For generations, it has shaped a collective imagination of motherhood, land, and cultural identity.\n\nYet behind this symbolic mother, the bodies and experiences of actual women often remain unseen.\n\nFrom the one-child policy to today’s encouragement of larger families, women’s bodies have been shaped by shifting political and social expectations.\n\nBy merging the river with pregnant bodies, *Mother River* questions the traditional narrative of civilization’s origins and brings attention to the women whose bodies have sustained generations.' },
+  ],
   'su-dongpo-poem-on-hand': [
     { heading: 'Project info', text: '*Su Dongpo: Poem on Hand* is an interactive installation created for *Knowing the Mandate of Heaven (知天命)*, part of *Chengmai: More Than Dongpo (澄迈·不止东坡)* in Hainan, China, commissioned by [Raiden INST](https://raideninst.com/).\n\nVisitors place a hand on a reader, where their palm lines are translated into a four-line poem inspired by Su Dongpo. Each poem is unique to the hand and appears, line by line, on a giant sculptural hand.' },
     { heading: 'About the work', text: 'The series title, *Knowing the Mandate of Heaven*, comes from Confucius, who said that at fifty, he understood the mandate of heaven.\n\nExiled to Hainan late in his life, Su Dongpo eventually sailed home from Chengmai, writing:\n\n“Nine times near death in the southern wilds, I have no regrets; this journey was the most wondrous of my life.”\n\n九死南荒吾不恨，兹游奇绝冠平生。\n\nNine hundred years later, his poetry becomes the starting point for a new encounter. Drawing on his imagery of moons, rivers, and wine, I used AI to create a library of verses in his style. The palm is read in four sections, and each draws one line; together they form a poem that has never existed before.\n\nThe work revisits *Fortune on Hand* (2016), returning ten years later to the same idea: reading the lines of a palm as poetry.' },
@@ -500,6 +505,7 @@ const LEDES: Record<string, Detail['lede']> = {
 
 // facts for a page that is not written yet: the year (replaces DRAFT), the tools ("Built with")…
 const META: Record<string, Partial<Detail['meta']>> = {
+  'mother-river': { year: '2025', stack: 'TouchDesigner, Cinema 4D, Fusion, ZBrush, Yellow River API' },
   'su-dongpo-poem-on-hand': {
     year: '2026', stack: 'TouchDesigner, OpenCV, Arduino',
     exhibitions: [{ label: 'Chengmai: More Than Dongpo 澄迈·不止东坡, Chengmai, Hainan, 2026' }],
@@ -581,6 +587,31 @@ const MEDIA: Record<string, Pick<Detail, 'gallery' | 'film' | 'making' | 'onBlac
   //   [{ kind: 'image', src: '/art/su-dongpo-poem-on-hand/01.webp', w: 1600, h: 900, alt: '…', ratio: '16 / 9' },
   //    { kind: 'image', src: '/art/su-dongpo-poem-on-hand/02.webp', w: 1600, h: 900, alt: '…', ratio: '16 / 9' }],
   // and a film, if there is one: film: { heading: '', vimeo: '<id>', title: '…', poster: '/art/su-dongpo-poem-on-hand/film.webp' },
+  'mother-river': {
+    // before the film, last: six of its shots (the golden bend and the wide spread left out), each a silent loop (a cross-fade back to its start, so no seam), pieced together
+    // edge to edge, every row the full width: first the whole river, end to end (8), alone; then the rest,
+    // the source (narrow, `fill`, cropped to the next one's height) beside the river winding down (wide); then the
+    // mirror of it, the close bend beside the fanning streams (narrow, `fill`,
+    // cropped to the bend's height, so it stands tall). Last of all, after the film, the making: in one row: the terrain of scanned bodies seen across it (_source:
+    // scan-terrain-3, cropped to a slice), all four the same size: the terrain (turned upright), the river on it in Cinema 4D
+    // and a render, joined into one picture the full width, in black and white at one contrast (the Cinema 4D view cropped in to the body; the render lifted to
+    // match; the sculpting tool's icon taken out) (_source: motherriver_process2, 3, 1)
+    gallery: {
+      heading: '',
+      rows: [
+        [{ kind: 'video', src: '/art/mother-river/clip-8.mp4', poster: '/art/mother-river/clip-8.jpg', w: 1600, h: 900, alt: 'The whole river, end to end, in the last light' }],
+        [{ kind: 'video', src: '/art/mother-river/clip-1.mp4', poster: '/art/mother-river/clip-1.jpg', w: 1600, h: 900, span: 4, at: 1, fill: true, alt: 'The source: the first streams of light breaking over the terrain' }, { kind: 'video', src: '/art/mother-river/clip-4.mp4', poster: '/art/mother-river/clip-4.jpg', w: 1600, h: 900, span: 8, at: 5, alt: 'The river winding down, seen from above' }],
+        [{ kind: 'video', src: '/art/mother-river/clip-7.mp4', poster: '/art/mother-river/clip-7.jpg', w: 1600, h: 900, span: 8, at: 1, alt: 'Another bend, close' }, { kind: 'video', src: '/art/mother-river/clip-6.mp4', poster: '/art/mother-river/clip-6.jpg', w: 1600, h: 900, span: 4, at: 9, fill: true, alt: 'The streams fanning out' }],
+      ],
+      // the making, last, after the film
+      afterTitle: 'Process',
+      after: [
+        [{ kind: 'image', src: '/art/mother-river/process-1.webp', w: 700, h: 1000, ratio: '7 / 10', hoverSrc: '/art/mother-river/process-1-color.webp', alt: 'The real scanned bodies merged into the riverbed', caption: 'Scanned bodies merged into the riverbed, in Fusion' }, { kind: 'image', src: '/art/mother-river/process-2.webp', w: 700, h: 1000, ratio: '7 / 10', hoverSrc: '/art/mother-river/process-2-color.webp', alt: 'The terrain, sculpted in detail', caption: 'Detail sculpting in ZBrush' }, { kind: 'image', src: '/art/mother-river/process-3.webp', w: 700, h: 1000, ratio: '7 / 10', hoverSrc: '/art/mother-river/process-3-color.webp', alt: 'The river’s design drawn on the riverbed', caption: 'The river’s design, drawn on the riverbed' }, { kind: 'image', src: '/art/mother-river/process-4.webp', w: 700, h: 1000, ratio: '7 / 10', hoverSrc: '/art/mother-river/process-4-color.webp', alt: 'The river’s particles flowing down the terrain', caption: 'Particles render' }],
+      ],
+    },
+    // the whole film, with its sound (Vimeo); its still the homepage's: 0:30, turned 10° and closer, a little more contrast
+    film: { heading: '', vimeo: '1247088672', title: 'Mother River 母亲河', poster: '/art/mother-river/film.webp' },
+  },
   'su-dongpo-poem-on-hand': {
     gallery: {
       heading: '',

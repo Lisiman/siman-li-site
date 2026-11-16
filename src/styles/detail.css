@@ -152,6 +152,9 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-row figure[data-ratio] img, .d-row figure[data-ratio] video { aspect-ratio: var(--ratio); object-fit: cover; object-position: var(--pos, 50% 50%); }   /* a picture shown at a set shape (GalleryItem.ratio) */
 .d-row figure[data-scale] { width: calc(var(--scale) * 100%); justify-self: center; }
 .d-row figure[data-filter] img, .d-row figure[data-filter] video { filter: var(--filter); }
+.d-row figure[data-hover] { position: relative; }
+.d-row figure[data-hover] .d-hover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s ease; pointer-events: none; }   /* another picture over it (its original colours)… */
+.d-row figure[data-hover]:hover .d-hover-img { opacity: 1; }   /* …faded in on hover */
 .d-row figure[data-bleed] { width: calc(100vw - 2 * var(--pad)); margin-left: calc(50% - 50vw + var(--pad)); }   /* wider than a narrowed page: out to the site's side margins (GalleryItem.bleed) */   /* a picture or clip given a look of its own (GalleryItem.filter) */   /* a picture drawn smaller inside its columns (GalleryItem.scale) */
 @media (max-width: 860px) { .d-row figure[data-scale] { width: 100%; } }
 /* in a pair, both pictures take the same height: one sets it, the other (is-fill: by default the second) is cropped from the centre to match */

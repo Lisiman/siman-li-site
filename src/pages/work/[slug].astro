@@ -115,7 +115,7 @@ const pad2 = (i: number): string => String(i + 1).padStart(2, '0');
       <section class:list={["d-gallery", { "d-gallery--narrow": d.gallery?.narrow }]}>
         {d.gallery.afterTitle && <h2 class="d-chapter">{d.gallery.afterTitle}</h2>}
         {d.gallery.afterNote && <p class="d-gallery-note d-chapter-note">{d.gallery.afterNote}</p>}
-        <GalleryRows rows={d.gallery.after} />
+        <GalleryRows rows={d.gallery.after} chapters={d.gallery.afterChapters} />
       </section>
     )}
 
