@@ -1,6 +1,8 @@
 /* ---------- tokens ---------- */
 :root {
   --bg: #F2EFE6; --ink: #1A1916; --mu: #6E6A62; --mid: #8C877D; --lt: #B3AEA2;
+  /* every button's hover, across the site (and the game), changes at this one pace: quick off the mark, settling */
+  --hover: .3s cubic-bezier(.2,.8,.2,1);
   --serif: 'EB Garamond', Georgia, serif;
   --mono: 'Cutive Mono', ui-monospace, Menlo, monospace;
   --zh: 'Noto Serif SC', 'Songti SC', serif;

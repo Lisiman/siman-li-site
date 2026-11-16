@@ -18,14 +18,14 @@
 
 /* Index / Images switch */
 .vt { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-label); color: var(--mu); }
-.vt button { border: 0; background: transparent; color: var(--mu); font: inherit; letter-spacing: var(--ls-small); padding: 0 2px; cursor: var(--cur-link); text-underline-offset: 5px; transition: color .3s ease; }
-.vt button:hover { color: var(--ink); }
+.vt button { border: 0; background: transparent; color: var(--mu); font: inherit; letter-spacing: var(--ls-small); padding: 0 2px; cursor: var(--cur-link); text-underline-offset: 5px; transition: color var(--hover), translate var(--hover); }
+.vt button:hover { color: var(--ink); translate: 0 -1px; }
 .vt button { display: inline-flex; align-items: center; gap: 8px; }
 .vt button[aria-pressed="true"] { color: var(--ink); }
 /* sun = Images, moon = Index: the chosen one is filled in (this switch only changes the view, never light/dark) */
 .vt-ic { overflow: visible; }
-.vt-ic .vt-fill { fill: transparent; stroke: currentColor; stroke-width: 1.1; transition: fill .3s ease; }
-.vt-ic .vt-rays { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 1 2.4; opacity: 0; transition: opacity .3s ease; }
+.vt-ic .vt-fill { fill: transparent; stroke: currentColor; stroke-width: 1.1; transition: fill var(--hover); }
+.vt-ic .vt-rays { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 1 2.4; opacity: 0; transition: opacity var(--hover); }
 .vt button[aria-pressed="true"] .vt-fill { fill: currentColor; }
 .vt button[aria-pressed="true"] .vt-rays { opacity: 1; }
 .vt button:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
@@ -93,8 +93,8 @@ html:not([data-view="img"]) .view--img, html[data-view="img"] .view--txt { displ
 .can-drag .card img, .can-drag .card video { -webkit-user-drag: none; }
 .can-drag .card.is-dragging .ph, .can-drag .card.is-dragging .cap { cursor: grabbing; }
 .can-drag .card.is-tidying .ph, .can-drag .card.is-tidying .cap { transition: translate .9s cubic-bezier(.22,.61,.36,1); }
-.tidy { border: 0; background: transparent; color: var(--mu); font: inherit; font-size: var(--fs-label); letter-spacing: var(--ls-small); padding: 8px 2px; cursor: var(--cur-link); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
-.tidy:hover { color: var(--ink); }
+.tidy { border: 0; background: transparent; color: var(--mu); font: inherit; font-size: var(--fs-label); letter-spacing: var(--ls-small); padding: 8px 2px; cursor: var(--cur-link); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; transition: color var(--hover), border-color var(--hover), translate var(--hover); }
+.tidy:hover { color: var(--ink); translate: 0 -1px; }
 html:not([data-view="img"]) .tidy { display: none; }
 
 /* Index: one line per work */
@@ -154,10 +154,10 @@ html:not([data-view="img"]) .tidy { display: none; }
 @media (max-width: 760px) { .ferry .about-row { grid-template-columns: 1fr; align-items: start; row-gap: var(--step); } .about-photo { justify-self: center; width: min(224px, 56%); } }   /* on a phone the photo sits in the middle, under the centred title */
 /* how to say the name: small, grey, in the plain type; a tiny play button when there is a recording */
 .say { font-family: var(--mono); font-size: .58em; color: var(--mu); letter-spacing: var(--ls-small); white-space: nowrap; vertical-align: .18em; }
-.say-btn { display: inline-flex; align-items: center; justify-content: center; width: 1.7em; height: 1.7em; margin: 0 .3em 0 .45em; padding: 0; border: 1px solid currentColor; border-radius: 50%; background: none; color: inherit; cursor: var(--cur-link, pointer); vertical-align: -.5em; transition: color .3s ease; }
+.say-btn { display: inline-flex; align-items: center; justify-content: center; width: 1.7em; height: 1.7em; margin: 0 .3em 0 .45em; padding: 0; border: 1px solid currentColor; border-radius: 50%; background: none; color: inherit; cursor: var(--cur-link, pointer); vertical-align: -.5em; transition: color var(--hover), translate var(--hover); }
 .say-btn svg path { fill: currentColor; }
 .say-btn svg { margin-left: 1px; }
-.say-btn:hover, .say-btn:focus-visible, .say-btn.is-playing { color: var(--ink); }
+.say-btn:hover, .say-btn:focus-visible, .say-btn.is-playing { color: var(--ink); translate: 0 -1px; }
 .say-btn.is-playing { animation: say-pulse 1s ease-in-out infinite; }
 @keyframes say-pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 18%, transparent); } }
 /* résumé highlights under the bio: a label column, then names (ink) with their role and years (grey), or plain grey lists */

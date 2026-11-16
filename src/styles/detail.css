@@ -74,7 +74,7 @@
 .d--onblack .d-hero .d-hero-plain { width: min(100%, 66%); margin: 0 auto; }
 @media (max-width: 860px) { .d--onblack .d-hero .d-hero-plain { width: 100%; } }
 /* a modern, quiet browser window: rounded, a slim bar with three soft dots and the address in a pill */
-.d-browser { display: block; color: inherit; text-decoration: none; cursor: var(--cur-link, pointer); border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 11%, var(--bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); transition: box-shadow .5s ease; }   /* it doesn't move on hover: only its shadow and labels change */
+.d-browser { display: block; color: inherit; text-decoration: none; cursor: var(--cur-link, pointer); border-radius: 4px; overflow: hidden; background: color-mix(in srgb, var(--ink) 11%, var(--bg)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); transition: box-shadow var(--hover); }   /* it doesn't move on hover: only its shadow and labels change */
 .d-browser:hover, .d-browser:focus-visible { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent), 0 44px 90px -30px rgba(0, 0, 0, .8); }
 .d-browser:focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
 .d-browser.is-static { cursor: auto; } .d-browser.is-static:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 18%, transparent), 0 30px 70px -28px rgba(0, 0, 0, .7); }   /* no live site: not a link */
@@ -82,15 +82,15 @@
 .d-dots { display: flex; gap: 8px; }
 .d-dots i { width: 12px; height: 12px; border-radius: 50%; }
 .d-dots i:nth-child(1) { background: #ED6A5E; } .d-dots i:nth-child(2) { background: #F4BF4F; } .d-dots i:nth-child(3) { background: #61C554; }   /* the window's traffic lights: it reads as a real browser at a glance */
-.d-url { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: min(360px, 44vw); padding: 8px 16px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); color: color-mix(in srgb, var(--ink) 80%, var(--bg)); font-size: var(--fs-label); letter-spacing: var(--ls-small); transition: color .3s ease, background-color .3s ease; }
+.d-url { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: min(360px, 44vw); padding: 8px 16px; border-radius: 8px; background: color-mix(in srgb, var(--ink) 10%, transparent); color: color-mix(in srgb, var(--ink) 80%, var(--bg)); font-size: var(--fs-label); letter-spacing: var(--ls-small); transition: color var(--hover), background-color var(--hover), translate var(--hover); }
 .d-lock { opacity: .7; }
-.d-url-arrow { opacity: .6; transition: opacity .3s ease, transform .3s ease; }
-.d-browser:hover .d-url, .d-browser:focus-visible .d-url { color: var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.d-url-arrow { opacity: .6; transition: opacity var(--hover), transform var(--hover); }
+.d-browser:hover .d-url, .d-browser:focus-visible .d-url { color: var(--ink); background: color-mix(in srgb, var(--ink) 16%, transparent); translate: 0 -1px; }
 .d-browser:hover .d-url-arrow, .d-browser:focus-visible .d-url-arrow { opacity: 1; }
 .d-screen-wrap { position: relative; display: block; }
 .d-browser video, .d-browser img { border-radius: 0; }
 /* on hover, a label says plainly that it opens */
-.d-visit-pill { position: absolute; right: 20px; bottom: 20px; padding: 12px 20px; border-radius: 999px; background: rgba(17, 17, 17, .82); color: #fff; font-size: var(--fs-label); letter-spacing: var(--ls-small); opacity: 0; transition: opacity .4s ease; backdrop-filter: blur(6px); }
+.d-visit-pill { position: absolute; right: 20px; bottom: 20px; padding: 12px 20px; border-radius: 999px; background: rgba(17, 17, 17, .82); color: #fff; font-size: var(--fs-label); letter-spacing: var(--ls-small); opacity: 0; transition: opacity var(--hover); backdrop-filter: blur(6px); }
 .d-browser:hover .d-visit-pill, .d-browser:focus-visible .d-visit-pill { opacity: 1; }
 
 /* the story: a small label on the left, the words on the right */
@@ -112,8 +112,8 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-yt { position: relative; padding: 0; background: #000; cursor: var(--cur-link, pointer); }
 .d-yt img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1.2s cubic-bezier(.22,.61,.36,1); }   /* the official thumbnail, at full brightness */
 .d-yt:hover img, .d-yt:focus-visible img { transform: scale(1.02); }
-.d-yt-play { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; display: grid; place-items: center; color: #111; background: rgba(255, 255, 255, .9); transition: transform .4s ease; }
-.d-yt:hover .d-yt-play, .d-yt:focus-visible .d-yt-play { transform: scale(1.08); }
+.d-yt-play { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; display: grid; place-items: center; color: #111; background: rgba(255, 255, 255, .9); transition: transform var(--hover), translate var(--hover); }
+.d-yt:hover .d-yt-play, .d-yt:focus-visible .d-yt-play { transform: scale(1.08); translate: 0 -1px; }
 /* the slideshow: one screen at a time, full width, snapping; a quiet counter and two arrows under it on the right */
 .d-slides { margin-bottom: var(--gut); }
 .d-slides-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 4px; outline: none; }
@@ -122,8 +122,8 @@ a.d-list-name:hover { text-decoration: underline; text-underline-offset: 3px; }
 .d-slide { flex: 0 0 100%; margin: 0; scroll-snap-align: start; }
 .d-slide img { display: block; width: 100%; height: auto; aspect-ratio: 1.6; object-fit: cover; }
 .d-slides-ui { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 12px; }
-.d-slides-btn { border: 0; background: none; padding: 4px 6px; color: var(--mu); font: inherit; font-size: 18px; cursor: var(--cur-link, pointer); transition: color .3s ease; }
-.d-slides-btn:hover, .d-slides-btn:focus-visible { color: var(--ink); }
+.d-slides-btn { border: 0; background: none; padding: 4px 6px; color: var(--mu); font: inherit; font-size: 18px; cursor: var(--cur-link, pointer); transition: color var(--hover), translate var(--hover); }
+.d-slides-btn:hover, .d-slides-btn:focus-visible { color: var(--ink); translate: 0 -1px; }
 .d-slides-count { font-variant-numeric: tabular-nums; }
 /* the gallery: on the same 12-column grid — a row of one runs full width, a row of two splits it in half */
 .d-gallery { margin: var(--gut) 0 0; }   /* no headings: the film and the pictures follow the recording on the grid's gutter, one continuous run */
