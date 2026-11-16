@@ -293,6 +293,8 @@ export function startTalking(term: HTMLElement, text: HTMLElement, spoken: HTMLE
   // the moment the last one is won: after the line about the win itself
   // (LinkedIn, nine times in ten: it's the funniest)
   on('complete', () => window.setTimeout(() => pick('complete', 5, 1, [Math.random() < 0.9 ? 0 : 1 + Math.floor(Math.random() * 3)]), 1800));
+  // three left to find, then the last one: after the line about the win itself
+  on('closing', ({ left }) => { if (left === 3 || left === 1) window.setTimeout(() => pick(left === 1 ? 'lastOne' : 'closing', 4), 1800); });
   on('ask', ({ id }) => {
     const a = ASK.find((q) => q.id === id)?.a;
     if (a) say(a[Math.floor(Math.random() * a.length)], 5);

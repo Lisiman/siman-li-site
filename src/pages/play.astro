@@ -71,12 +71,35 @@ const OPENING: { lines: string[]; bright?: boolean; cmd?: boolean; long?: boolea
         <p class="rt-summary-foot">You cleaned out Lucky 88.<br />The owner's back on LinkedIn.</p>
         <div class="rt-summary-pay">
           <button type="button" class="rt-restart">Start over</button>
-          <a class="rt-more" href="https://www.siman.li">More by Siman →</a>
+          <a class="rt-more" href="https://www.siman.li" target="_blank" rel="noopener">More work ↗</a>
         </div>
       </div>
       <pre class="rt-summary-sign"><b>Hiring a creative engineer?
 siman.li</b></pre>
       <button class="rt-summary-close" type="button">Close</button>
+    </div>
+    <!-- five misses in a row: an ad, as in a phone game, for luckier rings. The ad is Siman, for hire (ad.ts) -->
+    <div class="rt-ad" id="rt-ad" data-state="off" role="dialog" aria-modal="true" aria-label="Watch an ad for lucky rings">
+      <div class="rt-ad-card">
+        <div class="rt-ad-offer">
+          <p class="rt-ad-kicker">Sponsored</p>
+          <p class="rt-ad-title">Down on your luck?</p>
+          <p class="rt-ad-body">Watch one short ad and your next <b>5 rings</b> are lucky: bigger, gold, about <b>3×</b> the odds.</p>
+          <div class="rt-ad-thumb"><img src="/play/no-cash-only/ad-poster.jpg" alt="" width="860" height="482" loading="lazy" /><span aria-hidden="true">▶</span></div>
+          <div class="rt-ad-btns">
+            <button type="button" class="rt-ad-watch">Watch ad ▶</button>
+            <button type="button" class="rt-ad-no">No thanks</button>
+          </div>
+        </div>
+        <div class="rt-ad-film">
+          <div class="rt-ad-bar"><span class="rt-ad-tag">Ad</span><span class="rt-ad-count" aria-live="off"></span><button type="button" class="rt-ad-x" aria-label="Close">×</button></div>
+          <video class="rt-ad-video" src="/play/no-cash-only/ad.mp4" poster="/play/no-cash-only/ad-poster.jpg" playsinline preload="none"></video>
+          <div class="rt-ad-btns rt-ad-after">
+            <a class="rt-ad-hire" href="https://www.linkedin.com/in/siman-li-965b73130/" target="_blank" rel="noopener">Hire Siman →</a>
+            <button type="button" class="rt-ad-claim">Claim 5 lucky rings ✓</button>
+          </div>
+        </div>
+      </div>
     </div>
     <!-- how hard: a string of bulbs like the stall's, lit from the bottom up (main.ts) -->
     <div class="rt-power" id="rt-power" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -377,6 +400,39 @@ siman.li</b></pre>
   .rt-cine-cta:disabled { cursor: progress; }
   @media (prefers-reduced-motion: reduce) { .rt-cine::before, .rt-cine::after, .rt-cine-cta *, .rt-cine.is-glitch .rt-cine-in { animation: none !important; } .rt-cine.is-off { animation: none; opacity: 0; transition: opacity .6s; } }
   .rt-log { position: absolute; left: 16px; top: 52px; margin: 0; padding: 0; list-style: none; font-size: 11px; line-height: 1.5; opacity: .7; pointer-events: none; max-width: min(520px, 90vw); }
+  /* the ad (ad.ts): first a card asking, like the receipt; then the film, in black, with a bar over it as a phone game's
+     ads have (AD, the seconds to the reward, ×); at its end, Hire Siman and the reward */
+  .rt-ad { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: #0a0f1e8c; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .rt-ad:not([data-state="off"]) { opacity: 1; pointer-events: auto; }
+  .rt-ad-card { width: min(380px, 100%); max-height: 100%; overflow-y: auto; scrollbar-width: none; padding: 22px 22px 24px; background: #f6f1e4; color: #1d1b17; box-shadow: 0 24px 80px #000b; font: 13px/1.5 'Courier Prime', var(--mono); transform: translateY(10px) scale(.97); transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+  .rt-ad:not([data-state="off"]) .rt-ad-card { transform: none; }
+  .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-card { width: min(800px, 100%); padding: 10px 10px 12px; background: #0d0d0d; color: #f3ead8; }
+  .rt-ad-film, .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-offer { display: none; }
+  .rt-ad:is([data-state="play"], [data-state="done"]) .rt-ad-film { display: block; }
+  .rt-ad p { margin: 0; }
+  .rt-ad-kicker { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: #d42a20; }
+  .rt-ad-kicker::before { content: '● '; }
+  .rt-ad-title { margin-top: 6px !important; font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; }
+  .rt-ad-body { margin-top: 8px !important; }
+  .rt-ad-thumb { position: relative; margin-top: 14px; border: 1px solid #1d1b17; }
+  .rt-ad-thumb img { display: block; width: 100%; height: auto; }
+  .rt-ad-thumb span { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; translate: -50% -50%; display: grid; place-items: center; padding-left: 4px; border-radius: 50%; background: #d42a20; color: #fff; font-size: 18px; box-shadow: 0 4px 18px #0006; }
+  .rt-ad-btns { display: flex; gap: 10px; margin-top: 16px; }
+  .rt-ad-btns > * { flex: 1; display: block; padding: 11px 6px; border: 1px solid currentColor; background: transparent; color: inherit; font: 700 12px/1 'Courier Prime', var(--mono); letter-spacing: .12em; text-transform: uppercase; text-align: center; text-decoration: none; cursor: pointer; transition: background-color .25s, color .25s, translate .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .rt-ad-btns > *:hover { translate: 0 -1px; }
+  .rt-ad-watch, .rt-ad-hire { background: #d42a20 !important; border-color: #d42a20 !important; color: #fff !important; }
+  .rt-ad-watch:hover, .rt-ad-hire:hover { background: #e8473b !important; box-shadow: 0 4px 16px #d42a2066; }
+  .rt-ad-no:hover { background: #1d1b17; color: #f6f1e4; }
+  .rt-ad-claim:hover { background: #f3ead8; color: #0d0d0d; }
+  .rt-ad-bar { display: flex; align-items: center; gap: 10px; padding: 0 0 8px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+  .rt-ad-tag { padding: 3px 6px 2px; background: #f2c14e; color: #0d0d0d; font-weight: 700; }
+  .rt-ad-count { flex: 1; color: #f3ead8b3; }
+  .rt-ad-x { width: 28px; height: 28px; padding: 0; border: 1px solid #f3ead855; border-radius: 50%; background: none; color: #f3ead8; font: 16px/1 var(--mono); cursor: pointer; }
+  .rt-ad-x:hover { border-color: #f3ead8; }
+  .rt-ad-video { display: block; width: 100%; max-height: calc(100dvh - 150px); aspect-ratio: 1292 / 724; object-fit: contain; background: #000; }
+  .rt-ad-after { visibility: hidden; margin-top: 10px; }
+  .rt-ad[data-state="done"] .rt-ad-after { visibility: visible; animation: rt-ad-in .4s cubic-bezier(.2,.8,.2,1); }
+  @keyframes rt-ad-in { from { opacity: 0; translate: 0 6px; } }
   /* (last, so it wins over the rules above) */
   /* a phone on its side: little height, so the boxes over the stall come down in size */
   @media (max-height: 520px) {
@@ -401,6 +457,10 @@ siman.li</b></pre>
     .rt-tag { zoom: .85; }
     .rt-pay { font-size: 10px; padding: 5px 8px; letter-spacing: .14em; }   /* small, under the tin and the reader, not over them */
     .rt-hint { font-size: 11px; bottom: 5%; }
+    .rt-ad { padding: 8px; }
+    .rt-ad-card { zoom: .85; }
+    .rt-ad-thumb { display: none; }
+    .rt-ad-video { max-height: calc(100dvh - 120px); }
   }
 </style>
 

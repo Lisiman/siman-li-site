@@ -8,7 +8,8 @@ import { pointerInput, HINT, type Toss } from './input';
 import { buildPrizes, restock, type Slot, type Kind } from './prizes';
 import { CATALOG, entry, no, find, isFound, foundCount } from './catalog';
 import { thumbs } from './thumbs';
-import { Ring, setRounds, HAND, HAND_SWAY, MID, TUBE, COLORS, type Result } from './ring';
+import { Ring, setRounds, setLuck, BIG, type Luck, HAND, HAND_SWAY, MID, TUBE, COLORS, type Result } from './ring';
+import { setupAd, adWatched, AD_AFTER, AD_REWARD } from './ad';
 import { buildOwner, startTalking, STAND_TOP } from './stall';
 import { oddsJob } from './odds';
 import { STATUS, LINES } from './lines';
@@ -178,6 +179,33 @@ let rings = 0, thrown = 0, missStreak = 0, winStreak = 0, ownerHits = 0;
 // this round (one payment's worth of rings), for the receipt at the end
 let roundThrown = 0, roundOwner = 0, roundsPaid = 0;
 let roundWins: Kind[] = [];
+// the ad (ad.ts): offered after AD_AFTER misses in a row (counted across rounds), once a round at most, never again
+// once watched; its reward, the next AD_REWARD rings lucky (wider and gold: ring.ts setLuck)
+let luckyLeft = 0, adRound = -1;
+/** three prizes or fewer left to find: closing time, she'd like to go home, so the rings are bigger from now on */
+let closing = false;
+/** which bigger ring the next one is, if any: the ad's while it lasts (the bigger of the two), else hers */
+const luckNow = (): Luck | null => (luckyLeft > 0 ? 'ad' : closing ? 'closing' : null);
+/** the rings from now on, and the one in your hand, as big as they now are (and his odds worked out again) */
+function refreshLuck(): void {
+  const k = luckNow();
+  setLuck(k);
+  heldMat.color.setHex(k ? BIG[k].color : COLORS[(thrown + 1) % COLORS.length]);
+  heldMat.emissive.setHex(k ? BIG[k].emissive : 0x000000);
+  heldMat.emissiveIntensity = 0.6;
+  held.scale.setScalar(k ? (MID + BIG[k].extra) / MID : 1);
+  oddsAt = -1;
+}
+let cleanedOut = false;   // the ring just down won the last prize not yet found (hooks.done)
+/** the round is over and its receipt is on its way: no paying for more till it's up (paid then, at the stall, the
+ *  receipt came up over a new round, and its own Cash and Tap did nothing) */
+let ending = false;
+const ad = setupAd(() => { luckyLeft = AD_REWARD; refreshLuck(); });
+function maybeAd(): void {
+  if (missStreak < AD_AFTER || rings <= 0 || luckyLeft > 0 || adRound === roundsPaid || adWatched()) return;
+  adRound = roundsPaid;
+  window.setTimeout(() => ad.offer(), 700);
+}
 const roundNew = new Set<Kind>();
 const paidWith = new Set<Method>();
 let cashTeased = -Infinity;
@@ -202,7 +230,7 @@ function next(): void {
   if (ready || fetching !== null || rings <= 0 || flying.length > 0) return;
   const top = pile[Math.min(pile.length, rings) - 1];
   fetchFrom.copy(top.position);
-  heldMat.color.setHex(COLORS[(thrown + 1) % COLORS.length]);
+  refreshLuck();
   fetching = 0;
   showRings();
 }
@@ -214,7 +242,7 @@ const pay = setupPay({
   scene, camera, canvas, reader, screen: screenMat, counterTop: COUNTER_TOP,
   cashButton: cashEl, tapButton: tapEl, receipt: receiptEl, summary: summaryEl, veil: veilEl,
   staging: (k) => world.stage(k),
-  canPay: () => introDone && rings === 0 && flying.length === 0 && fetching === null && !ready,
+  canPay: () => introDone && !ending && rings === 0 && flying.length === 0 && fetching === null && !ready,
   hovered(m, from) {
     // your hand over the cash tin: in a stall that's all about tapping, she notices (once in a while, not every time).
     // On the stall only before the first round; after that only on the receipt (once the rings are all thrown, the
@@ -261,6 +289,7 @@ const pay = setupPay({
 const STAMP_AT = 1.3, STAMP_GAP = 0.42, STAMP_HIT = 0.21;   // s: the first, between them, and from its start to landing
 let stampTimers: number[] = [];
 function summary(): void {
+  ending = false;
   renderBook();
   // all of it found: the receipt's last state (SOLD OUT, and a way to start over or to see more work)
   const complete = foundCount() === CATALOG.length;
@@ -300,7 +329,8 @@ function toss(t: Toss): void {
   rings--;
   thrown++;
   roundThrown++;
-  const ring = new Ring(scene, t, thrown);
+  const ring = new Ring(scene, t, thrown);   // lucky, if there are lucky ones left (setLuck)
+  if (ring.lucky === 'ad') { luckyLeft--; setLuck(luckNow()); }
   ring.pos.x = held.position.x;   // from where your hand is
   flying.push(ring);
   showRings();
@@ -336,7 +366,12 @@ const hooks = {
       roundWins.push(prize.kind);
       const fresh = find(prize.kind);
       if (fresh) roundNew.add(prize.kind);
-      if (fresh && foundCount() === CATALOG.length) emit('complete', { total: CATALOG.length });
+      const left = CATALOG.length - foundCount();
+      if (fresh && left > 0 && left <= 3) { closing = true; emit('closing', { left }); }   // her bigger rings, from the next one
+      if (fresh && foundCount() === CATALOG.length) {
+        emit('complete', { total: CATALOG.length });
+        cleanedOut = true;
+      }
       if (winStreak >= 2) emit('streak', { count: winStreak });
       if (slot.group) {
         const g = slot.group;
@@ -355,8 +390,20 @@ const hooks = {
       winStreak = 0;
       missStreak++;   // on his head: he has already said something
     }
+    if (result.kind !== 'win') maybeAd();
+    if (cleanedOut) {
+      // the last one found: that's the game. The receipt comes now (once the prize has been held up and her line
+      // said), not after the rest of the rings are thrown; he takes back the ones still on the counter
+      cleanedOut = false;
+      rings = 0;
+      showRings();
+      ending = true;
+      window.setTimeout(summary, (FLY + HOLD + 0.6) * 1000);
+      return;
+    }
     if (rings === 0 && flying.length === 0) {
       emit('empty', { wins: roundWins.length });
+      ending = true;
       window.setTimeout(summary, 1400);
     }
     next();
@@ -366,7 +413,9 @@ const hooks = {
 if (import.meta.env.DEV) {   // dev: win the next n prizes without throwing (to look at the counter)
   (window as unknown as { __rt: Record<string, unknown> }).__rt.win = (n: number) => {
     for (const slot of slots.filter((x) => x.prize).slice(0, n)) {
-      hooks.done({ dispose() {} } as unknown as Ring, { kind: 'win', slot });
+      const fake = { dispose() {} } as unknown as Ring;
+      hooks.done(fake, { kind: 'win', slot });
+      resting.splice(resting.indexOf(fake), 1);   // (left lying there, it has no place: the odds stopped on it, and the stall with them)
     }
   };
 }
@@ -559,6 +608,33 @@ const finishIntro = (): void => {
     const m = q.get('pay');
     if (m) window.setTimeout(() => (m === 'cash' ? cashEl : tapEl).click(), 400);
     if (q.has('receipt')) window.setTimeout(summary, 400);
+    // ?last: one prize left to find, the only one on the stand; it pays, and once the rings are in hand it's won by
+    // itself, to watch how the game ends (held up, her line, the receipt). ?closing: three left, the only three on the
+    // stand (as late in a real game, the places of what you've won left empty); it pays, she says her closing-time
+    // line, and you play on with her bigger rings
+    const short = q.has('last') ? 1 : q.has('closing') ? 3 : 0;
+    if (short) {
+      const out = slots.filter((x) => x.prize).sort(() => Math.random() - 0.5);
+      const keep = out.slice(0, short);
+      for (const x of out.slice(short)) { if (x.group) scene.remove(x.group); x.group = null; x.prize = null; }
+      const kinds = new Set(keep.map((x) => x.prize!.kind));
+      for (const e of CATALOG) if (!kinds.has(e.kind)) find(e.kind);
+      closing = true;
+      window.setTimeout(() => cashEl.click(), 400);
+      const wait = window.setInterval(() => {
+        if (!ready) return;
+        window.clearInterval(wait);
+        if (short === 3) { refreshLuck(); emit('closing', { left: 3 }); return; }
+        window.setTimeout(() => {
+          ready = false;
+          const fake = { dispose() {} } as unknown as Ring;   // no ring really thrown: none left lying there after
+          hooks.done(fake, { kind: 'win', slot: keep[0] });
+          resting.splice(resting.indexOf(fake), 1);
+        }, 800);
+      }, 200);
+    }
+    // ?ad: the ad offered at once (and forgotten, so it can be watched again)
+    if (q.has('ad')) { try { localStorage.removeItem('rt-ad'); } catch { /* fine */ } window.setTimeout(() => ad.offer(), 400); }
     // ?complete: the receipt as it is with the whole collection found (the last few as won this round)
     if (q.has('complete')) {
       for (const e of CATALOG) find(e.kind);
@@ -664,7 +740,7 @@ renderer.setAnimationLoop(() => {
     const until = performance.now() + 3;
     let r = job.next();
     while (!r.done && performance.now() < until) r = job.next();
-    if (r.done) { job = null; if (ready) talk.status(STATUS.odds(r.value * 100)); }
+    if (r.done) { job = null; if (ready) talk.status((luckyLeft > 0 ? `★ Lucky ring ×3 · ${luckyLeft} left\n` : closing ? '★ Closing-time special: big ring\n' : '') + STATUS.odds(r.value * 100)); }
   }
   if (!ready) job = null;
   // on the front of her stand, hanging from just under the laptop's edge (the stand's face is bare there): its top
@@ -678,7 +754,7 @@ renderer.setAnimationLoop(() => {
   const idle = (performance.now() - lastAction) / 1000;
   // every 10 s of nothing, she says something about it (a different line each time, at random)
   // (not before the opening is over, nor while the receipt is up)
-  const canNag = introDone && !summaryEl.classList.contains('is-on');
+  const canNag = introDone && !summaryEl.classList.contains('is-on') && !ad.isOpen();
   if (canNag && flying.length === 0 && idle > 10 * (idleSaid + 1)) {
     idleSaid++;
     emit('idle', { seconds: Math.round(idle), rings, paid: roundsPaid > 0 });

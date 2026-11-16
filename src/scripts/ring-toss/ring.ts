@@ -23,6 +23,19 @@ const STUCK_AFTER = 5;
 let LEEWAY = 0;
 export function setRounds(rounds: number): void { LEEWAY = Math.min(0.04, Math.max(0, rounds - 2) * 0.01); }
 
+/** bigger rings, for a while: the ad's reward (ad.ts: gold, wider by 12 cm inside, about 3× the odds) and the owner's
+ *  at closing time (three prizes or fewer left to find: hers, red, wider by 8 cm, about 2.4×). Each is wider inside by
+ *  extra (m), and looks it. The unseen rings he throws to work out your odds are as wide, so what his terminal says is
+ *  still the game's own figure (the ×: odds.ts over the whole stall, tried out away from the page) */
+export type Luck = 'ad' | 'closing';
+export const BIG: Record<Luck, { extra: number; color: number; emissive: number }> = {
+  ad: { extra: 0.12, color: 0xf2c14e, emissive: 0xb07a10 },
+  closing: { extra: 0.08, color: 0xd8322a, emissive: 0x5a0c06 },
+};
+let LUCK: Luck | null = null;
+/** the rings thrown from now on: bigger (which kind), or plain (null) */
+export function setLuck(k: Luck | null): void { LUCK = k; }
+
 const G = 9.8;
 const ANGLE = 35 * Math.PI / 180;        // a lob, so it comes down onto the prizes rather than across them
 const SPEED = [3.9, 8.6];                // m/s: the front row from about 15% power, the back row at about 70-80%, the wall above that
@@ -90,10 +103,17 @@ export class Ring {
   private sliding = 0;
   /** times it came down on another ring and was knocked off it, rather than lie on it */
   private ringHops = 0;
+  /** how much wider than a plain ring it is inside (a lucky ring: setLuck), fixed when it's thrown */
+  readonly lucky = LUCK;
+  readonly luck = LUCK ? BIG[LUCK].extra : 0;
 
   constructor(scene: THREE.Scene | null, toss: Toss, n: number) {
-    this.mesh = scene ? new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: COLORS[n % COLORS.length], roughness: 0.35 })) : null;
+    const mat = this.lucky
+      ? new THREE.MeshStandardMaterial({ color: BIG[this.lucky].color, roughness: 0.25, metalness: 0.5, emissive: BIG[this.lucky].emissive, emissiveIntensity: 0.6 })
+      : new THREE.MeshStandardMaterial({ color: COLORS[n % COLORS.length], roughness: 0.35 });
+    this.mesh = scene ? new THREE.Mesh(geometry, mat) : null;
     if (scene && this.mesh) {
+      if (this.luck) this.mesh.scale.setScalar((MID + this.luck) / MID);
       this.mesh.castShadow = true;
       scene.add(this.mesh);
     }
@@ -193,7 +213,7 @@ export class Ring {
         const top = s.stoolH + p.height;
         if (prevBottom > top && bottom <= top) {
           // right round it, or near enough that the rim catches the top and tips over it: a ringer
-          if (d + p.footR * (p.strict ? BIG_TIP : TIP) <= INNER + LEEWAY) {
+          if (d + p.footR * (p.strict ? BIG_TIP : TIP) <= INNER + LEEWAY + this.luck) {
             if (!this.mesh) { this.state = 'rest'; hooks.done(this, { kind: 'win', slot: s }); return; }   // a probe only reports it
             this.state = 'settle';
             this.target = s;

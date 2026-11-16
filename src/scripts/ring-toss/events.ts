@@ -19,6 +19,8 @@ export interface GameEvents {
   restock: { count: number; unseen: number; all: boolean };
   /** the last prize not yet found has just been won: every one of them found */
   complete: { total: number };
+  /** a prize found, and now only this many (3 or fewer) left to find: closing time, bigger rings (main.ts) */
+  closing: { left: number };
   ask: { id: string };
 }
 export type GameEvent = keyof GameEvents;

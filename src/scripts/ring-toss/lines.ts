@@ -21,7 +21,9 @@ export type Pool =
   | 'empty'       // out of rings, and still standing there
   | 'restock'     // she's filled the empty places with something new
   | 'restockNew'  // …and some of it you've never seen before
-  | 'complete';   // you've found every prize there is
+  | 'complete'    // you've found every prize there is
+  | 'closing'     // three left to find: she wants to go home, so the rings get bigger
+  | 'lastOne';    // one left to find
 
 export const LINES: Record<Pool, string[]> = {
   open: ['Hey, hey! Welcome to Lucky 88!', "Oh, look who's here! Feeling lucky?", "Come on and play! Don't be shy.", 'Ten rings, five bucks. What a deal, right?', 'Five bucks for ten chances at glory!'],
@@ -48,13 +50,21 @@ export const LINES: Record<Pool, string[]> = {
     'I think I just went bankrupt.',
   ],
   mine: ["Aiya! That one's mine! ...Fine. Rules are rules."],
+  // three left to find: from here on, bigger rings (main.ts). As recorded (the file names in _source/voice/closing)
+  closing: [
+    'Only three left? Aiya… I wanna go home. Here, take the big rings.',
+    "Only three more? Okay, family-size ring. I've got a train to catch.",
+    "You know what? Bigger rings. Let's wrap this up, my feet hurt.",
+    "Three left?! Here. Big ring. Please. I'm begging you.",
+  ],
+  lastOne: ['Last one. Get it so I can close up.'],
   end: ["Congratulations. You own Lucky 88 now.", "Not bad! Wanna go again?", "That's a wrap! Come back soon!", "Well... at least you had fun. Right?", "You know what? I admire your consistency.", "Look at all those prizes! Show-off."],
   empty: ['Out of rings. Lucky you, I sell more.', 'Ten more? I give you a good price.'],
 };
 
 /** the pools Siman has recorded: line i of each is public/play/no-cash-only/voice/<pool>-<i+1>.mp3 (made from
  *  _source/voice/), so keep these lists in the order of the files. The rest are shown, not said. */
-export const VOICED: Pool[] = ['open', 'payCash', 'payTap', 'miss', 'missStreak', 'near', 'win', 'streak', 'jackpot', 'end', 'owner', 'mine', 'restock', 'restockNew', 'complete', 'clink', 'payBoth', 'idle', 'empty'];
+export const VOICED: Pool[] = ['open', 'payCash', 'payTap', 'miss', 'missStreak', 'near', 'win', 'streak', 'jackpot', 'end', 'owner', 'mine', 'restock', 'restockNew', 'complete', 'clink', 'payBoth', 'idle', 'empty', 'closing', 'lastOne'];
 /** which of the 'end' lines, by how the round went: prizes won */
 export const END = { great: [0, 5], ok: [1, 2], bad: [3, 4] } as const;
 export const endMood = (wins: number): keyof typeof END => (wins >= 3 ? 'great' : wins >= 1 ? 'ok' : 'bad');

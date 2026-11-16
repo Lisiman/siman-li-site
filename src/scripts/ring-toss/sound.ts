@@ -27,6 +27,9 @@ export function mute(m: boolean): void {
   if (ctx && out) out.gain.setTargetAtTime(m ? 0 : 0.6, ctx.currentTime, 0.08);
 }
 
+/** whether the switch has it off (the ad's film follows it: ad.ts) */
+export function isMuted(): boolean { return muted; }
+
 /** whether the browser is letting it play yet (it waits for a click, unless the visitor has played here before) */
 export function soundOn(): boolean { return ctx?.state === 'running'; }
 
