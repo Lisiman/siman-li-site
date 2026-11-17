@@ -23,7 +23,10 @@ const HEAD_ABOVE_BONE = 0.09 * HEAD_SCALE;   // the head bone sits at the bottom
 const ACTS = {
   idle:   { rank: 0, clips: ['happy-idle', 'idle', 'happy-idle-1'] },
   // (not 'yawn': its hand over her mouth went into her face)
-  fidget: { rank: 0.5, clips: ['looking-around', 'texting-while-standing', 'bored', 'rapping'] },
+  // the moments she has nothing to do, each its own act so each has its own share of them (IDLES, below)
+  bored:  { rank: 0.5, clips: ['bored'] },
+  look:   { rank: 0.5, clips: ['looking-around'] },
+  rap:    { rank: 0.5, clips: ['rapping'] },
   // dancing by herself while no one's throwing (Mixamo; all clear of the laptop by 5 cm or more)
   dance:  { rank: 0.5, clips: ['silly-dancing', 'silly-dancing-1', 'running-man'] },
   talk:   { rank: 1, clips: ['talking', 'talking-1', 'happy-hand-gesture'] },
@@ -35,7 +38,7 @@ const ACTS = {
   thanks: { rank: 2, clips: ['thankful'] },
   laugh:  { rank: 2, clips: ['laughing'] },
   bow:    { rank: 2, clips: ['quick-informal-bow'] },
-  shoo:   { rank: 2, clips: ['dismissing-gesture'] },
+  phone:  { rank: 0.5, clips: ['texting-while-standing'] },
   win:    { rank: 3, clips: ['cheering', 'clapping'] },
   streak: { rank: 3, clips: ['excited', 'victory'] },
   mine:   { rank: 3.5, clips: ['annoyed-head-shake'] },
@@ -48,10 +51,10 @@ type Act = keyof typeof ACTS;
 /** clips that reach forward into her laptop, made smaller (soften(): 1 as they are), just enough that her hands
  *  stop short of its screen (by 1.4 cm or more, every clip measured frame by frame in node). Bending the arm back
  *  out of the way instead (IK, tried) took the elbow 68° for 4 cm, and the arm looked broken. */
-const SOFTER: Record<string, number> = { 'dismissing-gesture': 0.6, bored: 0.5, rapping: 0.6, talking: 0.75 };
+const SOFTER: Record<string, number> = { bored: 0.5, rapping: 0.6, talking: 0.75 };
 /** the long clips, cut short (s), and the very short one played a few times over */
 const HOLD: Record<string, number> = {
-  'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, rapping: 5, 'looking-around': 5, laughing: 3.5,
+  'talking-1': 4.5, 'telling-a-secret': 8.6, 'texting-while-standing': 7, bored: 6, rapping: 4, 'looking-around': 5, laughing: 3.5,
   excited: 3, victory: 3.5, 'running-man': 8, agreeing: 3, disappointed: 3, thankful: 3,
 };
 const REPEAT: Record<string, number> = { waving: 5 };
@@ -66,7 +69,7 @@ const SWING: Record<string, { sweep: number; from: number; to: number }> = {
 /** her head turns to you, over whatever the clip is doing: how much (0–1), at most how far (rad), and the acts
  *  where she looks elsewhere on purpose (around, at her phone, down in a bow, away from a ring in the face) */
 const LOOK = { weight: 0.85, max: 0.7, away: 0.25 };
-const LOOKS_AWAY: Act[] = ['fidget', 'bow', 'ouch', 'laugh'];
+const LOOKS_AWAY: Act[] = ['bored', 'look', 'rap', 'phone', 'bow', 'ouch', 'laugh'];
 /** the knock when a ring hits her: her head ducks (rad) and tips to one side, then springs back, settling within
  *  `time` (s); the neck takes part of it, so it bends rather than pivots */
 const BONK = { time: 0.75, dip: 0.3, tilt: 0.2, neck: 0.4 };
@@ -247,9 +250,12 @@ export function loadOwner(scene: THREE.Scene, owner: Owner, placeholder: THREE.O
   on('coin', ({ method }) => act(method === 'tap' ? 'thanks' : 'pay'));
   on('miss', ({ streak }) => { if (streak >= 3 && streak % 3 === 0) act('laugh'); else if (Math.random() < 0.4) act('nod'); });
   on('near', () => act('near'));
-  /** of the moments she has nothing to do, how many she dances through */
-  const DANCES = 0.35;
-  on('idle', ({ rings }) => act(Math.random() < DANCES ? 'dance' : rings > 0 || Math.random() < 0.6 ? 'fidget' : 'shoo'));
+  /** what she does with a moment she has nothing to do: each act's share of them (they add up to 1) */
+  const IDLES: [Act, number][] = [['bored', 0.25], ['phone', 0.25], ['dance', 0.2], ['rap', 0.2], ['look', 0.1]];
+  on('idle', () => {
+    let r = Math.random();
+    act((IDLES.find(([, p]) => (r -= p) < 0) ?? IDLES[0])[0]);
+  });
   on('empty', () => act('bow'));
 
   return {
